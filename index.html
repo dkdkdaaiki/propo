@@ -2,196 +2,1862 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>PropoSync Professional</title>
+<title>公共交通計画プロポーザルプロジェクトマネジメント</title>
 <style>
-/* スタイルは変更なし（プロ仕様デザインを維持） */
-:root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #e2e8f0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 24px; }
-.container { max-width: 1400px; margin: 0 auto; }
-.header-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
-h1 { font-size: 24px; font-weight: 800; color: #0f172a; }
-.sync-badge { font-size: 12px; padding: 4px 12px; border-radius: 20px; background: #dcfce7; color: #166534; font-weight: 600; }
-.controls { display: flex; gap: 12px; align-items: center; background: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-label { font-size: 13px; font-weight: 700; color: #64748b; }
-select { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); font-size: 14px; outline: none; cursor: pointer; }
-.btn-edit { background: #0f172a; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; transition: opacity 0.2s; }
-.btn-edit:hover { opacity: 0.8; }
-.dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); transition: transform 0.2s; }
-.stat-label { font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
-.stat-value { font-size: 32px; font-weight: 800; color: #0f172a; }
-.stat-unit { font-size: 14px; color: #94a3b8; margin-left: 4px; }
-.section { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
-.section-header { padding: 16px 20px; background: #f1f5f9; border-bottom: 1px solid var(--border); }
-.section-title { font-weight: 700; font-size: 15px; }
-.task-table { width: 100%; border-collapse: collapse; }
-.task-table th { text-align: left; padding: 12px 20px; font-size: 12px; color: #64748b; border-bottom: 1px solid var(--border); }
-.task-table td { padding: 14px 20px; border-bottom: 1px solid #f8fafc; font-size: 14px; }
-.row-overdue { background: #fff1f2; }
-.badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; }
-.badge-date { background: #f1f5f9; color: #475569; }
-.badge-urgent { background: #fee2e2; color: #991b1b; }
-.badge-done { background: #f8fafc; color: #94a3b8; text-decoration: line-through; }
-.badge-num { background: #334155; color: white; margin-right: 8px; }
-#loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: #e2e8f0; z-index: 9999; display: none; }
-#loading-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+  background: #F5F5F5;
+  padding: 20px;
+  color: #333;
+  line-height: 1.5;
+}
+.container { max-width: 1500px; margin: 0 auto; }
+h1 { font-size: 22px; margin-bottom: 4px; color: #263238; }
+.subtitle { font-size: 13px; color: #666; margin-bottom: 16px; }
+
+.input-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.input-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.btn {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-primary { background: #1E88E5; color: white; }
+.btn-primary:hover { background: #1976D2; }
+.btn-secondary { background: #ECEFF1; color: #455A64; }
+.btn-secondary:hover { background: #CFD8DC; }
+.btn-link {
+  background: transparent;
+  color: #90A4AE;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.btn-link:hover { color: #455A64; text-decoration: underline; }
+.parse-info { font-size: 12px; color: #666; margin-left: auto; }
+.parse-error { color: #C62828; }
+.parse-ok { color: #2E7D32; }
+
+/* 同期ステータス */
+#sync-status {
+  font-size: 12px;
+  color: #666;
+}
+#sync-status.syncing { color: #1565C0; }
+#sync-status.ok { color: #2E7D32; }
+#sync-status.error { color: #C62828; }
+
+/* パスワード画面 */
+.auth-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #263238;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.auth-box {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+}
+.auth-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #263238;
+}
+.auth-subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 24px;
+}
+.auth-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  border: 2px solid #CFD8DC;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.auth-input:focus {
+  border-color: #1E88E5;
+  outline: none;
+}
+.auth-error {
+  color: #C62828;
+  font-size: 12px;
+  margin-bottom: 12px;
+  min-height: 16px;
+}
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1E88E5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.auth-btn:hover { background: #1976D2; }
+.app-content { display: none; }
+.app-content.authed { display: block; }
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: white;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  text-align: center;
+  border-top: 4px solid #ddd;
+}
+.stat-card.overdue { border-top-color: #D32F2F; }
+.stat-card.today { border-top-color: #F57C00; }
+.stat-card.week { border-top-color: #FBC02D; }
+.stat-card.nextweek { border-top-color: #43A047; }
+.stat-card.unassigned { border-top-color: #7B1FA2; }
+.stat-label { font-size: 11px; color: #666; margin-bottom: 4px; }
+.stat-value { font-size: 26px; font-weight: bold; color: #263238; line-height: 1; }
+.stat-unit { font-size: 12px; color: #999; margin-left: 4px; }
+
+.view-switcher {
+  background: white;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: inline-flex;
+  gap: 4px;
+}
+.view-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+}
+.view-btn.active { background: #263238; color: white; }
+
+.done-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+  padding: 8px 16px;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #455A64;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  user-select: none;
+}
+.done-toggle input {
+  cursor: pointer;
+}
+
+/* 済タスク非表示モード */
+body.hide-done .task-item.done { display: none; }
+body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
+
+.legend {
+  background: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.legend-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 4px;
+  background: #FAFAFA;
+}
+.legend-title {
+  font-weight: bold;
+  color: #455A64;
+  font-size: 11px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.legend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.legend-swatch.overdue { background: #D32F2F; }
+.legend-swatch.today { background: #F57C00; }
+.legend-swatch.urgent { background: #FBC02D; }
+.legend-swatch.upcoming { background: #43A047; }
+.legend-swatch.future { background: #BDBDBD; }
+
+.section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #ECEFF1;
+  flex-wrap: wrap;
+}
+.section-title { font-size: 17px; font-weight: bold; }
+.section-count { font-size: 12px; color: #666; margin-left: auto; }
+.case-num-badge {
+  display: inline-block;
+  background: #455A64;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+.kind-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+.kind-badge.プロポーザル { background: #E3F2FD; color: #1565C0; }
+.kind-badge.郵便入札 { background: #FFF3E0; color: #E65100; }
+
+/* === ここが今回の肝: グリッドレイアウト === */
+.task-list { list-style: none; }
+
+/* 担当者別/締切別ビュー用: 自治体列あり */
+.task-item {
+  display: grid;
+  grid-template-columns: 40px 100px 90px 220px 180px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  border-bottom: 1px solid #F0F0F0;
+  border-left: 4px solid transparent;
+  transition: background 0.15s;
+}
+
+/* 案件別ビュー用: 自治体列なし */
+.task-item.case-mode {
+  grid-template-columns: 40px 100px 90px 220px 1fr;
+}
+
+.task-item:hover { background: #FAFAFA; }
+.task-item:last-child { border-bottom: none; }
+.task-item.overdue { border-left-color: #D32F2F; background: #FFF5F5; }
+.task-item.today { border-left-color: #F57C00; background: #FFF8F0; }
+.task-item.urgent { border-left-color: #FBC02D; background: #FFFEF3; }
+.task-item.upcoming { border-left-color: #43A047; }
+.task-item.future { border-left-color: #BDBDBD; }
+.task-item.done { opacity: 0.5; border-left-color: #E0E0E0; background: #FAFAFA; }
+.task-item.done .task-name,
+.task-item.done .task-city,
+.task-item.done .persons-text { text-decoration: line-through; color: #999; }
+.task-item.next {
+  background: #FFF8E1;
+  font-weight: 500;
+}
+
+.done-mark {
+  display: inline-block;
+  background: #43A047;
+  color: white;
+  padding: 3px 0;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+  width: 36px;
+}
+.undone-mark {
+  display: inline-block;
+  background: transparent;
+  border: 1px dashed #CFD8DC;
+  padding: 3px 0;
+  border-radius: 3px;
+  font-size: 11px;
+  color: #90A4AE;
+  text-align: center;
+  width: 36px;
+}
+
+.date-badge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+  font-weight: 500;
+  background: #ECEFF1;
+  color: #455A64;
+  width: 96px;
+}
+.task-item.overdue .date-badge { background: #FFEBEE; color: #C62828; font-weight: bold; }
+.task-item.today .date-badge { background: #FFF3E0; color: #E65100; font-weight: bold; }
+.task-item.urgent .date-badge { background: #FFFDE7; color: #F57F17; }
+.task-item.upcoming .date-badge { background: #E8F5E9; color: #2E7D32; }
+.task-item.done .date-badge { background: #ECEFF1; color: #90A4AE; }
+.date-badge.nodate { background: #F3E5F5; color: #6A1B9A; }
+
+.deadline-info {
+  font-size: 10px;
+  background: #FFEBEE;
+  color: #C62828;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.days-left {
+  font-size: 11px;
+  color: #999;
+  text-align: left;
+}
+.days-left.urgent { color: #C62828; font-weight: bold; }
+.days-left.overdue { color: #C62828; font-weight: bold; }
+
+.task-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #37474F;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.task-icon {
+  display: inline-block;
+  margin-right: 3px;
+  font-size: 14px;
+}
+.task-city {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+.task-city-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.persons-text {
+  font-size: 12px;
+  color: #546E7A;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.person-main {
+  font-weight: bold;
+  color: #263238;
+}
+.person-unassigned {
+  background: #7B1FA2;
+  color: white;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+/* リストヘッダー(列見出し) */
+.list-header {
+  display: grid;
+  grid-template-columns: 40px 100px 90px 220px 180px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-left: 4px solid transparent;
+  font-size: 11px;
+  font-weight: bold;
+  color: #90A4AE;
+  border-bottom: 2px solid #ECEFF1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.list-header.case-mode {
+  grid-template-columns: 40px 100px 90px 220px 1fr;
+}
+
+.progress-container {
+  flex: 1;
+  height: 6px;
+  background: #ECEFF1;
+  border-radius: 3px;
+  overflow: hidden;
+  max-width: 160px;
+  margin: 0 12px;
+}
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #43A047 0%, #66BB6A 100%);
+  transition: width 0.3s;
+}
+.progress-text { font-size: 11px; color: #666; font-weight: 500; }
+
+.next-action {
+  background: #FFF8E1;
+  border-left: 3px solid #FFA726;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #E65100;
+  border-radius: 4px;
+}
+.next-action.overdue-alert {
+  background: #FFEBEE;
+  border-left-color: #D32F2F;
+  color: #C62828;
+}
+.next-action.done-all {
+  background: #E8F5E9;
+  border-left-color: #43A047;
+  color: #2E7D32;
+}
+
+.deadline-header {
+  color: white;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.deadline-header.overdue { background: linear-gradient(90deg, #D32F2F 0%, #C62828 100%); }
+.deadline-header.today { background: linear-gradient(90deg, #F57C00 0%, #E65100 100%); }
+.deadline-header.this-week { background: linear-gradient(90deg, #FBC02D 0%, #F57F17 100%); }
+.deadline-header.next-week { background: linear-gradient(90deg, #388E3C 0%, #2E7D32 100%); }
+.deadline-header.future { background: linear-gradient(90deg, #616161 0%, #424242 100%); }
+.deadline-count { margin-left: auto; font-size: 13px; opacity: 0.9; }
+
+.view-content { display: none; }
+.view-content.active { display: block; }
+
+/* === ガントチャート(帯スケ方式) === */
+.gantt-wrapper {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+.gantt-scroll {
+  overflow-x: auto;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.gantt-table {
+  border-collapse: collapse;
+  font-size: 11px;
+  table-layout: fixed;
+}
+.gantt-table th, .gantt-table td {
+  border: 1px solid #ECEFF1;
+  padding: 0;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.gantt-th-sticky {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: #FAFAFA;
+}
+.gantt-th-sticky.top {
+  z-index: 5;
+}
+.gantt-header-top {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: #455A64;
+}
+.gantt-header-top th {
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  background: #455A64;
+  color: white;
+  border-color: #37474F;
+}
+.gantt-header-sub {
+  position: sticky;
+  top: 30px;
+  z-index: 4;
+  background: #ECEFF1;
+}
+.gantt-header-sub th {
+  padding: 4px 2px;
+  text-align: center;
+  font-size: 10px;
+  color: #455A64;
+  font-weight: normal;
+  background: #ECEFF1;
+  height: 36px;
+}
+.gantt-header-sub th.sat { background: #E3F2FD; color: #1565C0; }
+.gantt-header-sub th.sun { background: #FFEBEE; color: #C62828; }
+.gantt-header-sub th.holiday { background: #FFEBEE; color: #C62828; }
+.gantt-header-sub th.today { background: #1A237E; color: white; font-weight: bold; }
+
+.gantt-date-col {
+  width: 28px;
+  min-width: 28px;
+  height: 60px;
+}
+.gantt-date-col.sat { background: #E3F2FD80; }
+.gantt-date-col.sun { background: #FFEBEE80; }
+.gantt-date-col.holiday { background: #FFEBEE80; }
+
+/* 今日列: 左枠を紺色の太い線にして全行貫通 */
+.gantt-date-col.today-col {
+  position: relative;
+  border-left: 2px solid #1A237E !important;
+}
+.gantt-header-sub th.today {
+  border-left: 2px solid #1A237E !important;
+  border-right: 2px solid #1A237E !important;
+}
+
+.gantt-row-case {
+  background: white;
+}
+.gantt-row-case.alt {
+  background: #FAFAFA;
+}
+
+.gantt-name-cell {
+  padding: 8px 10px !important;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 220px;
+  width: 220px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: #FAFAFA;
+}
+.gantt-row-case.alt .gantt-name-cell {
+  background: #F5F5F5;
+}
+.gantt-name-cell .case-num-badge {
+  margin-right: 4px;
+}
+.gantt-leaders {
+  font-size: 10px;
+  color: #666;
+  font-weight: normal;
+  display: block;
+  margin-top: 3px;
+}
+
+/* 帯(バー)のスタイル */
+.gantt-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+  position: relative;
+  overflow: visible;
+  cursor: help;
+}
+.gantt-bar-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 10px;
+  white-space: nowrap;
+  letter-spacing: 1px;
+  padding: 2px 0;
+  color: #333;
+}
+
+/* タスク種別ごとの色(既存パレットから選定) */
+.gantt-bar-質問                { background: #FFF9C4; } /* 薄黄 */
+.gantt-bar-参加表明            { background: #C8E6C9; } /* 薄緑 */
+.gantt-bar-提案書草案作成      { background: #B2EBF2; } /* 薄水色 */
+.gantt-bar-提案書QC            { background: #80CBC4; } /* 薄青緑 */
+.gantt-bar-最終化・提出準備    { background: #FFCDD2; } /* 薄赤 */
+.gantt-bar-提案書郵送          { background: #FCE4EC; } /* 薄ピンク */
+.gantt-bar-必着                { background: #FFE0B2; } /* 薄オレンジ */
+.gantt-bar-プレゼン            { background: #E1BEE7; } /* 薄紫 */
+.gantt-bar-郵便入札            { background: #B3E5FC; } /* 薄青 */
+
+/* 済オーバーレイ */
+.gantt-done-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #D32F2F;
+  font-weight: bold;
+  font-size: 16px;
+  border: 2px solid #D32F2F;
+  padding: 0 6px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 3px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.gantt-month-label {
+  font-weight: bold;
+  font-size: 13px;
+  padding: 6px 8px;
+  color: white;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .dashboard { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) {
+  .dashboard { grid-template-columns: repeat(2, 1fr); }
+}
+@media print {
+  body { background: white; padding: 0; }
+  .section { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+  .view-switcher, .input-panel { display: none; }
+}
 </style>
 </head>
 <body>
 
-<div id="loading-overlay"><div id="loading-bar"></div></div>
-
-<div class="container">
-  <div class="header-flex">
-    <div>
-      <h1>PropoSync Professional <span id="sync-status" class="sync-badge">同期中...</span></h1>
-      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">本日: <span id="today-display"></span> / 10分ごとに自動更新</p>
-    </div>
-    
-    <div class="controls">
-      <label>表示切替:</label>
-      <select id="user-filter" onchange="renderAll()">
-        <option value="全員">全員のタスクを表示</option>
-        <option value="岸岡">岸岡</option>
-        <option value="齊藤">齊藤</option>
-        <option value="長谷川">長谷川</option>
-        <option value="松澤">松澤</option>
-        <option value="浅川">浅川</option>
-        <option value="大須賀">大須賀</option>
-        <option value="矢嶋">矢嶋</option>
-        <option value="藤井">藤井</option>
-        <option value="植松">植松</option>
-        <option value="北見">北見</option>
-        <option value="菅原">菅原</option>
-        <option value="●●">担当未定</option>
-      </select>
-      <a href="https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit" target="_blank" class="btn-edit">スプレッドシートを編集</a>
-    </div>
+<!-- パスワード画面 -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-title">公共交通計画プロポーザル<br>プロジェクトマネジメント</div>
+    <div class="auth-subtitle">パスワードを入力してください</div>
+    <input type="password" class="auth-input" id="auth-input" placeholder="パスワード" autofocus>
+    <div class="auth-error" id="auth-error"></div>
+    <button class="auth-btn" onclick="checkPassword()">ログイン</button>
   </div>
-
-  <div class="dashboard" id="dashboard"></div>
-  <div id="main-content"></div>
 </div>
 
+<div class="app-content" id="app-content">
+<div class="container">
+<h1>公共交通計画プロポーザルプロジェクトマネジメント</h1>
+<div class="subtitle">
+  本日: <span id="today-display"></span>
+  &nbsp;｜&nbsp;
+  <span id="sync-status">読み込み中...</span>
+</div>
+
+<div class="input-panel">
+  <div class="input-actions">
+    <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit" target="_blank" rel="noopener">📝 スプレッドシートを編集</a>
+    <button class="btn btn-secondary" onclick="fetchAndRender()">🔄 最新を取得</button>
+    <span class="parse-info" id="parse-info"></span>
+    <button class="btn btn-link" onclick="logout()" title="パスワード認証を解除">ログアウト</button>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="stat-card overdue">
+    <div class="stat-label">期限超過</div>
+    <div class="stat-value" id="stat-overdue">-</div><span class="stat-unit">件</span>
+  </div>
+  <div class="stat-card today">
+    <div class="stat-label">本日期限</div>
+    <div class="stat-value" id="stat-today">-</div><span class="stat-unit">件</span>
+  </div>
+  <div class="stat-card week">
+    <div class="stat-label">今週中(7日)</div>
+    <div class="stat-value" id="stat-week">-</div><span class="stat-unit">件</span>
+  </div>
+  <div class="stat-card nextweek">
+    <div class="stat-label">来週中(8-14日)</div>
+    <div class="stat-value" id="stat-nextweek">-</div><span class="stat-unit">件</span>
+  </div>
+  <div class="stat-card unassigned">
+    <div class="stat-label">担当未定</div>
+    <div class="stat-value" id="stat-unassigned">-</div><span class="stat-unit">件</span>
+  </div>
+</div>
+
+<div class="view-switcher">
+  <button class="view-btn active" data-view="person" onclick="switchView('person', this)">担当者別</button>
+  <button class="view-btn" data-view="case" onclick="switchView('case', this)">案件別</button>
+  <button class="view-btn" data-view="deadline" onclick="switchView('deadline', this)">締切別</button>
+  <button class="view-btn" data-view="task" onclick="switchView('task', this)">タスク別</button>
+  <button class="view-btn" data-view="gantt" onclick="switchView('gantt', this)">ガント</button>
+</div>
+<label class="done-toggle">
+  <input type="checkbox" id="show-done" checked onchange="toggleDone()">
+  <span>済タスクを表示</span>
+</label>
+
+<div class="legend">
+  <div class="legend-group">
+    <span class="legend-title">緊急度</span>
+    <span class="legend-item"><span class="legend-swatch overdue"></span>超過</span>
+    <span class="legend-item"><span class="legend-swatch today"></span>本日</span>
+    <span class="legend-item"><span class="legend-swatch urgent"></span>3日内</span>
+    <span class="legend-item"><span class="legend-swatch upcoming"></span>1週間内</span>
+    <span class="legend-item"><span class="legend-swatch future"></span>余裕</span>
+  </div>
+  <div class="legend-group">
+    <span class="legend-title">タスク</span>
+    <span class="legend-item">❓質問</span>
+    <span class="legend-item">📝参加表明</span>
+    <span class="legend-item">✏️草案</span>
+    <span class="legend-item">🔍QC</span>
+    <span class="legend-item">📦最終化</span>
+    <span class="legend-item">📬郵送</span>
+    <span class="legend-item">🎤プレゼン</span>
+    <span class="legend-item">📮郵便入札</span>
+  </div>
+</div>
+
+<div id="person-view" class="view-content active"></div>
+<div id="case-view" class="view-content"></div>
+<div id="deadline-view" class="view-content"></div>
+<div id="task-view" class="view-content"></div>
+<div id="gantt-view" class="view-content"></div>
+</div>
+</div><!-- app-content -->
+
 <script>
-// === 修正後のURL（CSVとして強制読み込み） ===
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQoEzRihpNiOfpjj4NFBXd0khIJkYkHsh01_DnbTI-JdhDO4QDSAqgBSk97Boa0uLXtGy7esFdWxJLl/pub?output=csv';
-const TODAY = new Date(); 
+// 今日の日付(ブラウザ基準)
+const TODAY = (() => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+})();
+const PERSON_ORDER = ['岸岡', '齊藤', '長谷川', '松澤', '浅川', '大須賀', '矢嶋', '藤井', '植松', '北見', '菅原', '●●'];
 
-let allCases = [];
+const TASK_DEFAULT_PERSON = {
+  '質問': ['岸岡'],
+  '参加表明': ['齊藤'],
+  '提案書草案作成': ['●●'],      // サブ担当者(動的に決定)
+  '提案書QC': ['●●'],            // サブ担当者(動的に決定)
+  '最終化・提出準備': ['●●'],    // メイン担当者(動的に決定)
+  '提案書郵送': ['岸岡'],
+  '郵便入札': ['齊藤'],
+};
 
-async function fetchData() {
-  const bar = document.getElementById('loading-bar');
-  const overlay = document.getElementById('loading-overlay');
-  overlay.style.display = 'block';
-  bar.style.width = '30%';
+const TASK_ICONS = {
+  '質問': '❓',
+  '参加表明': '📝',
+  '提案書草案作成': '✏️',
+  '提案書QC': '🔍',
+  '最終化・提出準備': '📦',
+  '提案書郵送': '📬',
+  'プレゼン': '🎤',
+  '郵便入札': '📮',
+};
 
-  try {
-    const response = await fetch(SHEET_CSV_URL + '&t=' + new Date().getTime());
-    const csv = await response.text();
-    
-    // 改行で分割し、カンマが含まれていても最初の列（A列）を取得
-    const rows = csv.split(/\r?\n/);
-    const fmtLines = rows.map(row => {
-        // CSVのパース（簡易版: 最初のカンマより前を取得。クォーテーションを削除）
-        return row.split(',')[0].replace(/^"|"$/g, '').trim();
-    }).filter(l => l.includes('【交通'));
-    
-    allCases = fmtLines.map(line => parseLine(line)).filter(c => c);
-    
-    document.getElementById('sync-status').textContent = '同期完了: ' + new Date().toLocaleTimeString();
-    renderAll();
-  } catch (e) {
-    console.error(e);
-    document.getElementById('sync-status').textContent = '同期エラー';
-  } finally {
-    bar.style.width = '100%';
-    setTimeout(() => { overlay.style.display = 'none'; bar.style.width = '0%'; }, 500);
+// 日本の祝日 2026年(必要に応じて追加)
+const HOLIDAYS_JP = new Set([
+  '2026-01-01', '2026-01-12', '2026-02-11', '2026-02-23',
+  '2026-03-20', '2026-04-29',
+  '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06',
+  '2026-07-20', '2026-08-11', '2026-09-21', '2026-09-23',
+  '2026-10-12', '2026-11-03', '2026-11-23',
+]);
+
+// 営業日判定(土日祝を除く)
+function isBusinessDay(d) {
+  const dow = d.getDay();
+  if (dow === 0 || dow === 6) return false;
+  const pad = n => String(n).padStart(2, '0');
+  const key = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  if (HOLIDAYS_JP.has(key)) return false;
+  return true;
+}
+
+// 指定日からN営業日前の日付を返す(自身は含まない)
+function subtractBusinessDays(date, n) {
+  const d = new Date(date);
+  let count = 0;
+  while (count < n) {
+    d.setDate(d.getDate() - 1);
+    if (isBusinessDay(d)) count++;
   }
+  return d;
+}
+
+// 指定日の前営業日
+function prevBusinessDay(date) {
+  return subtractBusinessDays(date, 1);
+}
+
+let cases = [];
+
+function parseFmt(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const result = [];
+  const errors = [];
+  for (const line of lines) {
+    try {
+      const caseObj = parseLine(line);
+      if (caseObj) result.push(caseObj);
+    } catch (e) {
+      errors.push(`行解析エラー: ${line.substring(0, 40)}... (${e.message})`);
+    }
+  }
+  return { cases: result, errors };
 }
 
 function parseLine(line) {
-  try {
-    // 全角・半角のゆらぎを吸収
-    line = line.replace(/（/g, '(').replace(/）/g, ')').replace(/｜/g, '|');
-    
-    const numMatch = line.match(/【交通(.+?)】/);
-    const num = numMatch ? numMatch[1] : '?';
-    const content = line.split('】')[1];
-    const [header, ...taskParts] = content.split('|');
-    
-    const cityMatch = header.match(/^(.+?)\((.+?)\)/);
-    const city = cityMatch ? cityMatch[1].trim() : header.trim();
-    const leaders = cityMatch ? cityMatch[2].split(/[・､、]/).map(s => s.trim()) : [];
-    
-    const tasks = taskParts.map(p => {
-      const done = p.includes('済');
-      const dateMatch = p.match(/(\d+\/\d+)/);
-      const dateStr = dateMatch ? dateMatch[1] : null;
-      const name = p.replace(/済|\[済\]|\(\d+\/\d+\)|\d+\/\d+/g, '').trim();
-      
-      let dateObj = null;
-      if (dateStr) {
-        const [m, d] = dateStr.split('/');
-        dateObj = `${TODAY.getFullYear()}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-      }
-      return { name, date: dateObj, dateDisplay: dateStr, done };
-    }).filter(t => t.name);
+  // 【交通N】部分を解析(正規表現を使わず文字列操作で)
+  const start = line.indexOf('【交通');
+  if (start !== 0) throw new Error('【交通で始まりません');
+  const endBracket = line.indexOf('】');
+  if (endBracket === -1) throw new Error('】が見つかりません');
+  // 案件番号は半角数字でも丸数字(①②③...)でもOK。そのまま保持する
+  const num = line.substring(start + 3, endBracket).trim();
+  if (!num) throw new Error('案件番号が空です');
 
-    return { num, city, leaders, tasks };
-  } catch (e) { return null; }
+  // 】以降、最初の | または ｜ までが「自治体名 + (担当者)」
+  const afterBracket = line.substring(endBracket + 1);
+  // 全角・半角パイプどちらも区切り文字として扱う
+  const normalizedAfter = afterBracket.replace(/｜/g, '|');
+  const firstPipe = normalizedAfter.indexOf('|');
+  const headerPart = firstPipe === -1 ? normalizedAfter : normalizedAfter.substring(0, firstPipe);
+  const tasksPart = firstPipe === -1 ? '' : normalizedAfter.substring(firstPipe + 1);
+
+  // headerPartから自治体名と担当者を抽出
+  let city = headerPart;
+  let leadersStr = '';
+
+  // 半角/全角カッコのどちらかで担当者を抽出
+  let openPos = -1;
+  let closeChar = '';
+  for (let i = 0; i < headerPart.length; i++) {
+    const c = headerPart[i];
+    if (c === '(') { openPos = i; closeChar = ')'; break; }
+    if (c === '（') { openPos = i; closeChar = '）'; break; }
+  }
+  if (openPos !== -1) {
+    const closePos = headerPart.indexOf(closeChar, openPos + 1);
+    if (closePos !== -1) {
+      city = headerPart.substring(0, openPos).trim();
+      leadersStr = headerPart.substring(openPos + 1, closePos).trim();
+    }
+  }
+
+  const leaders = leadersStr ? leadersStr.split(/[・､、]/).map(s => s.trim()).filter(s => s) : [];
+
+  // タスク部分をパイプで分割
+  const parts = tasksPart.split('|').map(s => s.trim()).filter(s => s);
+
+  const tasks = {};
+  let kind = 'プロポーザル';
+  for (const part of parts) {
+    const parsed = parseTask(part);
+    if (!parsed) continue;
+    for (const t of parsed) {
+      tasks[t.name] = t;
+      if (t.name === '郵便入札') kind = '郵便入札';
+    }
+  }
+  if (tasks['郵便入札']) kind = '郵便入札';
+  else if (tasks['プレゼン']) kind = 'プロポーザル';
+
+  // 社内タスクをバックキャストで自動生成(提案書郵送がある場合のみ)
+  // 各タスクは2営業日、バックキャストで機械的に生成
+  if (tasks['提案書郵送'] && tasks['提案書郵送'].date) {
+    const mailingDate = new Date(tasks['提案書郵送'].date);
+    const pad = n => String(n).padStart(2, '0');
+    const toKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+    // 最終化・提出準備: 郵送日の前営業日までの2営業日
+    const finalizeEnd = subtractBusinessDays(mailingDate, 1); // 郵送日の前営業日
+    const finalizeStart = subtractBusinessDays(finalizeEnd, 1); // 2営業日分(end含めて)
+    tasks['最終化・提出準備'] = {
+      name: '最終化・提出準備',
+      date: toKey(finalizeEnd),
+      startDate: toKey(finalizeStart),
+      done: false,
+      auto: true,
+    };
+
+    // 提案書QC: 最終化開始の前営業日までの2営業日
+    const qcEnd = subtractBusinessDays(finalizeStart, 1);
+    const qcStart = subtractBusinessDays(qcEnd, 1);
+    tasks['提案書QC'] = {
+      name: '提案書QC',
+      date: toKey(qcEnd),
+      startDate: toKey(qcStart),
+      done: false,
+      auto: true,
+    };
+
+    // 提案書草案作成: QC開始の前営業日までの2営業日
+    const draftEnd = subtractBusinessDays(qcStart, 1);
+    const draftStart = subtractBusinessDays(draftEnd, 1);
+    tasks['提案書草案作成'] = {
+      name: '提案書草案作成',
+      date: toKey(draftEnd),
+      startDate: toKey(draftStart),
+      done: false,
+      auto: true,
+    };
+  }
+
+  return { num, city, kind, leaders, tasks };
 }
 
-function renderAll() {
-  const filterUser = document.getElementById('user-filter').value;
-  const dashboard = document.getElementById('dashboard');
-  const main = document.getElementById('main-content');
-  
-  let filteredTasks = [];
-  allCases.forEach(c => {
-    c.tasks.forEach(t => {
-      const persons = getTaskPersons(c, t.name);
-      if (filterUser === '全員' || persons.includes(filterUser)) {
-        filteredTasks.push({ ...t, city: c.city, num: c.num, persons });
+function parseTask(str) {
+  // 全角括弧・全角パイプなどを半角に正規化してから処理
+  str = str.replace(/（/g, '(').replace(/）/g, ')').replace(/｜/g, '|').trim();
+
+  let deadline = null;
+  const dlMatch = str.match(/\(必着([0-9]+\/[0-9]+)\)/);
+  let strWithoutDl = str;
+  if (dlMatch) {
+    deadline = parseDate(dlMatch[1]);
+    strWithoutDl = str.replace(dlMatch[0], '').trim();
+  }
+  const done = /済\s*$/.test(strWithoutDl) || /\[済\]/.test(strWithoutDl);
+  strWithoutDl = strWithoutDl.replace(/済\s*$/, '').replace(/\[済\]/, '').trim();
+  const dateMatch = strWithoutDl.match(/([0-9]+\/[0-9●]+)\s*$/);
+  if (!dateMatch) return null;
+  const dateStr = dateMatch[1];
+  const date = parseDate(dateStr);
+  const nameStr = strWithoutDl.substring(0, dateMatch.index).trim();
+  const taskNames = nameStr.split(/[・､、]/).map(s => s.trim()).filter(s => s);
+  const results = [];
+  for (const name of taskNames) {
+    const task = { name, date: date.date, done };
+    if (date.note) task.note = date.note;
+    if (deadline) task.deadline = deadline.date;
+    results.push(task);
+  }
+  return results;
+}
+
+function parseDate(str) {
+  const parts = str.split('/');
+  if (parts.length !== 2) return { date: null, note: str };
+  const [m, d] = parts;
+  if (m.includes('●') || d.includes('●')) {
+    if (!m.includes('●') && d.includes('●')) return { date: null, note: `${m}月中旬` };
+    return { date: null, note: str };
+  }
+  const year = 2026;
+  const month = parseInt(m);
+  const day = parseInt(d);
+  if (isNaN(month) || isNaN(day)) return { date: null, note: str };
+  const pad = n => String(n).padStart(2, '0');
+  return { date: `${year}-${pad(month)}-${pad(day)}` };
+}
+
+function getTaskPersons(caseObj, taskName) {
+  if (taskName === 'プレゼン') return caseObj.leaders;
+  // 社内タスクは案件リーダーから動的に決定
+  if (taskName === '提案書草案作成' || taskName === '最終化・提出準備') {
+    // メイン担当者: リーダーの1番目
+    if (caseObj.leaders.length >= 1) return [caseObj.leaders[0]];
+    return ['●●'];
+  }
+  if (taskName === '提案書QC') {
+    // サブ担当者: リーダーの2番目
+    if (caseObj.leaders.length >= 2) return [caseObj.leaders[1]];
+    return ['●●'];
+  }
+  return TASK_DEFAULT_PERSON[taskName] || ['齊藤'];
+}
+
+function getTaskIcon(taskName) {
+  return TASK_ICONS[taskName] || '';
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '未定';
+  const d = new Date(dateStr);
+  const weekdays = ['日','月','火','水','木','金','土'];
+  return `${d.getMonth()+1}/${d.getDate()}(${weekdays[d.getDay()]})`;
+}
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  const t0 = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+  return Math.floor((d - t0) / (1000*60*60*24));
+}
+
+function statusClass(delta, done) {
+  if (done) return 'done';
+  if (delta === null) return 'future';
+  if (delta < 0) return 'overdue';
+  if (delta === 0) return 'today';
+  if (delta <= 3) return 'urgent';
+  if (delta <= 7) return 'upcoming';
+  return 'future';
+}
+
+function daysText(delta, done) {
+  if (done) return '済';
+  if (delta === null) return '未定';
+  if (delta < 0) return `${-delta}日超過`;
+  if (delta === 0) return '本日';
+  return `あと${delta}日`;
+}
+
+function daysUrgency(delta) {
+  if (delta === null) return '';
+  if (delta < 0) return 'overdue';
+  if (delta <= 3) return 'urgent';
+  return '';
+}
+
+function buildPersonsText(persons, taskName) {
+  return persons.map((p, i) => {
+    if (p === '●●') return `<span class="person-unassigned">●●</span>`;
+    const isMain = taskName === 'プレゼン' && i === 0;
+    if (isMain) return `<span class="person-main">${p}</span>`;
+    return p;
+  }).join('・');
+}
+
+function buildLeadersText(leaders) {
+  return leaders.map((p, i) => {
+    if (p === '●●') return `<span class="person-unassigned">●●</span>`;
+    if (i === 0) return `<span class="person-main">${p}</span>`;
+    return p;
+  }).join('・');
+}
+
+function buildTaskNameHtml(taskName, taskData) {
+  const icon = getTaskIcon(taskName);
+  let html = `<span class="task-icon">${icon}</span>${taskName}`;
+  if (taskData.deadline) {
+    const dl = formatDate(taskData.deadline);
+    html += ` <span class="deadline-info">必着${dl}</span>`;
+  }
+  if (taskData.note) {
+    html += ` <span class="deadline-info" style="background:#F3E5F5;color:#6A1B9A">${taskData.note}</span>`;
+  }
+  return html;
+}
+
+function doneMarkHtml(done) {
+  return done ? '<span class="done-mark">済</span>' : '<span class="undone-mark">○</span>';
+}
+
+// リストヘッダー
+function listHeaderHtml(caseMode = false) {
+  const cls = caseMode ? 'list-header case-mode' : 'list-header';
+  if (caseMode) {
+    return `<div class="${cls}">
+      <span></span>
+      <span>締切</span>
+      <span>残日数</span>
+      <span>タスク</span>
+      <span>担当者</span>
+    </div>`;
+  }
+  return `<div class="${cls}">
+    <span></span>
+    <span>締切</span>
+    <span>残日数</span>
+    <span>タスク</span>
+    <span>自治体</span>
+    <span>担当者</span>
+  </div>`;
+}
+
+function renderDashboard() {
+  let overdue = 0, today = 0, week = 0, nextweek = 0;
+  const unassignedCases = new Set();
+  cases.forEach((caseObj, ci) => {
+    if (caseObj.leaders.includes('●●')) unassignedCases.add(ci);
+    Object.entries(caseObj.tasks).forEach(([_, t]) => {
+      if (t.done || !t.date) return;
+      const d = daysUntil(t.date);
+      if (d < 0) overdue++;
+      else if (d === 0) today++;
+      else if (d <= 7) week++;
+      else if (d <= 14) nextweek++;
+    });
+  });
+  document.getElementById('stat-overdue').textContent = overdue;
+  document.getElementById('stat-today').textContent = today;
+  document.getElementById('stat-week').textContent = week;
+  document.getElementById('stat-nextweek').textContent = nextweek;
+  document.getElementById('stat-unassigned').textContent = unassignedCases.size;
+}
+
+function renderPersonView() {
+  const tasksByPerson = {};
+  cases.forEach((caseObj, caseIdx) => {
+    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
+      const persons = getTaskPersons(caseObj, taskName);
+      persons.forEach(person => {
+        if (!tasksByPerson[person]) tasksByPerson[person] = [];
+        tasksByPerson[person].push({
+          caseIdx, taskName,
+          date: taskData.date, done: taskData.done,
+          deadline: taskData.deadline, note: taskData.note,
+          num: caseObj.num, city: caseObj.city,
+          caseObj, persons,
+        });
+      });
+    });
+  });
+  Object.keys(tasksByPerson).forEach(p => {
+    tasksByPerson[p].sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date.localeCompare(b.date);
+    });
+  });
+
+  const container = document.getElementById('person-view');
+  let html = '';
+  for (const person of PERSON_ORDER) {
+    if (!tasksByPerson[person]) continue;
+    const tasks = tasksByPerson[person];
+    const undone = tasks.filter(t => !t.done);
+    const upcoming = undone.filter(t => { const d = daysUntil(t.date); return d === null || d >= 0; }).length;
+    const overdue = undone.filter(t => { const d = daysUntil(t.date); return d !== null && d < 0; }).length;
+    const done = tasks.filter(t => t.done).length;
+    let countStr = `残 ${upcoming}`;
+    if (overdue > 0) countStr += ` / 超過 ${overdue}`;
+    countStr += ` / 済 ${done} / 全 ${tasks.length}`;
+    const nameLabel = person === '●●' ? '担当未定(要アサイン)' : person;
+
+    html += `<div class="section">
+      <div class="section-header">
+        <div class="section-title">${nameLabel}</div>
+        <div class="section-count">${countStr}</div>
+      </div>
+      ${listHeaderHtml()}
+      <ul class="task-list">`;
+    for (const t of tasks) {
+      const delta = daysUntil(t.date);
+      const cls = statusClass(delta, t.done);
+      const taskDataForName = { deadline: t.deadline, note: t.note };
+      // プレゼン時は同席者表示、それ以外は空
+      const personsCell = t.taskName === 'プレゼン'
+        ? `<span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span>`
+        : `<span></span>`;
+
+      html += `<li class="task-item ${cls}">
+        ${doneMarkHtml(t.done)}
+        <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
+        <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
+        <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
+        <span class="task-city"><span class="case-num-badge">交通${t.num}</span><span class="task-city-name">${t.city}</span></span>
+        ${personsCell}
+      </li>`;
+    }
+    html += '</ul></div>';
+  }
+  container.innerHTML = html || '<div class="section">データがありません</div>';
+}
+
+function renderCaseView() {
+  const container = document.getElementById('case-view');
+  let html = '';
+  function getFinalDate(caseObj) {
+    if (caseObj.tasks['プレゼン'] && caseObj.tasks['プレゼン'].date) return caseObj.tasks['プレゼン'].date;
+    if (caseObj.tasks['郵便入札']) return caseObj.tasks['郵便入札'].deadline || caseObj.tasks['郵便入札'].date;
+    if (caseObj.tasks['提案書郵送'] && caseObj.tasks['提案書郵送'].deadline) return caseObj.tasks['提案書郵送'].deadline;
+    return '9999-12-31';
+  }
+  const indexed = cases.map((c, idx) => ({ c, idx }));
+  indexed.sort((a, b) => {
+    const da = getFinalDate(a.c) || '9999-12-31';
+    const db = getFinalDate(b.c) || '9999-12-31';
+    return da.localeCompare(db);
+  });
+  indexed.forEach(({ c: caseObj, idx: caseIdx }) => {
+    const sortedTasks = Object.entries(caseObj.tasks)
+      .sort(([, a], [, b]) => {
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return a.date.localeCompare(b.date);
+      });
+    const total = sortedTasks.length;
+    const doneCount = sortedTasks.filter(([, t]) => t.done).length;
+    const progress = total > 0 ? (doneCount / total) * 100 : 0;
+    const undoneTasks = sortedTasks.filter(([, t]) => !t.done);
+    let nextTaskName = null;
+    let nextTaskData = null;
+    if (undoneTasks.length > 0) {
+      [nextTaskName, nextTaskData] = undoneTasks[0];
+    }
+    let nextActionHtml = '';
+    if (!nextTaskName) {
+      nextActionHtml = `<div class="next-action done-all">全タスク完了</div>`;
+    } else {
+      const delta = daysUntil(nextTaskData.date);
+      const nextIcon = getTaskIcon(nextTaskName);
+      if (delta !== null && delta < 0) {
+        nextActionHtml = `<div class="next-action overdue-alert"><strong>${nextIcon}${nextTaskName}</strong>が${-delta}日超過中 (${formatDate(nextTaskData.date)})</div>`;
+      } else {
+        const daysStr = delta === null ? '日付未定' : (delta === 0 ? '本日' : `あと${delta}日`);
+        nextActionHtml = `<div class="next-action">次: <strong>${nextIcon}${nextTaskName}</strong> ${formatDate(nextTaskData.date)} (${daysStr})</div>`;
+      }
+    }
+    html += `<div class="section">
+      <div class="section-header">
+        <span class="case-num-badge">交通${caseObj.num}</span>
+        <div class="section-title">${caseObj.city}</div>
+        <span class="kind-badge ${caseObj.kind}">${caseObj.kind}</span>
+        <span class="persons-text">${buildLeadersText(caseObj.leaders)}</span>
+        <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
+        <span class="progress-text">${doneCount}/${total}</span>
+      </div>
+      ${nextActionHtml}
+      ${listHeaderHtml(true)}
+      <ul class="task-list">`;
+    for (const [taskName, taskData] of sortedTasks) {
+      const delta = daysUntil(taskData.date);
+      const cls = statusClass(delta, taskData.done);
+      const isNext = taskName === nextTaskName;
+      const persons = getTaskPersons(caseObj, taskName);
+      html += `<li class="task-item case-mode ${cls} ${isNext ? 'next' : ''}">
+        ${doneMarkHtml(taskData.done)}
+        <span class="date-badge ${!taskData.date ? 'nodate' : ''}">${formatDate(taskData.date)}</span>
+        <span class="days-left ${daysUrgency(delta)}">${daysText(delta, taskData.done)}</span>
+        <span class="task-name">${buildTaskNameHtml(taskName, taskData)}</span>
+        <span class="persons-text">${buildPersonsText(persons, taskName)}</span>
+      </li>`;
+    }
+    html += '</ul></div>';
+  });
+  container.innerHTML = html || '<div class="section">データがありません</div>';
+}
+
+function renderDeadlineView() {
+  const allTasks = [];
+  cases.forEach((caseObj, caseIdx) => {
+    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
+      const persons = getTaskPersons(caseObj, taskName);
+      allTasks.push({
+        caseIdx, taskName,
+        date: taskData.date, done: taskData.done,
+        deadline: taskData.deadline, note: taskData.note,
+        num: caseObj.num, city: caseObj.city,
+        caseObj, persons,
+      });
+    });
+  });
+  allTasks.sort((a, b) => {
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return a.date.localeCompare(b.date);
+  });
+
+  const groups = {
+    overdue:  { label: '期限超過 - 要対応',     tasks: [], className: 'overdue' },
+    today:    { label: '本日期限',              tasks: [], className: 'today' },
+    thisWeek: { label: '今週中(7日以内)',       tasks: [], className: 'this-week' },
+    nextWeek: { label: '来週(8〜14日)',         tasks: [], className: 'next-week' },
+    future:   { label: 'それ以降',              tasks: [], className: 'future' },
+    nodate:   { label: '日付未定',              tasks: [], className: 'future' },
+    done:     { label: '完了済み',              tasks: [], className: '' },
+  };
+  allTasks.forEach(t => {
+    if (t.done) { groups.done.tasks.push(t); return; }
+    if (!t.date) { groups.nodate.tasks.push(t); return; }
+    const delta = daysUntil(t.date);
+    if (delta < 0) groups.overdue.tasks.push(t);
+    else if (delta === 0) groups.today.tasks.push(t);
+    else if (delta <= 7) groups.thisWeek.tasks.push(t);
+    else if (delta <= 14) groups.nextWeek.tasks.push(t);
+    else groups.future.tasks.push(t);
+  });
+
+  const container = document.getElementById('deadline-view');
+  let html = '';
+  for (const key of ['overdue', 'today', 'thisWeek', 'nextWeek', 'future', 'nodate', 'done']) {
+    const group = groups[key];
+    if (group.tasks.length === 0) continue;
+    html += `<div class="section" style="padding:16px">
+      <div class="deadline-header ${group.className}">
+        <span>${group.label}</span>
+        <span class="deadline-count">${group.tasks.length}件</span>
+      </div>
+      ${listHeaderHtml()}
+      <ul class="task-list">`;
+    for (const t of group.tasks) {
+      const delta = daysUntil(t.date);
+      const cls = statusClass(delta, t.done);
+      const taskDataForName = { deadline: t.deadline, note: t.note };
+      html += `<li class="task-item ${cls}">
+        ${doneMarkHtml(t.done)}
+        <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
+        <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
+        <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
+        <span class="task-city"><span class="case-num-badge">交通${t.num}</span><span class="task-city-name">${t.city}</span></span>
+        <span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span>
+      </li>`;
+    }
+    html += '</ul></div>';
+  }
+  container.innerHTML = html || '<div class="section">データがありません</div>';
+}
+
+// ===== タスク別ビュー =====
+function renderTaskView() {
+  // タスク名ごとに集約
+  const tasksByName = {};
+  cases.forEach((caseObj, caseIdx) => {
+    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
+      if (!tasksByName[taskName]) tasksByName[taskName] = [];
+      const persons = getTaskPersons(caseObj, taskName);
+      tasksByName[taskName].push({
+        caseIdx, taskName,
+        date: taskData.date, done: taskData.done,
+        deadline: taskData.deadline, note: taskData.note,
+        num: caseObj.num, city: caseObj.city,
+        caseObj, persons,
+      });
+    });
+  });
+
+  // 各タスク種別内で締切日昇順
+  Object.keys(tasksByName).forEach(name => {
+    tasksByName[name].sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date.localeCompare(b.date);
+    });
+  });
+
+  // 表示順: プロポ流れ + 郵便入札
+  const TASK_VIEW_ORDER = ['質問', '参加表明', '提案書草案作成', '提案書QC', '最終化・提出準備', '提案書郵送', 'プレゼン', '郵便入札'];
+
+  const container = document.getElementById('task-view');
+  let html = '';
+
+  for (const taskName of TASK_VIEW_ORDER) {
+    if (!tasksByName[taskName]) continue;
+    const tasks = tasksByName[taskName];
+    const undone = tasks.filter(t => !t.done);
+    const upcoming = undone.filter(t => { const d = daysUntil(t.date); return d === null || d >= 0; }).length;
+    const overdue = undone.filter(t => { const d = daysUntil(t.date); return d !== null && d < 0; }).length;
+    const done = tasks.filter(t => t.done).length;
+
+    let countStr = `残 ${upcoming}`;
+    if (overdue > 0) countStr += ` / 超過 ${overdue}`;
+    countStr += ` / 済 ${done} / 全 ${tasks.length}`;
+
+    const icon = getTaskIcon(taskName);
+
+    html += `<div class="section">
+      <div class="section-header">
+        <div class="section-title">${icon} ${taskName}</div>
+        <div class="section-count">${countStr}</div>
+      </div>
+      ${listHeaderHtml()}
+      <ul class="task-list">`;
+
+    for (const t of tasks) {
+      const delta = daysUntil(t.date);
+      const cls = statusClass(delta, t.done);
+      const taskDataForName = { deadline: t.deadline, note: t.note };
+
+      html += `<li class="task-item ${cls}">
+        ${doneMarkHtml(t.done)}
+        <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
+        <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
+        <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
+        <span class="task-city"><span class="case-num-badge">交通${t.num}</span><span class="task-city-name">${t.city}</span></span>
+        <span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span>
+      </li>`;
+    }
+    html += '</ul></div>';
+  }
+
+  container.innerHTML = html || '<div class="section">データがありません</div>';
+}
+
+// ===== ガントチャートビュー(帯スケ方式) =====
+function renderGanttView() {
+  const container = document.getElementById('gantt-view');
+  if (cases.length === 0) {
+    container.innerHTML = '<div class="section">データがありません</div>';
+    return;
+  }
+
+  // 表示期間を決定
+  let minDate = null, maxDate = null;
+  cases.forEach(c => {
+    Object.values(c.tasks).forEach(t => {
+      if (t.date) {
+        if (!minDate || t.date < minDate) minDate = t.date;
+        if (!maxDate || t.date > maxDate) maxDate = t.date;
+      }
+      if (t.deadline) {
+        if (t.deadline > maxDate) maxDate = t.deadline;
+        if (t.deadline < minDate) minDate = t.deadline;
       }
     });
   });
 
-  const todayBase = new Date(TODAY).setHours(0,0,0,0);
-  const overdue = filteredTasks.filter(t => !t.done && t.date && new Date(t.date).getTime() < todayBase).length;
-  const todayCount = filteredTasks.filter(t => !t.done && t.date && isSameDay(new Date(t.date), TODAY)).length;
-  const weekCount = filteredTasks.filter(t => !t.done && t.date && isWithinDays(new Date(t.date), 7)).length;
+  if (!minDate || !maxDate) {
+    container.innerHTML = '<div class="section">日付データがありません</div>';
+    return;
+  }
 
-  dashboard.innerHTML = `
-    <div class="stat-card"><div class="stat-label">期限超過</div><div class="stat-value" style="color: ${overdue > 0 ? '#e11d48' : '#0f172a'}">${overdue}<span class="stat-unit">件</span></div></div>
-    <div class="stat-card"><div class="stat-label">本日のタスク</div><div class="stat-value" style="color: ${todayCount > 0 ? '#f59e0b' : '#0f172a'}">${todayCount}<span class="stat-unit">件</span></div></div>
-    <div class="stat-card"><div class="stat-label">7日以内の締切</div><div class="stat-value">${weekCount}<span class="stat-unit">件</span></div></div>
-    <div class="stat-card"><div class="stat-label">総タスク数</div><div class="stat-value">${filteredTasks.length}<span class="stat-unit">件</span></div></div>
-  `;
+  // 前後に余裕
+  const start = new Date(minDate);
+  start.setDate(start.getDate() - 5);
+  const end = new Date(maxDate);
+  end.setDate(end.getDate() + 5);
 
-  filteredTasks.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
-  
-  let html = `<div class="section"><div class="section-header"><div class="section-title">${filterUser} のタスク</div></div><table class="task-table"><thead><tr><th>ステータス</th><th>締切</th><th>自治体</th><th>タスク</th><th>担当</th></tr></thead><tbody>`;
-  filteredTasks.forEach(t => {
-    const isOver = !t.done && t.date && new Date(t.date).getTime() < todayBase;
-    html += `<tr class="${isOver ? 'row-overdue' : ''}"><td><span class="badge ${t.done ? 'badge-done' : 'badge-urgent'}">${t.done ? '完了' : '未完了'}</span></td><td><span class="badge badge-date">${t.dateDisplay || '未定'}</span></td><td><span class="badge badge-num">交通${t.num}</span><strong>${t.city}</strong></td><td>${t.name}</td><td style="font-size: 12px; color: #64748b;">${t.persons.join(', ')}</td></tr>`;
+  // 日付配列
+  const days = [];
+  const cur = new Date(start);
+  while (cur <= end) {
+    days.push(new Date(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  // 日付キー生成
+  const pad = n => String(n).padStart(2, '0');
+  const toKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const todayKey = toKey(TODAY);
+
+  // 日付→列インデックスのマップ
+  const dateToIdx = {};
+  days.forEach((d, i) => { dateToIdx[toKey(d)] = i; });
+
+  // 月ヘッダーグルーピング
+  const monthGroups = [];
+  let curMonth = null;
+  days.forEach((d, i) => {
+    const mKey = `${d.getFullYear()}-${d.getMonth()}`;
+    if (curMonth && curMonth.key === mKey) {
+      curMonth.span++;
+    } else {
+      curMonth = { key: mKey, year: d.getFullYear(), month: d.getMonth() + 1, span: 1 };
+      monthGroups.push(curMonth);
+    }
   });
-  main.innerHTML = html + `</tbody></table></div>`;
+
+  // 案件ソート(プレゼン/最終日順)
+  function getFinalDate(c) {
+    if (c.tasks['プレゼン'] && c.tasks['プレゼン'].date) return c.tasks['プレゼン'].date;
+    if (c.tasks['郵便入札']) return c.tasks['郵便入札'].deadline || c.tasks['郵便入札'].date;
+    if (c.tasks['提案書郵送'] && c.tasks['提案書郵送'].deadline) return c.tasks['提案書郵送'].deadline;
+    return '9999-12-31';
+  }
+  const sortedCases = [...cases].sort((a, b) => (getFinalDate(a) || '9999').localeCompare(getFinalDate(b) || '9999'));
+
+  // ===== HTML構築 =====
+  let html = '<div class="gantt-wrapper"><div class="gantt-scroll"><table class="gantt-table">';
+
+  // 月ヘッダー行
+  html += '<thead><tr class="gantt-header-top">';
+  html += '<th class="gantt-th-sticky top gantt-name-cell" rowspan="2">案件</th>';
+  monthGroups.forEach(m => {
+    html += `<th colspan="${m.span}" class="gantt-month-label">${m.year}年${m.month}月</th>`;
+  });
+  html += '</tr>';
+
+  // 日付ヘッダー行
+  html += '<tr class="gantt-header-sub">';
+  days.forEach(d => {
+    const dow = d.getDay();
+    const key = toKey(d);
+    const isToday = key === todayKey;
+    const isHoliday = HOLIDAYS_JP.has(key);
+    const wd = ['日','月','火','水','木','金','土'][dow];
+    let cls = '';
+    if (isToday) cls = 'today';
+    else if (dow === 0) cls = 'sun';
+    else if (isHoliday) cls = 'holiday';
+    else if (dow === 6) cls = 'sat';
+    html += `<th class="gantt-date-col ${cls}">${d.getDate()}<br><small>${wd}</small></th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  // 各案件の行を生成
+  sortedCases.forEach((caseObj, rowIdx) => {
+    const rowCls = rowIdx % 2 === 0 ? '' : 'alt';
+
+    // タスクを日付順に並べて帯範囲を計算
+    // 各要素: name, start, end, done, date, deadline
+    const orderedTasks = [];
+    const taskEntries = Object.entries(caseObj.tasks)
+      .filter(([_, t]) => t.date) // 日付未定は除外
+      .sort(([, a], [, b]) => a.date.localeCompare(b.date));
+
+    // ピンポイント塗り(当日のみ)のタスク種別
+    const POINT_TASKS = new Set(['提案書郵送', 'プレゼン', '郵便入札']);
+    // 社内タスク(固定の帯範囲を持つ)
+    const FIXED_RANGE_TASKS = new Set(['提案書草案作成', '提案書QC', '最終化・提出準備']);
+
+    let prevEnd = null; // 前タスクの終了日(帯タスクの場合のみ更新)
+    taskEntries.forEach(([tname, tdata]) => {
+      const taskEnd = new Date(tdata.date);
+
+      if (FIXED_RANGE_TASKS.has(tname) && tdata.startDate) {
+        // 社内タスク: 自動生成された範囲(startDate〜date)をそのまま使う
+        orderedTasks.push({
+          name: tname,
+          start: tdata.startDate,
+          end: tdata.date,
+          done: tdata.done,
+          date: tdata.date,
+          auto: true,
+        });
+        // prevEndは更新しない(外部タスクの範囲計算に影響させない)
+      } else if (POINT_TASKS.has(tname)) {
+        // ピンポイント塗り: その日のみ
+        orderedTasks.push({
+          name: tname,
+          start: toKey(taskEnd),
+          end: toKey(taskEnd),
+          done: tdata.done,
+          date: tdata.date,
+          deadline: tdata.deadline,
+        });
+
+        // 必着がある場合は、必着日もピンポイント追加
+        if (tdata.deadline) {
+          const dlEnd = new Date(tdata.deadline);
+          orderedTasks.push({
+            name: '必着',
+            start: toKey(dlEnd),
+            end: toKey(dlEnd),
+            done: tdata.done,
+            date: tdata.deadline,
+            isDeadlineSpan: true,
+          });
+        }
+      } else {
+        // 帯塗り(質問・参加表明など): 前タスクの翌日〜当日
+        let barStart;
+        if (prevEnd === null) {
+          // 初回は表示開始日から
+          barStart = new Date(start);
+        } else {
+          barStart = new Date(prevEnd);
+          barStart.setDate(barStart.getDate() + 1);
+        }
+        orderedTasks.push({
+          name: tname,
+          start: toKey(barStart),
+          end: toKey(taskEnd),
+          done: tdata.done,
+          date: tdata.date,
+          deadline: tdata.deadline,
+        });
+        prevEnd = taskEnd;
+      }
+    });
+
+    // 案件名セル + 日付セル
+    const leadersText = caseObj.leaders.map(p => p === '●●' ? `<span class="person-unassigned">●●</span>` : p).join('・');
+    html += `<tr class="gantt-row-case ${rowCls}">`;
+    html += `<td class="gantt-th-sticky gantt-name-cell">
+      <span class="case-num-badge">交通${caseObj.num}</span>${caseObj.city}
+      <span class="gantt-leaders">${leadersText}</span>
+    </td>`;
+
+    // 日付セルを1日ずつ生成、その間に帯を配置
+    // 各セルがどのタスク帯に属するかを判定
+    const cellTask = new Array(days.length).fill(null);
+    orderedTasks.forEach(t => {
+      const si = dateToIdx[t.start];
+      const ei = dateToIdx[t.end];
+      if (si === undefined || ei === undefined) return;
+      for (let i = si; i <= ei; i++) {
+        if (cellTask[i] === null) cellTask[i] = t;
+      }
+    });
+
+    // 連続する同一タスクセルをcolspanでまとめる
+    let i = 0;
+    while (i < days.length) {
+      const d = days[i];
+      const dow = d.getDay();
+      const key = toKey(d);
+      const isToday = key === todayKey;
+      const isHoliday = HOLIDAYS_JP.has(key);
+      let cls = '';
+      if (isToday) cls = 'today-col';
+      else if (dow === 0) cls = 'sun';
+      else if (isHoliday) cls = 'holiday';
+      else if (dow === 6) cls = 'sat';
+
+      const task = cellTask[i];
+      if (!task) {
+        // 空セル
+        html += `<td class="gantt-date-col ${cls}"></td>`;
+        i++;
+        continue;
+      }
+
+      // 同一タスクの連続範囲をまとめる
+      let j = i;
+      while (j < days.length && cellTask[j] === task) j++;
+      const span = j - i;
+
+      // 帯の中央に縦書きラベル、最終日に「済」オーバーレイ
+      const barCls = `gantt-bar-${task.name}`;
+      const doneOverlay = task.done ? `<span class="gantt-done-overlay">済</span>` : '';
+
+      // ラベルは常に縦書きで表示(1セル幅でも読める)
+      const label = `<span class="gantt-bar-label">${task.name}</span>`;
+
+      // ツールチップ
+      const tooltip = `${caseObj.city} / ${task.name}\n期限: ${formatDate(task.date)}${task.done ? ' [済]' : ''}`;
+
+      // 今日列の判定(連続範囲内に今日があるか)
+      let barTodayCls = '';
+      for (let k = i; k < j; k++) {
+        if (toKey(days[k]) === todayKey) {
+          barTodayCls = 'today-col';
+          break;
+        }
+      }
+
+      const doneCls = task.done ? 'gantt-done-cell' : '';
+      html += `<td colspan="${span}" class="gantt-date-col ${barTodayCls} ${doneCls}" title="${tooltip}">
+        <div class="gantt-bar ${barCls}">${label}${doneOverlay}</div>
+      </td>`;
+      i = j;
+    }
+
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+  container.innerHTML = html;
 }
 
-function getTaskPersons(c, taskName) {
-  if (taskName.includes('プレゼン')) return c.leaders;
-  if (taskName.includes('質問') || taskName.includes('郵送')) return ['岸岡'];
-  if (taskName.includes('参加') || taskName.includes('入札')) return ['齊藤'];
-  return c.leaders;
+function render() {
+  renderDashboard();
+  renderPersonView();
+  renderCaseView();
+  renderDeadlineView();
+  renderTaskView();
+  renderGanttView();
 }
-function isSameDay(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
-function isWithinDays(d, days) { const diff = (d - TODAY) / (1000*60*60*24); return diff >= -1 && diff <= days; }
 
-document.getElementById('today-display').textContent = `${TODAY.toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric'})}`;
-fetchData();
-setInterval(fetchData, 600000);
+function switchView(view, btn) {
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+  document.getElementById(view + '-view').classList.add('active');
+}
+
+function toggleDone() {
+  const checked = document.getElementById('show-done').checked;
+  if (checked) {
+    document.body.classList.remove('hide-done');
+  } else {
+    document.body.classList.add('hide-done');
+  }
+  try {
+    localStorage.setItem('showDone', checked ? '1' : '0');
+  } catch(e) {}
+}
+
+// 初期状態の復元
+function restoreDoneToggle() {
+  try {
+    const saved = localStorage.getItem('showDone');
+    if (saved === '0') {
+      document.getElementById('show-done').checked = false;
+      document.body.classList.add('hide-done');
+    }
+  } catch(e) {}
+}
+
+const wd = ['日','月','火','水','木','金','土'];
+document.getElementById('today-display').textContent = 
+  `${TODAY.getFullYear()}年${TODAY.getMonth()+1}月${TODAY.getDate()}日 (${wd[TODAY.getDay()]})`;
+
+// ===== パスワード認証 =====
+const APP_PASSWORD = 'splspl';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQoEzRihpNiOfpjj4NFBXd0khIJkYkHsh01_DnbTI-JdhDO4QDSAqgBSk97Boa0uLXtGy7esFdWxJLl/pub?output=csv';
+const AUTO_REFRESH_MS = 10 * 60 * 1000; // 10分
+
+function checkPassword() {
+  const input = document.getElementById('auth-input').value;
+  const errEl = document.getElementById('auth-error');
+  if (input === APP_PASSWORD) {
+    try { localStorage.setItem('authed', '1'); } catch(e) {}
+    showApp();
+  } else {
+    errEl.textContent = 'パスワードが違います';
+    document.getElementById('auth-input').value = '';
+  }
+}
+
+function showApp() {
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('app-content').classList.add('authed');
+  restoreDoneToggle();
+  fetchAndRender();
+  // 10分ごとに自動更新
+  setInterval(fetchAndRender, AUTO_REFRESH_MS);
+}
+
+function logout() {
+  try { localStorage.removeItem('authed'); } catch(e) {}
+  location.reload();
+}
+
+// Enterキーでログイン
+document.getElementById('auth-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') checkPassword();
+});
+
+// 既にログイン済みなら即表示
+try {
+  if (localStorage.getItem('authed') === '1') {
+    showApp();
+  }
+} catch(e) {}
+
+// ===== スプシfetch =====
+let lastFetchTime = null;
+
+async function fetchAndRender() {
+  const statusEl = document.getElementById('sync-status');
+  statusEl.className = 'syncing';
+  statusEl.textContent = '🔄 同期中...';
+  try {
+    // キャッシュ回避のためクエリ付与
+    const url = SHEET_CSV_URL + '&_=' + Date.now();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const csvText = await res.text();
+    const fmtText = csvToFmt(csvText);
+    const { cases: parsedCases, errors } = parseFmt(fmtText);
+    cases = parsedCases;
+    lastFetchTime = new Date();
+    const info = document.getElementById('parse-info');
+    if (errors.length > 0) {
+      info.innerHTML = `<span class="parse-error">${errors.length}件の解析エラー(${parsedCases.length}件は成功)</span>`;
+    } else {
+      info.innerHTML = `<span class="parse-ok">${parsedCases.length}件を読み込み</span>`;
+    }
+    render();
+    updateSyncStatus();
+  } catch (e) {
+    statusEl.className = 'error';
+    statusEl.textContent = '⚠️ 同期失敗: ' + e.message;
+    console.error('fetchAndRender error:', e);
+  }
+}
+
+function updateSyncStatus() {
+  const statusEl = document.getElementById('sync-status');
+  if (!lastFetchTime) {
+    statusEl.textContent = '';
+    return;
+  }
+  const pad = n => String(n).padStart(2, '0');
+  const hh = pad(lastFetchTime.getHours());
+  const mm = pad(lastFetchTime.getMinutes());
+  statusEl.className = 'ok';
+  statusEl.textContent = `✓ 最終同期 ${hh}:${mm} (10分ごと自動更新)`;
+}
+
+// CSV → プロポFMT変換
+// A列に1行1案件のFMT文字列が入っている前提
+function csvToFmt(csvText) {
+  const lines = csvText.split(/\r?\n/);
+  const fmtLines = [];
+  for (const raw of lines) {
+    if (!raw) continue;
+    // CSVの最初のセルだけ取り出す(""で囲まれてる可能性あり)
+    let cell = raw;
+    if (raw.startsWith('"')) {
+      // ""を処理しつつ、閉じる"まで取る
+      let i = 1;
+      let result = '';
+      while (i < raw.length) {
+        if (raw[i] === '"' && raw[i+1] === '"') {
+          result += '"';
+          i += 2;
+        } else if (raw[i] === '"') {
+          break;
+        } else {
+          result += raw[i];
+          i++;
+        }
+      }
+      cell = result;
+    } else {
+      const commaIdx = raw.indexOf(',');
+      cell = commaIdx === -1 ? raw : raw.substring(0, commaIdx);
+    }
+    cell = cell.trim();
+    if (cell && cell.startsWith('【交通')) {
+      fmtLines.push(cell);
+    }
+  }
+  return fmtLines.join('\n');
+}
 </script>
 </body>
 </html>
