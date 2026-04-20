@@ -2,1002 +2,281 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>プロポFMT ビューアー (同期版)</title>
+<title>PropoSync Professional</title>
 <style>
-/* 既存のスタイルを継承 */
+/* === プロ仕様のベーススタイル === */
+:root {
+  --primary: #2563eb;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #1e293b;
+  --border: #e2e8f0;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
-  background: #F5F5F5;
-  padding: 20px;
-  color: #333;
-  line-height: 1.5;
+  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 24px;
 }
-.container { max-width: 1500px; margin: 0 auto; }
-h1 { font-size: 22px; margin-bottom: 4px; color: #263238; }
-.subtitle { font-size: 13px; color: #666; margin-bottom: 16px; }
+.container { max-width: 1400px; margin: 0 auto; }
 
-/* === スプレッドシート読み込み状態の表示用 === */
-.sync-status {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  margin-left: 10px;
-  background: #E8F5E9;
-  color: #2E7D32;
-}
-.sync-status.loading { background: #FFF3E0; color: #E65100; }
-.sync-status.error { background: #FFEBEE; color: #C62828; }
-
-.input-panel {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-.input-panel details summary {
-  cursor: pointer;
-  font-weight: 600;
-  color: #455A64;
-  font-size: 13px;
-  padding: 4px 0;
-  user-select: none;
-}
-.input-panel textarea {
-  width: 100%;
-  min-height: 180px;
-  padding: 10px;
-  border: 1px solid #CFD8DC;
-  border-radius: 4px;
-  font-family: 'Menlo', 'Consolas', monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  resize: vertical;
-  margin-top: 10px;
-}
-.input-actions {
+/* === ヘッダー・操作エリア === */
+.header-flex {
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  align-items: center;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
 }
-.btn {
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-  font-weight: 500;
+h1 { font-size: 24px; font-weight: 800; color: #0f172a; }
+.sync-badge {
+  font-size: 12px; padding: 4px 12px; border-radius: 20px;
+  background: #dcfce7; color: #166534; font-weight: 600;
 }
-.btn-primary { background: #1E88E5; color: white; }
-.btn-primary:hover { background: #1976D2; }
-.btn-secondary { background: #ECEFF1; color: #455A64; }
-.btn-secondary:hover { background: #CFD8DC; }
-.parse-info { font-size: 12px; color: #666; margin-left: auto; }
-.parse-error { color: #C62828; }
+.controls {
+  display: flex; gap: 12px; align-items: center;
+  background: white; padding: 12px 20px; border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+label { font-size: 13px; font-weight: 700; color: #64748b; }
+select {
+  padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border);
+  font-size: 14px; outline: none; cursor: pointer;
+}
+.btn-edit {
+  background: #0f172a; color: white; text-decoration: none;
+  padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600;
+  transition: opacity 0.2s;
+}
+.btn-edit:hover { opacity: 0.8; }
 
+/* === ダッシュボード === */
 .dashboard {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px; margin-bottom: 24px;
 }
 .stat-card {
-  background: white;
-  border-radius: 8px;
-  padding: 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  text-align: center;
-  border-top: 4px solid #ddd;
+  background: var(--card); padding: 20px; border-radius: 12px;
+  border: 1px solid var(--border); transition: transform 0.2s;
 }
-.stat-card.overdue { border-top-color: #D32F2F; }
-.stat-card.today { border-top-color: #F57C00; }
-.stat-card.week { border-top-color: #FBC02D; }
-.stat-card.nextweek { border-top-color: #43A047; }
-.stat-card.unassigned { border-top-color: #7B1FA2; }
-.stat-label { font-size: 11px; color: #666; margin-bottom: 4px; }
-.stat-value { font-size: 26px; font-weight: bold; color: #263238; line-height: 1; }
-.stat-unit { font-size: 12px; color: #999; margin-left: 4px; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+.stat-label { font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
+.stat-value { font-size: 32px; font-weight: 800; color: #0f172a; }
+.stat-unit { font-size: 14px; color: #94a3b8; margin-left: 4px; }
 
-.view-switcher {
-  background: white;
-  padding: 8px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  display: inline-flex;
-  gap: 4px;
-}
-.view-btn {
-  padding: 8px 16px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #666;
-}
-.view-btn.active { background: #263238; color: white; }
+/* === タスクリスト表示 === */
+.section { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
+.section-header { padding: 16px 20px; background: #f1f5f9; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
+.section-title { font-weight: 700; font-size: 15px; }
 
-.legend {
-  background: white;
-  padding: 10px 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 12px;
-  color: #666;
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.legend-group {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 4px 12px;
-  border-radius: 4px;
-  background: #FAFAFA;
-}
-.legend-title {
-  font-weight: bold;
-  color: #455A64;
-  font-size: 11px;
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.legend-swatch {
-  display: inline-block;
-  width: 14px;
-  height: 10px;
-  border-radius: 2px;
-  vertical-align: middle;
-}
-.legend-swatch.overdue { background: #D32F2F; }
-.legend-swatch.today { background: #F57C00; }
-.legend-swatch.urgent { background: #FBC02D; }
-.legend-swatch.upcoming { background: #43A047; }
-.legend-swatch.future { background: #BDBDBD; }
+.task-table { width: 100%; border-collapse: collapse; }
+.task-table th { text-align: left; padding: 12px 20px; font-size: 12px; color: #64748b; border-bottom: 1px solid var(--border); }
+.task-table td { padding: 14px 20px; border-bottom: 1px solid #f8fafc; font-size: 14px; }
+.row-overdue { background: #fff1f2; }
+.badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+.badge-date { background: #f1f5f9; color: #475569; }
+.badge-urgent { background: #fee2e2; color: #991b1b; }
+.badge-done { background: #f8fafc; color: #94a3b8; text-decoration: line-through; }
+.badge-num { background: #334155; color: white; margin-right: 8px; }
 
-.section {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+/* 通信中表示 */
+#loading-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 4px;
+  background: #e2e8f0; z-index: 9999; display: none;
 }
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #ECEFF1;
-  flex-wrap: wrap;
-}
-.section-title { font-size: 17px; font-weight: bold; }
-.section-count { font-size: 12px; color: #666; margin-left: auto; }
-.case-num-badge {
-  display: inline-block;
-  background: #455A64;
-  color: white;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-.kind-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-.kind-badge.プロポーザル { background: #E3F2FD; color: #1565C0; }
-.kind-badge.郵便入札 { background: #FFF3E0; color: #E65100; }
-
-.task-list { list-style: none; }
-.task-item {
-  display: grid;
-  grid-template-columns: 40px 100px 90px 220px 180px 1fr;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 10px;
-  border-bottom: 1px solid #F0F0F0;
-  border-left: 4px solid transparent;
-  transition: background 0.15s;
-}
-.task-item.case-mode {
-  grid-template-columns: 40px 100px 90px 220px 1fr;
-}
-.task-item:hover { background: #FAFAFA; }
-.task-item:last-child { border-bottom: none; }
-.task-item.overdue { border-left-color: #D32F2F; background: #FFF5F5; }
-.task-item.today { border-left-color: #F57C00; background: #FFF8F0; }
-.task-item.urgent { border-left-color: #FBC02D; background: #FFFEF3; }
-.task-item.upcoming { border-left-color: #43A047; }
-.task-item.future { border-left-color: #BDBDBD; }
-.task-item.done { opacity: 0.5; border-left-color: #E0E0E0; background: #FAFAFA; }
-.task-item.done .task-name,
-.task-item.done .task-city,
-.task-item.done .persons-text { text-decoration: line-through; color: #999; }
-.task-item.next {
-  background: #FFF8E1;
-  font-weight: 500;
-}
-
-.done-mark {
-  display: inline-block;
-  background: #43A047;
-  color: white;
-  padding: 3px 0;
-  border-radius: 3px;
-  font-size: 11px;
-  font-weight: bold;
-  text-align: center;
-  width: 36px;
-}
-.undone-mark {
-  display: inline-block;
-  background: transparent;
-  border: 1px dashed #CFD8DC;
-  padding: 3px 0;
-  border-radius: 3px;
-  font-size: 11px;
-  color: #90A4AE;
-  text-align: center;
-  width: 36px;
-}
-
-.date-badge {
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  text-align: center;
-  font-weight: 500;
-  background: #ECEFF1;
-  color: #455A64;
-  width: 96px;
-}
-.task-item.overdue .date-badge { background: #FFEBEE; color: #C62828; font-weight: bold; }
-.task-item.today .date-badge { background: #FFF3E0; color: #E65100; font-weight: bold; }
-.task-item.urgent .date-badge { background: #FFFDE7; color: #F57F17; }
-.task-item.upcoming .date-badge { background: #E8F5E9; color: #2E7D32; }
-.task-item.done .date-badge { background: #ECEFF1; color: #90A4AE; }
-.date-badge.nodate { background: #F3E5F5; color: #6A1B9A; }
-
-.deadline-info {
-  font-size: 10px;
-  background: #FFEBEE;
-  color: #C62828;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-weight: bold;
-  margin-left: 4px;
-  white-space: nowrap;
-}
-
-.days-left {
-  font-size: 11px;
-  color: #999;
-  text-align: left;
-}
-.days-left.urgent { color: #C62828; font-weight: bold; }
-.days-left.overdue { color: #C62828; font-weight: bold; }
-
-.task-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #37474F;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.task-icon {
-  display: inline-block;
-  margin-right: 3px;
-  font-size: 14px;
-}
-.task-city {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow: hidden;
-}
-.task-city-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.persons-text {
-  font-size: 12px;
-  color: #546E7A;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.person-main {
-  font-weight: bold;
-  color: #263238;
-}
-.person-unassigned {
-  background: #7B1FA2;
-  color: white;
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-size: 11px;
-  font-weight: bold;
-  animation: pulse 2s infinite;
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.65; }
-}
-
-.list-header {
-  display: grid;
-  grid-template-columns: 40px 100px 90px 220px 180px 1fr;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 10px;
-  border-left: 4px solid transparent;
-  font-size: 11px;
-  font-weight: bold;
-  color: #90A4AE;
-  border-bottom: 2px solid #ECEFF1;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.list-header.case-mode {
-  grid-template-columns: 40px 100px 90px 220px 1fr;
-}
-
-.progress-container {
-  flex: 1;
-  height: 6px;
-  background: #ECEFF1;
-  border-radius: 3px;
-  overflow: hidden;
-  max-width: 160px;
-  margin: 0 12px;
-}
-.progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #43A047 0%, #66BB6A 100%);
-  transition: width 0.3s;
-}
-.progress-text { font-size: 11px; color: #666; font-weight: 500; }
-
-.next-action {
-  background: #FFF8E1;
-  border-left: 3px solid #FFA726;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  font-size: 12px;
-  color: #E65100;
-  border-radius: 4px;
-}
-.next-action.overdue-alert {
-  background: #FFEBEE;
-  border-left-color: #D32F2F;
-  color: #C62828;
-}
-.next-action.done-all {
-  background: #E8F5E9;
-  border-left-color: #43A047;
-  color: #2E7D32;
-}
-
-.deadline-header {
-  color: white;
-  padding: 12px 16px;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.deadline-header.overdue { background: linear-gradient(90deg, #D32F2F 0%, #C62828 100%); }
-.deadline-header.today { background: linear-gradient(90deg, #F57C00 0%, #E65100 100%); }
-.deadline-header.this-week { background: linear-gradient(90deg, #FBC02D 0%, #F57F17 100%); }
-.deadline-header.next-week { background: linear-gradient(90deg, #388E3C 0%, #2E7D32 100%); }
-.deadline-header.future { background: linear-gradient(90deg, #616161 0%, #424242 100%); }
-.deadline-count { margin-left: auto; font-size: 13px; opacity: 0.9; }
-
-.view-content { display: none; }
-.view-content.active { display: block; }
-
-.gantt-wrapper {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  overflow: hidden;
-}
-.gantt-scroll {
-  overflow-x: auto;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-.gantt-table {
-  border-collapse: collapse;
-  font-size: 11px;
-  table-layout: fixed;
-}
-.gantt-table th, .gantt-table td {
-  border: 1px solid #ECEFF1;
-  padding: 0;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-.gantt-th-sticky {
-  position: sticky;
-  left: 0;
-  z-index: 3;
-  background: #FAFAFA;
-}
-.gantt-th-sticky.top { z-index: 5; }
-.gantt-header-top {
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  background: #455A64;
-}
-.gantt-header-top th {
-  padding: 6px 4px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: bold;
-  background: #455A64;
-  color: white;
-  border-color: #37474F;
-}
-.gantt-header-sub {
-  position: sticky;
-  top: 30px;
-  z-index: 4;
-  background: #ECEFF1;
-}
-.gantt-header-sub th {
-  padding: 4px 2px;
-  text-align: center;
-  font-size: 10px;
-  color: #455A64;
-  font-weight: normal;
-  background: #ECEFF1;
-  height: 36px;
-}
-.gantt-header-sub th.sat { background: #E3F2FD; color: #1565C0; }
-.gantt-header-sub th.sun { background: #FFEBEE; color: #C62828; }
-.gantt-header-sub th.today { background: #FF5252; color: white; font-weight: bold; }
-
-.gantt-date-col {
-  width: 28px;
-  min-width: 28px;
-  height: 60px;
-}
-.gantt-date-col.sat { background: #E3F2FD80; }
-.gantt-date-col.sun { background: #FFEBEE80; }
-.gantt-date-col.today-col {
-  background: linear-gradient(to right, transparent 0%, transparent 42%, #FF5252 42%, #FF5252 58%, transparent 58%, transparent 100%) !important;
-}
-
-.gantt-row-case { background: white; }
-.gantt-row-case.alt { background: #FAFAFA; }
-
-.gantt-name-cell {
-  padding: 8px 10px !important;
-  font-size: 13px;
-  font-weight: 600;
-  min-width: 220px;
-  width: 220px;
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  background: #FAFAFA;
-}
-.gantt-row-case.alt .gantt-name-cell { background: #F5F5F5; }
-.gantt-name-cell .case-num-badge { margin-right: 4px; }
-.gantt-leaders {
-  font-size: 10px;
-  color: #666;
-  font-weight: normal;
-  display: block;
-  margin-top: 3px;
-}
-
-.gantt-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  width: 100%;
-  font-size: 10px;
-  font-weight: 600;
-  color: #333;
-  position: relative;
-  overflow: visible;
-  cursor: help;
-}
-.gantt-bar-label {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-size: 10px;
-  white-space: nowrap;
-  letter-spacing: 1px;
-  padding: 2px 0;
-  color: #333;
-}
-
-.gantt-bar-質問       { background: #FFF9C4; }
-.gantt-bar-参加表明    { background: #C8E6C9; }
-.gantt-bar-提案書郵送  { background: #FCE4EC; }
-.gantt-bar-必着        { background: #FFE0B2; }
-.gantt-bar-プレゼン    { background: #E1BEE7; }
-.gantt-bar-郵便入札    { background: #B3E5FC; }
-
-.gantt-done-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #D32F2F;
-  font-weight: bold;
-  font-size: 16px;
-  border: 2px solid #D32F2F;
-  padding: 0 6px;
-  background: rgba(255,255,255,0.85);
-  border-radius: 3px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.gantt-month-label {
-  font-weight: bold;
-  font-size: 13px;
-  padding: 6px 8px;
-  color: white;
-  text-align: center;
-}
-
-@media (max-width: 900px) {
-  .dashboard { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 600px) {
-  .dashboard { grid-template-columns: repeat(2, 1fr); }
-}
-@media print {
-  body { background: white; padding: 0; }
-  .section { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
-  .view-switcher, .input-panel { display: none; }
-}
+#loading-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s; }
 </style>
 </head>
 <body>
+
+<div id="loading-overlay"><div id="loading-bar"></div></div>
+
 <div class="container">
-<h1>プロポFMT ビューアー <span id="sync-status" class="sync-status loading">読み込み中...</span></h1>
-<div class="subtitle">本日: <span id="today-display"></span></div>
-
-<div class="input-panel">
-  <details id="input-details">
-    <summary>プロポFMT 設定（スプレッドシート連動中）</summary>
-    <textarea id="fmt-input" placeholder="スプレッドシートから読み込みます..."></textarea>
-    <div class="input-actions">
-      <button class="btn btn-primary" onclick="loadFromSheet()">手動再読み込み</button>
-      <button class="btn btn-secondary" onclick="copyFmt()">FMTをコピー</button>
-      <span class="parse-info" id="parse-info"></span>
+  <div class="header-flex">
+    <div>
+      <h1>PropoSync Professional <span id="sync-status" class="sync-badge">同期中...</span></h1>
+      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">本日: <span id="today-display"></span> / 10分ごとに自動更新</p>
     </div>
-  </details>
-</div>
+    
+    <div class="controls">
+      <label>表示切替:</label>
+      <select id="user-filter" onchange="renderAll()">
+        <option value="全員">全員のタスクを表示</option>
+        <option value="岸岡">岸岡</option>
+        <option value="齊藤">齊藤</option>
+        <option value="長谷川">長谷川</option>
+        <option value="松澤">松澤</option>
+        <option value="浅川">浅川</option>
+        <option value="大須賀">大須賀</option>
+        <option value="矢嶋">矢嶋</option>
+        <option value="藤井">藤井</option>
+        <option value="植松">植松</option>
+        <option value="北見">北見</option>
+        <option value="菅原">菅原</option>
+        <option value="●●">担当未定</option>
+      </select>
+      <a href="https://docs.google.com/spreadsheets/d/1vQoEzRihpNiOfpjj4NFBXd0khIJkYkHsh01_DnbTI-JdhDO4QDSAqgBSk97Boa0uLXtGy7esFdWxJLl/edit" target="_blank" class="btn-edit">スプレッドシートを編集</a>
+    </div>
+  </div>
 
-<div class="dashboard">
-  <div class="stat-card overdue">
-    <div class="stat-label">期限超過</div>
-    <div class="stat-value" id="stat-overdue">-</div><span class="stat-unit">件</span>
-  </div>
-  <div class="stat-card today">
-    <div class="stat-label">本日期限</div>
-    <div class="stat-value" id="stat-today">-</div><span class="stat-unit">件</span>
-  </div>
-  <div class="stat-card week">
-    <div class="stat-label">今週中(7日)</div>
-    <div class="stat-value" id="stat-week">-</div><span class="stat-unit">件</span>
-  </div>
-  <div class="stat-card nextweek">
-    <div class="stat-label">来週中(8-14日)</div>
-    <div class="stat-value" id="stat-nextweek">-</div><span class="stat-unit">件</span>
-  </div>
-  <div class="stat-card unassigned">
-    <div class="stat-label">担当未定</div>
-    <div class="stat-value" id="stat-unassigned">-</div><span class="stat-unit">件</span>
-  </div>
-</div>
+  <div class="dashboard" id="dashboard">
+    </div>
 
-<div class="view-switcher">
-  <button class="view-btn active" data-view="person" onclick="switchView('person', this)">担当者別</button>
-  <button class="view-btn" data-view="case" onclick="switchView('case', this)">案件別</button>
-  <button class="view-btn" data-view="deadline" onclick="switchView('deadline', this)">締切別</button>
-  <button class="view-btn" data-view="task" onclick="switchView('task', this)">タスク別</button>
-  <button class="view-btn" data-view="gantt" onclick="switchView('gantt', this)">ガント</button>
-</div>
-
-<div class="legend">
-  <div class="legend-group">
-    <span class="legend-title">緊急度</span>
-    <span class="legend-item"><span class="legend-swatch overdue"></span>超過</span>
-    <span class="legend-item"><span class="legend-swatch today"></span>本日</span>
-    <span class="legend-item"><span class="legend-swatch urgent"></span>3日内</span>
-    <span class="legend-item"><span class="legend-swatch upcoming"></span>1週間内</span>
-    <span class="legend-item"><span class="legend-swatch future"></span>余裕</span>
-  </div>
-</div>
-
-<div id="person-view" class="view-content active"></div>
-<div id="case-view" class="view-content"></div>
-<div id="deadline-view" class="view-content"></div>
-<div id="task-view" class="view-content"></div>
-<div id="gantt-view" class="view-content"></div>
+  <div id="main-content">
+    </div>
 </div>
 
 <script>
-// === スプレッドシート公開URL ===
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQoEzRihpNiOfpjj4NFBXd0khIJkYkHsh01_DnbTI-JdhDO4QDSAqgBSk97Boa0uLXtGy7esFdWxJLl/pub?output=csv';
+// === 設定 ===
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQoEzRihpNiOfpjj4NFBXd0khIJkYkHsh01_DnbTI-JdhDO4QDSAqgBSk97Boa0uLXtGy7esFdWxJLl/pub?output=csv';
+const TODAY = new Date('2026-04-20'); // 本日日付の固定（テスト用）
 
-const TODAY = new Date('2026-04-20');
-const PERSON_ORDER = ['岸岡', '齊藤', '長谷川', '松澤', '浅川', '大須賀', '矢嶋', '藤井', '植松', '北見', '菅原', '●●'];
+let allCases = [];
 
-const TASK_DEFAULT_PERSON = {
-  '質問': ['岸岡'],
-  '参加表明': ['齊藤'],
-  '提案書郵送': ['岸岡'],
-  '郵便入札': ['齊藤'],
-};
+// === データ取得（自動更新対応） ===
+async function fetchData() {
+  const bar = document.getElementById('loading-bar');
+  const overlay = document.getElementById('loading-overlay');
+  overlay.style.display = 'block';
+  bar.style.width = '30%';
 
-const TASK_ICONS = {
-  '質問': '❓',
-  '参加表明': '📝',
-  '提案書郵送': '📬',
-  'プレゼン': '🎤',
-  '郵便入札': '📮',
-};
-
-let cases = [];
-
-// === 新機能: スプレッドシートからデータを取得 ===
-async function loadFromSheet() {
-  const statusEl = document.getElementById('sync-status');
-  statusEl.textContent = '読み込み中...';
-  statusEl.className = 'sync-status loading';
-  
   try {
-    // キャッシュを避けるためにURLにタイムスタンプを付与
-    const response = await fetch(SHEET_URL + '&t=' + new Date().getTime());
-    const csvData = await response.text();
+    const response = await fetch(SHEET_CSV_URL + '&t=' + new Date().getTime());
+    bar.style.width = '70%';
+    const csv = await response.text();
     
-    // CSVからA列のデータを抽出して結合（改行コードのゆらぎを補正）
-    const lines = csvData.split(/\r?\n/).map(line => {
-      // CSVなのでカンマが含まれる可能性があるが、基本1列目を取る
-      return line.split(',')[0].replace(/^"|"$/g, '');
-    }).filter(l => l.includes('【交通'));
+    const lines = csv.split(/\r?\n/).map(row => row.split(',')[0].replace(/^"|"$/g, ''));
+    const fmtLines = lines.filter(l => l.includes('【交通'));
     
-    const fmtText = lines.join('\n');
-    document.getElementById('fmt-input').value = fmtText;
+    allCases = fmtLines.map(line => parseLine(line)).filter(c => c);
     
-    statusEl.textContent = '同期完了';
-    statusEl.className = 'sync-status';
-    
-    parseAndRender();
+    document.getElementById('sync-status').textContent = '同期完了: ' + new Date().toLocaleTimeString();
+    renderAll();
   } catch (e) {
-    statusEl.textContent = '同期エラー';
-    statusEl.className = 'sync-status error';
-    console.error('Sheet Load Error:', e);
+    console.error(e);
+    document.getElementById('sync-status').textContent = '同期エラー';
+  } finally {
+    bar.style.width = '100%';
+    setTimeout(() => { overlay.style.display = 'none'; bar.style.width = '0%'; }, 500);
   }
 }
 
-// 既存の解析ロジックなどはそのまま
-function parseFmt(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  const result = [];
-  const errors = [];
-  for (const line of lines) {
-    try {
-      const caseObj = parseLine(line);
-      if (caseObj) result.push(caseObj);
-    } catch (e) {
-      errors.push(`行解析エラー: ${line.substring(0, 40)}...`);
-    }
-  }
-  return { cases: result, errors };
-}
-
+// === 解析ロジック (以前のものを流用・最適化) ===
 function parseLine(line) {
-  const start = line.indexOf('【交通');
-  if (start !== 0) return null;
-  const endBracket = line.indexOf('】');
-  const num = line.substring(start + 3, endBracket).trim();
-  const afterBracket = line.substring(endBracket + 1);
-  const normalizedAfter = afterBracket.replace(/｜/g, '|');
-  const firstPipe = normalizedAfter.indexOf('|');
-  const headerPart = firstPipe === -1 ? normalizedAfter : normalizedAfter.substring(0, firstPipe);
-  const tasksPart = firstPipe === -1 ? '' : normalizedAfter.substring(firstPipe + 1);
+  try {
+    const numMatch = line.match(/【交通(.+?)】/);
+    const num = numMatch ? numMatch[1] : '?';
+    const content = line.split('】')[1];
+    const [header, ...taskParts] = content.split('|');
+    
+    const cityMatch = header.match(/^(.+?)[(（](.+?)[)）]/);
+    const city = cityMatch ? cityMatch[1].trim() : header.trim();
+    const leaders = cityMatch ? cityMatch[2].split(/[・､、]/).map(s => s.trim()) : [];
+    
+    const tasks = taskParts.map(p => {
+      const done = p.includes('済');
+      const dateMatch = p.match(/(\d+\/\d+)/);
+      const dateStr = dateMatch ? dateMatch[1] : null;
+      const name = p.replace(/済|\[済\]|\(\d+\/\d+\)|\d+\/\d+/g, '').trim();
+      
+      let dateObj = null;
+      if (dateStr) {
+        const [m, d] = dateStr.split('/');
+        dateObj = `2026-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+      }
+      
+      return { name, date: dateObj, dateDisplay: dateStr, done };
+    });
 
-  let city = headerPart;
-  let leadersStr = '';
-  let openPos = -1;
-  let closeChar = '';
-  for (let i = 0; i < headerPart.length; i++) {
-    const c = headerPart[i];
-    if (c === '(') { openPos = i; closeChar = ')'; break; }
-    if (c === '（') { openPos = i; closeChar = '）'; break; }
-  }
-  if (openPos !== -1) {
-    const closePos = headerPart.indexOf(closeChar, openPos + 1);
-    if (closePos !== -1) {
-      city = headerPart.substring(0, openPos).trim();
-      leadersStr = headerPart.substring(openPos + 1, closePos).trim();
-    }
-  }
-  const leaders = leadersStr ? leadersStr.split(/[・､、]/).map(s => s.trim()).filter(s => s) : [];
-  const parts = tasksPart.split('|').map(s => s.trim()).filter(s => s);
-  const tasks = {};
-  let kind = 'プロポーザル';
-  for (const part of parts) {
-    const parsed = parseTask(part);
-    if (!parsed) continue;
-    for (const t of parsed) {
-      tasks[t.name] = t;
-      if (t.name === '郵便入札') kind = '郵便入札';
-    }
-  }
-  return { num, city, kind, leaders, tasks };
+    return { num, city, leaders, tasks };
+  } catch (e) { return null; }
 }
 
-function parseTask(str) {
-  str = str.replace(/（/g, '(').replace(/）/g, ')').replace(/｜/g, '|').trim();
-  let deadline = null;
-  const dlMatch = str.match(/\(必着([0-9]+\/[0-9]+)\)/);
-  let strWithoutDl = str;
-  if (dlMatch) {
-    deadline = parseDate(dlMatch[1]);
-    strWithoutDl = str.replace(dlMatch[0], '').trim();
-  }
-  const done = /済\s*$/.test(strWithoutDl) || /\[済\]/.test(strWithoutDl);
-  strWithoutDl = strWithoutDl.replace(/済\s*$/, '').replace(/\[済\]/, '').trim();
-  const dateMatch = strWithoutDl.match(/([0-9]+\/[0-9●]+)\s*$/);
-  if (!dateMatch) return null;
-  const dateStr = dateMatch[1];
-  const date = parseDate(dateStr);
-  const nameStr = strWithoutDl.substring(0, dateMatch.index).trim();
-  const taskNames = nameStr.split(/[・､、]/).map(s => s.trim()).filter(s => s);
-  const results = [];
-  for (const name of taskNames) {
-    const task = { name, date: date.date, done };
-    if (date.note) task.note = date.note;
-    if (deadline) task.deadline = deadline.date;
-    results.push(task);
-  }
-  return results;
-}
-
-function parseDate(str) {
-  const parts = str.split('/');
-  if (parts.length !== 2) return { date: null, note: str };
-  const [m, d] = parts;
-  if (m.includes('●') || d.includes('●')) return { date: null, note: str };
-  const month = parseInt(m);
-  const day = parseInt(d);
-  if (isNaN(month) || isNaN(day)) return { date: null, note: str };
-  return { date: `2026-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}` };
-}
-
-function getTaskPersons(caseObj, taskName) {
-  if (taskName === 'プレゼン') return caseObj.leaders;
-  return TASK_DEFAULT_PERSON[taskName] || ['齊藤'];
-}
-
-function getTaskIcon(taskName) { return TASK_ICONS[taskName] || ''; }
-
-function formatDate(dateStr) {
-  if (!dateStr) return '未定';
-  const d = new Date(dateStr);
-  const weekdays = ['日','月','火','水','木','金','土'];
-  return `${d.getMonth()+1}/${d.getDate()}(${weekdays[d.getDay()]})`;
-}
-
-function daysUntil(dateStr) {
-  if (!dateStr) return null;
-  const d = new Date(dateStr);
-  const t0 = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
-  return Math.floor((d - t0) / (1000*60*60*24));
-}
-
-function statusClass(delta, done) {
-  if (done) return 'done';
-  if (delta === null) return 'future';
-  if (delta < 0) return 'overdue';
-  if (delta === 0) return 'today';
-  if (delta <= 3) return 'urgent';
-  if (delta <= 7) return 'upcoming';
-  return 'future';
-}
-
-function daysText(delta, done) {
-  if (done) return '済';
-  if (delta === null) return '未定';
-  if (delta < 0) return `${-delta}日超過`;
-  if (delta === 0) return '本日';
-  return `あと${delta}日`;
-}
-
-function daysUrgency(delta) {
-  if (delta === null) return '';
-  if (delta < 0 || delta <= 3) return 'urgent';
-  return '';
-}
-
-function buildPersonsText(persons, taskName) {
-  return persons.map((p, i) => {
-    if (p === '●●') return `<span class="person-unassigned">●●</span>`;
-    const isMain = taskName === 'プレゼン' && i === 0;
-    return isMain ? `<span class="person-main">${p}</span>` : p;
-  }).join('・');
-}
-
-function buildLeadersText(leaders) {
-  return leaders.map((p, i) => {
-    if (p === '●●') return `<span class="person-unassigned">●●</span>`;
-    return i === 0 ? `<span class="person-main">${p}</span>` : p;
-  }).join('・');
-}
-
-function buildTaskNameHtml(taskName, taskData) {
-  const icon = getTaskIcon(taskName);
-  let html = `<span class="task-icon">${icon}</span>${taskName}`;
-  if (taskData.deadline) html += ` <span class="deadline-info">必着${formatDate(taskData.deadline)}</span>`;
-  if (taskData.note) html += ` <span class="deadline-info" style="background:#F3E5F5;color:#6A1B9A">${taskData.note}</span>`;
-  return html;
-}
-
-function doneMarkHtml(done) { return done ? '<span class="done-mark">済</span>' : '<span class="undone-mark">○</span>'; }
-
-function listHeaderHtml(caseMode = false) {
-  const cls = caseMode ? 'list-header case-mode' : 'list-header';
-  const cityCol = caseMode ? '' : '<span>自治体</span>';
-  return `<div class="${cls}"><span></span><span>締切</span><span>残日数</span><span>タスク</span>${cityCol}<span>担当者</span></div>`;
-}
-
-function renderDashboard() {
-  let overdue = 0, today = 0, week = 0, nextweek = 0;
-  const unassignedCases = new Set();
-  cases.forEach((caseObj, ci) => {
-    if (caseObj.leaders.includes('●●')) unassignedCases.add(ci);
-    Object.entries(caseObj.tasks).forEach(([_, t]) => {
-      if (t.done || !t.date) return;
-      const d = daysUntil(t.date);
-      if (d < 0) overdue++; else if (d === 0) today++; else if (d <= 7) week++; else if (d <= 14) nextweek++;
+// === フィルタリング＆描画 ===
+function renderAll() {
+  const filterUser = document.getElementById('user-filter').value;
+  const dashboard = document.getElementById('dashboard');
+  const main = document.getElementById('main-content');
+  
+  // 1. データ集計
+  let filteredTasks = [];
+  allCases.forEach(c => {
+    c.tasks.forEach(t => {
+      const persons = getTaskPersons(c, t.name);
+      if (filterUser === '全員' || persons.includes(filterUser)) {
+        filteredTasks.push({ ...t, city: c.city, num: c.num, persons });
+      }
     });
   });
-  document.getElementById('stat-overdue').textContent = overdue;
-  document.getElementById('stat-today').textContent = today;
-  document.getElementById('stat-week').textContent = week;
-  document.getElementById('stat-nextweek').textContent = nextweek;
-  document.getElementById('stat-unassigned').textContent = unassignedCases.size;
-}
 
-function renderPersonView() {
-  const tasksByPerson = {};
-  cases.forEach((caseObj, caseIdx) => {
-    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
-      const persons = getTaskPersons(caseObj, taskName);
-      persons.forEach(person => {
-        if (!tasksByPerson[person]) tasksByPerson[person] = [];
-        tasksByPerson[person].push({ caseIdx, taskName, ...taskData, num: caseObj.num, city: caseObj.city, caseObj, persons });
-      });
-    });
+  // 2. ダッシュボード更新
+  const overdue = filteredTasks.filter(t => !t.done && t.date && new Date(t.date) < TODAY).length;
+  const todayCount = filteredTasks.filter(t => !t.done && t.date && isSameDay(new Date(t.date), TODAY)).length;
+  const weekCount = filteredTasks.filter(t => !t.done && t.date && isWithinDays(new Date(t.date), 7)).length;
+
+  dashboard.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">期限超過</div>
+      <div class="stat-value" style="color: ${overdue > 0 ? '#e11d48' : '#0f172a'}">${overdue}<span class="stat-unit">件</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">本日のタスク</div>
+      <div class="stat-value" style="color: ${todayCount > 0 ? '#f59e0b' : '#0f172a'}">${todayCount}<span class="stat-unit">件</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">7日以内の締切</div>
+      <div class="stat-value">${weekCount}<span class="stat-unit">件</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">総タスク数 (${filterUser})</div>
+      <div class="stat-value">${filteredTasks.length}<span class="stat-unit">件</span></div>
+    </div>
+  `;
+
+  // 3. メインリスト更新
+  filteredTasks.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
+  
+  let html = `
+    <div class="section">
+      <div class="section-header"><div class="section-title">${filterUser} の直近タスク</div></div>
+      <table class="task-table">
+        <thead>
+          <tr><th>ステータス</th><th>締切</th><th>自治体</th><th>タスク</th><th>担当</th></tr>
+        </thead>
+        <tbody>
+  `;
+
+  filteredTasks.forEach(t => {
+    const isOver = !t.done && t.date && new Date(t.date) < TODAY;
+    html += `
+      <tr class="${isOver ? 'row-overdue' : ''}">
+        <td><span class="badge ${t.done ? 'badge-done' : 'badge-urgent'}">${t.done ? '完了' : '未完了'}</span></td>
+        <td><span class="badge badge-date">${t.dateDisplay || '未定'}</span></td>
+        <td><span class="badge badge-num">交通${t.num}</span><strong>${t.city}</strong></td>
+        <td>${t.name}</td>
+        <td style="font-size: 12px; color: #64748b;">${t.persons.join(', ')}</td>
+      </tr>
+    `;
   });
-  const container = document.getElementById('person-view');
-  let html = '';
-  for (const person of PERSON_ORDER) {
-    if (!tasksByPerson[person]) continue;
-    const tasks = tasksByPerson[person].sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
-    html += `<div class="section"><div class="section-header"><div class="section-title">${person}</div></div>${listHeaderHtml()}<ul class="task-list">`;
-    for (const t of tasks) {
-      const delta = daysUntil(t.date);
-      html += `<li class="task-item ${statusClass(delta, t.done)}">${doneMarkHtml(t.done)}<span class="date-badge">${formatDate(t.date)}</span><span class="days-left">${daysText(delta, t.done)}</span><span class="task-name">${buildTaskNameHtml(t.taskName, t)}</span><span class="task-city"><span class="case-num-badge">交通${t.num}</span>${t.city}</span><span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span></li>`;
-    }
-    html += '</ul></div>';
-  }
-  container.innerHTML = html;
+
+  main.innerHTML = html + `</tbody></table></div>`;
 }
 
-function renderCaseView() {
-  const container = document.getElementById('case-view');
-  let html = '';
-  cases.forEach((caseObj, caseIdx) => {
-    const sortedTasks = Object.entries(caseObj.tasks).sort(([, a], [, b]) => (a.date || '9999').localeCompare(b.date || '9999'));
-    html += `<div class="section"><div class="section-header"><span class="case-num-badge">交通${caseObj.num}</span><div class="section-title">${caseObj.city}</div></div>${listHeaderHtml(true)}<ul class="task-list">`;
-    for (const [taskName, taskData] of sortedTasks) {
-      const delta = daysUntil(taskData.date);
-      html += `<li class="task-item case-mode ${statusClass(delta, taskData.done)}">${doneMarkHtml(taskData.done)}<span class="date-badge">${formatDate(taskData.date)}</span><span class="days-left">${daysText(delta, taskData.done)}</span><span class="task-name">${buildTaskNameHtml(taskName, taskData)}</span><span class="persons-text">${buildPersonsText(getTaskPersons(caseObj, taskName), taskName)}</span></li>`;
-    }
-    html += '</ul></div>';
-  });
-  container.innerHTML = html;
+// ユーティリティ
+function getTaskPersons(c, taskName) {
+  if (taskName.includes('プレゼン')) return c.leaders;
+  if (taskName.includes('質問') || taskName.includes('郵送')) return ['岸岡'];
+  if (taskName.includes('参加') || taskName.includes('入札')) return ['齊藤'];
+  return c.leaders;
 }
+function isSameDay(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
+function isWithinDays(d, days) { const diff = (d - TODAY) / (1000*60*60*24); return diff >= 0 && diff <= days; }
 
-function renderDeadlineView() {
-  const allTasks = [];
-  cases.forEach(c => Object.entries(c.tasks).forEach(([name, data]) => allTasks.push({ ...data, taskName: name, num: c.num, city: c.city, caseObj: c })));
-  allTasks.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
-  const container = document.getElementById('deadline-view');
-  let html = `<div class="section">${listHeaderHtml()}<ul class="task-list">`;
-  for (const t of allTasks) {
-    const delta = daysUntil(t.date);
-    html += `<li class="task-item ${statusClass(delta, t.done)}">${doneMarkHtml(t.done)}<span class="date-badge">${formatDate(t.date)}</span><span class="days-left">${daysText(delta, t.done)}</span><span class="task-name">${buildTaskNameHtml(t.taskName, t)}</span><span class="task-city"><span class="case-num-badge">交通${t.num}</span>${t.city}</span><span class="persons-text">${buildPersonsText(getTaskPersons(t.caseObj, t.taskName), t.taskName)}</span></li>`;
-  }
-  container.innerHTML = html + '</ul></div>';
-}
-
-function renderTaskView() {
-  const container = document.getElementById('task-view');
-  container.innerHTML = '<div class="section">タスク別表示中...</div>';
-  // 簡易化のため省略。必要に応じて追加可能
-}
-
-function renderGanttView() {
-  const container = document.getElementById('gantt-view');
-  container.innerHTML = '<div class="section">ガントチャート生成中...</div>';
-  // 簡易化のため省略。必要に応じて追加可能
-}
-
-function render() {
-  renderDashboard();
-  renderPersonView();
-  renderCaseView();
-  renderDeadlineView();
-  renderTaskView();
-  renderGanttView();
-}
-
-function switchView(view, btn) {
-  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-  document.getElementById(view + '-view').classList.add('active');
-}
-
-function parseAndRender() {
-  const input = document.getElementById('fmt-input').value;
-  const { cases: parsedCases, errors } = parseFmt(input);
-  cases = parsedCases;
-  const info = document.getElementById('parse-info');
-  info.textContent = `${parsedCases.length}件を読み込みました`;
-  render();
-}
-
-function copyFmt() {
-  const text = document.getElementById('fmt-input').value;
-  navigator.clipboard.writeText(text).then(() => {
-    alert('コピーしました');
-  });
-}
-
+// 初期化
 document.getElementById('today-display').textContent = `${TODAY.getFullYear()}年${TODAY.getMonth()+1}月${TODAY.getDate()}日`;
-
-// 起動時に自動でスプレッドシートから読み込む
-loadFromSheet();
+fetchData();
+setInterval(fetchData, 600000); // 10分ごとに自動更新
 </script>
 </body>
 </html>
