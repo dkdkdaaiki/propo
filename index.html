@@ -13,8 +13,22 @@ body {
   line-height: 1.5;
 }
 .container { max-width: 1500px; margin: 0 auto; }
-h1 { font-size: 22px; margin-bottom: 4px; color: #263238; }
-.subtitle { font-size: 13px; color: #666; margin-bottom: 16px; }
+h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: #1A237E;
+  letter-spacing: 0.5px;
+}
+.subtitle {
+  font-size: 12px;
+  color: #90A4AE;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 .input-panel {
   background: white;
@@ -128,25 +142,104 @@ h1 { font-size: 22px; margin-bottom: 4px; color: #263238; }
 .dashboard {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 .stat-card {
   background: white;
-  border-radius: 8px;
-  padding: 14px;
+  border-radius: 10px;
+  padding: 18px 14px 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   text-align: center;
   border-top: 4px solid #ddd;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+.stat-card:active {
+  transform: translateY(0);
 }
 .stat-card.overdue { border-top-color: #D32F2F; }
 .stat-card.today { border-top-color: #F57C00; }
 .stat-card.week { border-top-color: #FBC02D; }
 .stat-card.nextweek { border-top-color: #43A047; }
 .stat-card.unassigned { border-top-color: #7B1FA2; }
-.stat-label { font-size: 11px; color: #666; margin-bottom: 4px; }
-.stat-value { font-size: 26px; font-weight: bold; color: #263238; line-height: 1; }
-.stat-unit { font-size: 12px; color: #999; margin-left: 4px; }
+.stat-label {
+  font-size: 11px;
+  color: #78909C;
+  margin-bottom: 6px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #263238;
+  line-height: 1;
+  font-feature-settings: 'tnum';
+}
+.stat-unit {
+  font-size: 13px;
+  color: #90A4AE;
+  margin-left: 4px;
+}
+.stat-card.empty .stat-value { color: #CFD8DC; }
+
+/* 今日やることビュー専用スタイル */
+.focus-summary {
+  background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.focus-summary-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #E65100;
+  margin-bottom: 8px;
+}
+.focus-summary-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.focus-stat {
+  font-size: 13px;
+  color: #5D4037;
+}
+.focus-stat strong {
+  font-size: 18px;
+  color: #263238;
+  margin: 0 2px;
+}
+
+/* 今日のアラート */
+.today-alert {
+  background: linear-gradient(90deg, #FFE082 0%, #FFCC80 100%);
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5D4037;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.today-alert:hover {
+  transform: translateY(-1px);
+}
+.today-alert.overdue {
+  background: linear-gradient(90deg, #FFCDD2 0%, #EF9A9A 100%);
+  color: #B71C1C;
+}
 
 .view-switcher {
   background: white;
@@ -572,14 +665,15 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
 .gantt-date-col.sun { background: #FFEBEE80; }
 .gantt-date-col.holiday { background: #FFEBEE80; }
 
-/* 今日列: 左枠を紺色の太い線にして全行貫通 */
+/* 今日列: 線は引かず、背景のみ薄く色付け */
 .gantt-date-col.today-col {
   position: relative;
-  border-left: 2px solid #1A237E !important;
+  background: #E8EAF6 !important;
 }
 .gantt-header-sub th.today {
-  border-left: 2px solid #1A237E !important;
-  border-right: 2px solid #1A237E !important;
+  background: #1A237E !important;
+  color: white !important;
+  font-weight: bold;
 }
 
 .gantt-row-case {
@@ -681,9 +775,19 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   .dashboard { grid-template-columns: repeat(2, 1fr); }
 }
 @media print {
-  body { background: white; padding: 0; }
-  .section { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
-  .view-switcher, .input-panel { display: none; }
+  @page { size: A4 landscape; margin: 10mm; }
+  body { background: white; padding: 0; font-size: 10pt; }
+  .auth-overlay { display: none !important; }
+  .app-content { display: block !important; }
+  .section { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; margin-bottom: 8px; }
+  .view-switcher, .input-panel, .today-alert, .done-toggle { display: none !important; }
+  .stat-card { cursor: default; box-shadow: none; border: 1px solid #ddd; }
+  .legend { box-shadow: none; border: 1px solid #ddd; }
+  /* 非アクティブビューも印刷(全ビュー展開) */
+  .view-content { display: block !important; page-break-before: always; }
+  .view-content:first-of-type { page-break-before: auto; }
+  /* ガントの縦書きラベルは印刷用に横書き */
+  .gantt-bar-label { writing-mode: horizontal-tb !important; font-size: 8pt !important; }
 }
 </style>
 </head>
@@ -713,35 +817,41 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   <div class="input-actions">
     <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit" target="_blank" rel="noopener">📝 スプレッドシートを編集</a>
     <button class="btn btn-secondary" onclick="fetchAndRender()">🔄 最新を取得</button>
+    <button class="btn btn-secondary" onclick="exportCSV()">📊 CSV出力</button>
+    <button class="btn btn-secondary" onclick="exportPDF()">📄 PDF出力</button>
     <span class="parse-info" id="parse-info"></span>
     <button class="btn btn-link" onclick="logout()" title="パスワード認証を解除">ログアウト</button>
   </div>
 </div>
 
+<!-- 今日のアラート(動的に表示) -->
+<div id="today-alert-container"></div>
+
 <div class="dashboard">
-  <div class="stat-card overdue">
+  <div class="stat-card overdue" onclick="jumpToDeadline('overdue')" title="クリックで超過タスクへ">
     <div class="stat-label">期限超過</div>
     <div class="stat-value" id="stat-overdue">-</div><span class="stat-unit">件</span>
   </div>
-  <div class="stat-card today">
+  <div class="stat-card today" onclick="jumpToDeadline('today')" title="クリックで本日タスクへ">
     <div class="stat-label">本日期限</div>
     <div class="stat-value" id="stat-today">-</div><span class="stat-unit">件</span>
   </div>
-  <div class="stat-card week">
+  <div class="stat-card week" onclick="jumpToDeadline('thisWeek')" title="クリックで今週のタスクへ">
     <div class="stat-label">今週中(7日)</div>
     <div class="stat-value" id="stat-week">-</div><span class="stat-unit">件</span>
   </div>
-  <div class="stat-card nextweek">
+  <div class="stat-card nextweek" onclick="jumpToDeadline('nextWeek')" title="クリックで来週のタスクへ">
     <div class="stat-label">来週中(8-14日)</div>
     <div class="stat-value" id="stat-nextweek">-</div><span class="stat-unit">件</span>
   </div>
-  <div class="stat-card unassigned">
+  <div class="stat-card unassigned" onclick="switchViewByName('person'); scrollToPerson('●●')" title="クリックで担当未定タスクへ">
     <div class="stat-label">担当未定</div>
     <div class="stat-value" id="stat-unassigned">-</div><span class="stat-unit">件</span>
   </div>
 </div>
 
 <div class="view-switcher">
+  <button class="view-btn" data-view="today-focus" onclick="switchView('today-focus', this)">📍 今日やること</button>
   <button class="view-btn active" data-view="person" onclick="switchView('person', this)">担当者別</button>
   <button class="view-btn" data-view="case" onclick="switchView('case', this)">案件別</button>
   <button class="view-btn" data-view="deadline" onclick="switchView('deadline', this)">締切別</button>
@@ -775,6 +885,7 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   </div>
 </div>
 
+<div id="today-focus-view" class="view-content"></div>
 <div id="person-view" class="view-content active"></div>
 <div id="case-view" class="view-content"></div>
 <div id="deadline-view" class="view-content"></div>
@@ -1691,8 +1802,246 @@ function renderGanttView() {
   container.innerHTML = html;
 }
 
+// ===== 今日やることビュー =====
+function renderTodayFocusView() {
+  const container = document.getElementById('today-focus-view');
+
+  // 対象: 超過 + 本日 + 今週7日以内 の未完了タスクを収集
+  // 担当者別にグループ化
+  const tasksByPerson = {};
+  const urgencyOrder = { overdue: 0, today: 1, urgent: 2 };
+
+  cases.forEach((caseObj, caseIdx) => {
+    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
+      if (taskData.done || !taskData.date) return;
+      const delta = daysUntil(taskData.date);
+      // 超過/本日/3日以内までを対象
+      let urgency = null;
+      if (delta < 0) urgency = 'overdue';
+      else if (delta === 0) urgency = 'today';
+      else if (delta <= 3) urgency = 'urgent';
+      if (!urgency) return;
+
+      const persons = getTaskPersons(caseObj, taskName);
+      persons.forEach(person => {
+        if (!tasksByPerson[person]) tasksByPerson[person] = [];
+        tasksByPerson[person].push({
+          caseIdx, taskName, urgency,
+          date: taskData.date, done: taskData.done,
+          deadline: taskData.deadline, note: taskData.note,
+          num: caseObj.num, city: caseObj.city,
+          caseObj, persons,
+        });
+      });
+    });
+  });
+
+  // 各担当者で緊急度→日付順にソート
+  Object.keys(tasksByPerson).forEach(p => {
+    tasksByPerson[p].sort((a, b) => {
+      const uDiff = urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+      if (uDiff !== 0) return uDiff;
+      return (a.date || '').localeCompare(b.date || '');
+    });
+  });
+
+  // 総件数
+  const totalCount = Object.values(tasksByPerson).reduce((s, arr) => s + arr.length, 0);
+
+  let html = '';
+
+  if (totalCount === 0) {
+    html = `<div class="section" style="text-align:center; padding:60px 20px;">
+      <div style="font-size:48px; margin-bottom:12px">🎉</div>
+      <div style="font-size:18px; font-weight:600; color:#2E7D32">期限超過・本日・3日以内のタスクはありません</div>
+      <div style="font-size:13px; color:#666; margin-top:8px">全員お疲れ様です。余裕を持って作業を進めましょう。</div>
+    </div>`;
+  } else {
+    // サマリー
+    let totalOverdue = 0, totalToday = 0, totalUrgent = 0;
+    Object.values(tasksByPerson).forEach(arr => {
+      arr.forEach(t => {
+        if (t.urgency === 'overdue') totalOverdue++;
+        else if (t.urgency === 'today') totalToday++;
+        else totalUrgent++;
+      });
+    });
+
+    html += `<div class="focus-summary">
+      <div class="focus-summary-title">📍 今日〜3日以内に対応が必要なタスク</div>
+      <div class="focus-summary-stats">
+        <span class="focus-stat overdue">🔴 超過 <strong>${totalOverdue}</strong></span>
+        <span class="focus-stat today">🟠 本日 <strong>${totalToday}</strong></span>
+        <span class="focus-stat urgent">🟡 3日内 <strong>${totalUrgent}</strong></span>
+      </div>
+    </div>`;
+
+    // 担当者別セクション
+    for (const person of PERSON_ORDER) {
+      if (!tasksByPerson[person]) continue;
+      const tasks = tasksByPerson[person];
+      const nameLabel = person === '●●' ? '担当未定 (要アサイン)' : person;
+
+      html += `<div class="section">
+        <div class="section-header">
+          <div class="section-title">${nameLabel}</div>
+          <div class="section-count">${tasks.length}件</div>
+        </div>
+        ${listHeaderHtml()}
+        <ul class="task-list">`;
+
+      for (const t of tasks) {
+        const delta = daysUntil(t.date);
+        const cls = statusClass(delta, t.done);
+        const taskDataForName = { deadline: t.deadline, note: t.note };
+        const personsHtml = t.taskName === 'プレゼン'
+          ? `<span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span>`
+          : `<span></span>`;
+
+        html += `<li class="task-item ${cls}">
+          ${doneMarkHtml(t.done)}
+          <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
+          <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
+          <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
+          <span class="task-city"><span class="case-num-badge">交通${t.num}</span><span class="task-city-name">${t.city}</span></span>
+          ${personsHtml}
+        </li>`;
+      }
+      html += '</ul></div>';
+    }
+  }
+
+  container.innerHTML = html;
+}
+
+// ===== 今日のアラート表示 =====
+function renderTodayAlert() {
+  const alertContainer = document.getElementById('today-alert-container');
+  let overdue = 0, today = 0;
+  cases.forEach(c => {
+    Object.values(c.tasks).forEach(t => {
+      if (t.done || !t.date) return;
+      const d = daysUntil(t.date);
+      if (d < 0) overdue++;
+      else if (d === 0) today++;
+    });
+  });
+
+  if (overdue === 0 && today === 0) {
+    alertContainer.innerHTML = '';
+    return;
+  }
+
+  const msgs = [];
+  if (overdue > 0) msgs.push(`<strong>${overdue}件</strong>が期限超過`);
+  if (today > 0) msgs.push(`<strong>${today}件</strong>が本日期限`);
+
+  const alertCls = overdue > 0 ? 'today-alert overdue' : 'today-alert';
+  alertContainer.innerHTML = `<div class="${alertCls}" onclick="switchViewByName('today-focus')">
+    ⚠️ ${msgs.join(' / ')} — 詳細はここをクリック(今日やること)
+  </div>`;
+}
+
+// ===== カードクリックでジャンプ =====
+function switchViewByName(name) {
+  document.querySelectorAll('.view-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === name);
+  });
+  document.querySelectorAll('.view-content').forEach(v => {
+    v.classList.toggle('active', v.id === name + '-view');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function jumpToDeadline(groupKey) {
+  switchViewByName('deadline');
+  setTimeout(() => {
+    const label = {
+      overdue: '期限超過',
+      today: '本日期限',
+      thisWeek: '今週中',
+      nextWeek: '来週'
+    }[groupKey];
+    const headers = document.querySelectorAll('#deadline-view .deadline-header span');
+    for (const h of headers) {
+      if (h.textContent.includes(label)) {
+        h.closest('.section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        break;
+      }
+    }
+  }, 100);
+}
+
+function scrollToPerson(personName) {
+  setTimeout(() => {
+    const headers = document.querySelectorAll('#person-view .section-title');
+    for (const h of headers) {
+      const target = personName === '●●' ? '担当未定' : personName;
+      if (h.textContent.includes(target)) {
+        h.closest('.section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        break;
+      }
+    }
+  }, 100);
+}
+
+// ===== CSV出力 =====
+function exportCSV() {
+  const rows = [['案件番号', '自治体', '案件種別', '案件担当者', 'タスク', '締切', '必着', '残日数', '担当者', '済']];
+  cases.forEach(c => {
+    Object.entries(c.tasks).forEach(([tname, tdata]) => {
+      const persons = getTaskPersons(c, tname);
+      const delta = daysUntil(tdata.date);
+      const daysStr = tdata.done ? '済' :
+        (delta === null ? '未定' : (delta < 0 ? `${-delta}日超過` : (delta === 0 ? '本日' : `あと${delta}日`)));
+      rows.push([
+        `交通${c.num}`,
+        c.city,
+        c.kind,
+        c.leaders.join('・'),
+        tname,
+        tdata.date || (tdata.note || ''),
+        tdata.deadline || '',
+        daysStr,
+        persons.join('・'),
+        tdata.done ? '済' : ''
+      ]);
+    });
+  });
+
+  const csv = rows.map(r => r.map(cell => {
+    const s = String(cell);
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  }).join(',')).join('\n');
+
+  // BOM付きUTF-8 for Excel
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const dateStr = `${today.getFullYear()}${pad(today.getMonth()+1)}${pad(today.getDate())}`;
+  a.href = url;
+  a.download = `プロポーザルタスク_${dateStr}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ===== PDF出力 =====
+function exportPDF() {
+  window.print();
+}
+
 function render() {
   renderDashboard();
+  renderTodayAlert();
+  renderTodayFocusView();
   renderPersonView();
   renderCaseView();
   renderDeadlineView();
