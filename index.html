@@ -4,72 +4,27 @@
 <meta charset="UTF-8">
 <title>PropoSync Professional</title>
 <style>
-/* === プロ仕様のベーススタイル === */
-:root {
-  --primary: #2563eb;
-  --bg: #f8fafc;
-  --card: #ffffff;
-  --text: #1e293b;
-  --border: #e2e8f0;
-}
+/* スタイルは変更なし（プロ仕様デザインを維持） */
+:root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #e2e8f0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Inter', 'Noto Sans JP', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  padding: 24px;
-}
+body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 24px; }
 .container { max-width: 1400px; margin: 0 auto; }
-
-/* === ヘッダー・操作エリア === */
-.header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 24px;
-}
+.header-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
 h1 { font-size: 24px; font-weight: 800; color: #0f172a; }
-.sync-badge {
-  font-size: 12px; padding: 4px 12px; border-radius: 20px;
-  background: #dcfce7; color: #166534; font-weight: 600;
-}
-.controls {
-  display: flex; gap: 12px; align-items: center;
-  background: white; padding: 12px 20px; border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
+.sync-badge { font-size: 12px; padding: 4px 12px; border-radius: 20px; background: #dcfce7; color: #166534; font-weight: 600; }
+.controls { display: flex; gap: 12px; align-items: center; background: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 label { font-size: 13px; font-weight: 700; color: #64748b; }
-select {
-  padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border);
-  font-size: 14px; outline: none; cursor: pointer;
-}
-.btn-edit {
-  background: #0f172a; color: white; text-decoration: none;
-  padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600;
-  transition: opacity 0.2s;
-}
+select { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); font-size: 14px; outline: none; cursor: pointer; }
+.btn-edit { background: #0f172a; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; transition: opacity 0.2s; }
 .btn-edit:hover { opacity: 0.8; }
-
-/* === ダッシュボード === */
-.dashboard {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px; margin-bottom: 24px;
-}
-.stat-card {
-  background: var(--card); padding: 20px; border-radius: 12px;
-  border: 1px solid var(--border); transition: transform 0.2s;
-}
-.stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+.dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); transition: transform 0.2s; }
 .stat-label { font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
 .stat-value { font-size: 32px; font-weight: 800; color: #0f172a; }
 .stat-unit { font-size: 14px; color: #94a3b8; margin-left: 4px; }
-
-/* === タスクリスト表示 === */
 .section { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
-.section-header { padding: 16px 20px; background: #f1f5f9; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
+.section-header { padding: 16px 20px; background: #f1f5f9; border-bottom: 1px solid var(--border); }
 .section-title { font-weight: 700; font-size: 15px; }
-
 .task-table { width: 100%; border-collapse: collapse; }
 .task-table th { text-align: left; padding: 12px 20px; font-size: 12px; color: #64748b; border-bottom: 1px solid var(--border); }
 .task-table td { padding: 14px 20px; border-bottom: 1px solid #f8fafc; font-size: 14px; }
@@ -79,12 +34,7 @@ select {
 .badge-urgent { background: #fee2e2; color: #991b1b; }
 .badge-done { background: #f8fafc; color: #94a3b8; text-decoration: line-through; }
 .badge-num { background: #334155; color: white; margin-right: 8px; }
-
-/* 通信中表示 */
-#loading-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 4px;
-  background: #e2e8f0; z-index: 9999; display: none;
-}
+#loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: #e2e8f0; z-index: 9999; display: none; }
 #loading-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s; }
 </style>
 </head>
@@ -116,25 +66,21 @@ select {
         <option value="菅原">菅原</option>
         <option value="●●">担当未定</option>
       </select>
-      <a href="https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit?hl=ja&gid=0#gid=0" target="_blank" class="btn-edit">スプレッドシートを編集</a>
+      <a href="https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit" target="_blank" class="btn-edit">スプレッドシートを編集</a>
     </div>
   </div>
 
-  <div class="dashboard" id="dashboard">
-    </div>
-
-  <div id="main-content">
-    </div>
+  <div class="dashboard" id="dashboard"></div>
+  <div id="main-content"></div>
 </div>
 
 <script>
-// === 設定 (dkdkdaaikiさん専用設定) ===
+// === 修正後のURL（CSVとして強制読み込み） ===
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQoEzRihpNiOfpjj4NFBXd0khIJkYkHsh01_DnbTI-JdhDO4QDSAqgBSk97Boa0uLXtGy7esFdWxJLl/pub?output=csv';
-const TODAY = new Date(); // 今日の日付
+const TODAY = new Date(); 
 
 let allCases = [];
 
-// === データ取得 ===
 async function fetchData() {
   const bar = document.getElementById('loading-bar');
   const overlay = document.getElementById('loading-overlay');
@@ -143,11 +89,14 @@ async function fetchData() {
 
   try {
     const response = await fetch(SHEET_CSV_URL + '&t=' + new Date().getTime());
-    bar.style.width = '70%';
     const csv = await response.text();
     
-    const lines = csv.split(/\r?\n/).map(row => row.split(',')[0].replace(/^"|"$/g, ''));
-    const fmtLines = lines.filter(l => l.includes('【交通'));
+    // 改行で分割し、カンマが含まれていても最初の列（A列）を取得
+    const rows = csv.split(/\r?\n/);
+    const fmtLines = rows.map(row => {
+        // CSVのパース（簡易版: 最初のカンマより前を取得。クォーテーションを削除）
+        return row.split(',')[0].replace(/^"|"$/g, '').trim();
+    }).filter(l => l.includes('【交通'));
     
     allCases = fmtLines.map(line => parseLine(line)).filter(c => c);
     
@@ -162,15 +111,17 @@ async function fetchData() {
   }
 }
 
-// === 解析ロジック ===
 function parseLine(line) {
   try {
+    // 全角・半角のゆらぎを吸収
+    line = line.replace(/（/g, '(').replace(/）/g, ')').replace(/｜/g, '|');
+    
     const numMatch = line.match(/【交通(.+?)】/);
     const num = numMatch ? numMatch[1] : '?';
     const content = line.split('】')[1];
     const [header, ...taskParts] = content.split('|');
     
-    const cityMatch = header.match(/^(.+?)[(（](.+?)[)）]/);
+    const cityMatch = header.match(/^(.+?)\((.+?)\)/);
     const city = cityMatch ? cityMatch[1].trim() : header.trim();
     const leaders = cityMatch ? cityMatch[2].split(/[・､、]/).map(s => s.trim()) : [];
     
@@ -185,15 +136,13 @@ function parseLine(line) {
         const [m, d] = dateStr.split('/');
         dateObj = `${TODAY.getFullYear()}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
       }
-      
       return { name, date: dateObj, dateDisplay: dateStr, done };
-    });
+    }).filter(t => t.name);
 
     return { num, city, leaders, tasks };
   } catch (e) { return null; }
 }
 
-// === フィルタリング＆描画 ===
 function renderAll() {
   const filterUser = document.getElementById('user-filter').value;
   const dashboard = document.getElementById('dashboard');
@@ -209,54 +158,25 @@ function renderAll() {
     });
   });
 
-  const overdue = filteredTasks.filter(t => !t.done && t.date && new Date(t.date) < TODAY.setHours(0,0,0,0)).length;
-  const todayCount = filteredTasks.filter(t => !t.done && t.date && isSameDay(new Date(t.date), new Date())).length;
+  const todayBase = new Date(TODAY).setHours(0,0,0,0);
+  const overdue = filteredTasks.filter(t => !t.done && t.date && new Date(t.date).getTime() < todayBase).length;
+  const todayCount = filteredTasks.filter(t => !t.done && t.date && isSameDay(new Date(t.date), TODAY)).length;
   const weekCount = filteredTasks.filter(t => !t.done && t.date && isWithinDays(new Date(t.date), 7)).length;
 
   dashboard.innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">期限超過</div>
-      <div class="stat-value" style="color: ${overdue > 0 ? '#e11d48' : '#0f172a'}">${overdue}<span class="stat-unit">件</span></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">本日のタスク</div>
-      <div class="stat-value" style="color: ${todayCount > 0 ? '#f59e0b' : '#0f172a'}">${todayCount}<span class="stat-unit">件</span></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">7日以内の締切</div>
-      <div class="stat-value">${weekCount}<span class="stat-unit">件</span></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">総タスク数 (${filterUser})</div>
-      <div class="stat-value">${filteredTasks.length}<span class="stat-unit">件</span></div>
-    </div>
+    <div class="stat-card"><div class="stat-label">期限超過</div><div class="stat-value" style="color: ${overdue > 0 ? '#e11d48' : '#0f172a'}">${overdue}<span class="stat-unit">件</span></div></div>
+    <div class="stat-card"><div class="stat-label">本日のタスク</div><div class="stat-value" style="color: ${todayCount > 0 ? '#f59e0b' : '#0f172a'}">${todayCount}<span class="stat-unit">件</span></div></div>
+    <div class="stat-card"><div class="stat-label">7日以内の締切</div><div class="stat-value">${weekCount}<span class="stat-unit">件</span></div></div>
+    <div class="stat-card"><div class="stat-label">総タスク数</div><div class="stat-value">${filteredTasks.length}<span class="stat-unit">件</span></div></div>
   `;
 
   filteredTasks.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
   
-  let html = `
-    <div class="section">
-      <div class="section-header"><div class="section-title">${filterUser} のタスク一覧</div></div>
-      <table class="task-table">
-        <thead>
-          <tr><th>ステータス</th><th>締切</th><th>自治体</th><th>タスク</th><th>担当</th></tr>
-        </thead>
-        <tbody>
-  `;
-
+  let html = `<div class="section"><div class="section-header"><div class="section-title">${filterUser} のタスク</div></div><table class="task-table"><thead><tr><th>ステータス</th><th>締切</th><th>自治体</th><th>タスク</th><th>担当</th></tr></thead><tbody>`;
   filteredTasks.forEach(t => {
-    const isOver = !t.done && t.date && new Date(t.date) < new Date().setHours(0,0,0,0);
-    html += `
-      <tr class="${isOver ? 'row-overdue' : ''}">
-        <td><span class="badge ${t.done ? 'badge-done' : 'badge-urgent'}">${t.done ? '完了' : '未完了'}</span></td>
-        <td><span class="badge badge-date">${t.dateDisplay || '未定'}</span></td>
-        <td><span class="badge badge-num">交通${t.num}</span><strong>${t.city}</strong></td>
-        <td>${t.name}</td>
-        <td style="font-size: 12px; color: #64748b;">${t.persons.join(', ')}</td>
-      </tr>
-    `;
+    const isOver = !t.done && t.date && new Date(t.date).getTime() < todayBase;
+    html += `<tr class="${isOver ? 'row-overdue' : ''}"><td><span class="badge ${t.done ? 'badge-done' : 'badge-urgent'}">${t.done ? '完了' : '未完了'}</span></td><td><span class="badge badge-date">${t.dateDisplay || '未定'}</span></td><td><span class="badge badge-num">交通${t.num}</span><strong>${t.city}</strong></td><td>${t.name}</td><td style="font-size: 12px; color: #64748b;">${t.persons.join(', ')}</td></tr>`;
   });
-
   main.innerHTML = html + `</tbody></table></div>`;
 }
 
@@ -267,9 +187,9 @@ function getTaskPersons(c, taskName) {
   return c.leaders;
 }
 function isSameDay(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
-function isWithinDays(d, days) { const diff = (d - new Date()) / (1000*60*60*24); return diff >= -1 && diff <= days; }
+function isWithinDays(d, days) { const diff = (d - TODAY) / (1000*60*60*24); return diff >= -1 && diff <= days; }
 
-document.getElementById('today-display').textContent = `${new Date().toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric'})}`;
+document.getElementById('today-display').textContent = `${TODAY.toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric'})}`;
 fetchData();
 setInterval(fetchData, 600000);
 </script>
