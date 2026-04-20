@@ -116,7 +116,7 @@ select {
         <option value="菅原">菅原</option>
         <option value="●●">担当未定</option>
       </select>
-      <a href="https://docs.google.com/spreadsheets/d/1vQoEzRihpNiOfpjj4NFBXd0khIJkYkHsh01_DnbTI-JdhDO4QDSAqgBSk97Boa0uLXtGy7esFdWxJLl/edit" target="_blank" class="btn-edit">スプレッドシートを編集</a>
+      <a href="https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit?hl=ja&gid=0#gid=0" target="_blank" class="btn-edit">スプレッドシートを編集</a>
     </div>
   </div>
 
@@ -128,13 +128,13 @@ select {
 </div>
 
 <script>
-// === 設定 ===
+// === 設定 (dkdkdaaikiさん専用設定) ===
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQoEzRihpNiOfpjj4NFBXd0khIJkYkHsh01_DnbTI-JdhDO4QDSAqgBSk97Boa0uLXtGy7esFdWxJLl/pub?output=csv';
-const TODAY = new Date('2026-04-20'); // 本日日付の固定（テスト用）
+const TODAY = new Date(); // 今日の日付
 
 let allCases = [];
 
-// === データ取得（自動更新対応） ===
+// === データ取得 ===
 async function fetchData() {
   const bar = document.getElementById('loading-bar');
   const overlay = document.getElementById('loading-overlay');
@@ -162,7 +162,7 @@ async function fetchData() {
   }
 }
 
-// === 解析ロジック (以前のものを流用・最適化) ===
+// === 解析ロジック ===
 function parseLine(line) {
   try {
     const numMatch = line.match(/【交通(.+?)】/);
@@ -183,7 +183,7 @@ function parseLine(line) {
       let dateObj = null;
       if (dateStr) {
         const [m, d] = dateStr.split('/');
-        dateObj = `2026-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+        dateObj = `${TODAY.getFullYear()}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
       }
       
       return { name, date: dateObj, dateDisplay: dateStr, done };
@@ -199,7 +199,6 @@ function renderAll() {
   const dashboard = document.getElementById('dashboard');
   const main = document.getElementById('main-content');
   
-  // 1. データ集計
   let filteredTasks = [];
   allCases.forEach(c => {
     c.tasks.forEach(t => {
@@ -210,9 +209,8 @@ function renderAll() {
     });
   });
 
-  // 2. ダッシュボード更新
-  const overdue = filteredTasks.filter(t => !t.done && t.date && new Date(t.date) < TODAY).length;
-  const todayCount = filteredTasks.filter(t => !t.done && t.date && isSameDay(new Date(t.date), TODAY)).length;
+  const overdue = filteredTasks.filter(t => !t.done && t.date && new Date(t.date) < TODAY.setHours(0,0,0,0)).length;
+  const todayCount = filteredTasks.filter(t => !t.done && t.date && isSameDay(new Date(t.date), new Date())).length;
   const weekCount = filteredTasks.filter(t => !t.done && t.date && isWithinDays(new Date(t.date), 7)).length;
 
   dashboard.innerHTML = `
@@ -234,12 +232,11 @@ function renderAll() {
     </div>
   `;
 
-  // 3. メインリスト更新
   filteredTasks.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
   
   let html = `
     <div class="section">
-      <div class="section-header"><div class="section-title">${filterUser} の直近タスク</div></div>
+      <div class="section-header"><div class="section-title">${filterUser} のタスク一覧</div></div>
       <table class="task-table">
         <thead>
           <tr><th>ステータス</th><th>締切</th><th>自治体</th><th>タスク</th><th>担当</th></tr>
@@ -248,7 +245,7 @@ function renderAll() {
   `;
 
   filteredTasks.forEach(t => {
-    const isOver = !t.done && t.date && new Date(t.date) < TODAY;
+    const isOver = !t.done && t.date && new Date(t.date) < new Date().setHours(0,0,0,0);
     html += `
       <tr class="${isOver ? 'row-overdue' : ''}">
         <td><span class="badge ${t.done ? 'badge-done' : 'badge-urgent'}">${t.done ? '完了' : '未完了'}</span></td>
@@ -263,7 +260,6 @@ function renderAll() {
   main.innerHTML = html + `</tbody></table></div>`;
 }
 
-// ユーティリティ
 function getTaskPersons(c, taskName) {
   if (taskName.includes('プレゼン')) return c.leaders;
   if (taskName.includes('質問') || taskName.includes('郵送')) return ['岸岡'];
@@ -271,12 +267,11 @@ function getTaskPersons(c, taskName) {
   return c.leaders;
 }
 function isSameDay(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
-function isWithinDays(d, days) { const diff = (d - TODAY) / (1000*60*60*24); return diff >= 0 && diff <= days; }
+function isWithinDays(d, days) { const diff = (d - new Date()) / (1000*60*60*24); return diff >= -1 && diff <= days; }
 
-// 初期化
-document.getElementById('today-display').textContent = `${TODAY.getFullYear()}年${TODAY.getMonth()+1}月${TODAY.getDate()}日`;
+document.getElementById('today-display').textContent = `${new Date().toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric'})}`;
 fetchData();
-setInterval(fetchData, 600000); // 10分ごとに自動更新
+setInterval(fetchData, 600000);
 </script>
 </body>
 </html>
