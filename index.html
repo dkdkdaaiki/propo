@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>公共交通計画プロポーザルプロジェクトマネジメント</title>
+<title>プロポーザルプロジェクトマネジメント</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -23,7 +23,12 @@ body {
   margin-bottom: 20px;
 }
 .header-left { flex: 1; min-width: 0; }
-.header-right { flex-shrink: 0; }
+.header-right {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 h1 {
   font-size: 20px;
@@ -1148,7 +1153,7 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
 <!-- パスワード画面 -->
 <div class="auth-overlay" id="auth-overlay">
   <div class="auth-box">
-    <div class="auth-title">公共交通計画プロポーザル<br>プロジェクトマネジメント</div>
+    <div class="auth-title">プロポーザルプロジェクトマネジメント</div>
     <div class="auth-subtitle">パスワードを入力してください</div>
     <input type="password" class="auth-input" id="auth-input" placeholder="パスワード" autofocus>
     <div class="auth-error" id="auth-error"></div>
@@ -1160,7 +1165,7 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
 <div class="container">
 <div class="header-row">
   <div class="header-left">
-    <h1>公共交通計画プロポーザルプロジェクトマネジメント</h1>
+    <h1>プロポーザルプロジェクトマネジメント</h1>
     <div class="subtitle">
       本日: <span id="today-display"></span>
       <span class="subtitle-sep">｜</span>
@@ -1168,6 +1173,12 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
     </div>
   </div>
   <div class="header-right">
+    <label class="user-filter-label genre-filter-label">
+      <span class="user-filter-icon">📁</span>
+      <select id="genre-filter" class="user-filter-select" onchange="onGenreFilterChange()">
+        <option value="all">すべて</option>
+      </select>
+    </label>
     <label class="user-filter-label">
       <span class="user-filter-icon">👤</span>
       <select id="user-filter" class="user-filter-select" onchange="onUserFilterChange()">
@@ -1330,41 +1341,55 @@ function prevBusinessDay(date) {
 
 let cases = [];
 let currentUserFilter = 'all'; // 'all' or 担当者名
+let currentGenreFilter = 'all'; // 'all' or ジャンル名
 
 // URLパラメータから初期値を取得
 (function() {
   try {
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get('user');
+    const genreParam = params.get('genre');
     if (userParam) {
       currentUserFilter = userParam;
     } else {
-      // localStorageから復元
       const saved = localStorage.getItem('userFilter');
       if (saved) currentUserFilter = saved;
+    }
+    if (genreParam) {
+      currentGenreFilter = genreParam;
+    } else {
+      const saved = localStorage.getItem('genreFilter');
+      if (saved) currentGenreFilter = saved;
     }
   } catch(e) {}
 })();
 
-// 現在のフィルタに応じて「対象か」判定
-// caseObj: 案件 / taskName: タスク名
-// trueなら現在のフィルタで表示対象
+// ジャンルフィルタ判定
+function isCaseInGenreFilter(caseObj) {
+  if (currentGenreFilter === 'all') return true;
+  return caseObj.genre === currentGenreFilter;
+}
+
+// 現在のフィルタに応じて「対象か」判定(ジャンル+ユーザー 両方AND)
 function isTaskInFilter(caseObj, taskName) {
+  if (!isCaseInGenreFilter(caseObj)) return false;
   if (currentUserFilter === 'all') return true;
   const persons = getTaskPersons(caseObj, taskName);
   return persons.includes(currentUserFilter);
 }
 
-// 案件が現在のフィルタに該当するか(いずれかのタスクで担当していればtrue)
+// 案件が現在のフィルタに該当するか
 function isCaseInFilter(caseObj) {
+  if (!isCaseInGenreFilter(caseObj)) return false;
   if (currentUserFilter === 'all') return true;
   return Object.keys(caseObj.tasks).some(tname => isTaskInFilter(caseObj, tname));
 }
 
-// ユーザー別のタスク数をカウント(ドロップダウン表示用)
+// ユーザー別のタスク数をカウント(ジャンルフィルタは適用)
 function countTasksByUser() {
   const counts = {};
   cases.forEach(c => {
+    if (!isCaseInGenreFilter(c)) return;
     Object.entries(c.tasks).forEach(([tname, tdata]) => {
       if (tdata.done) return;
       const persons = getTaskPersons(c, tname);
@@ -1374,6 +1399,81 @@ function countTasksByUser() {
     });
   });
   return counts;
+}
+
+// ジャンル別の案件数をカウント(ユーザーフィルタは影響させない、ジャンルタブ用)
+function countCasesByGenre() {
+  const counts = {};
+  let total = 0;
+  cases.forEach(c => {
+    counts[c.genre] = (counts[c.genre] || 0) + 1;
+    total++;
+  });
+  return { counts, total };
+}
+
+function populateGenreFilter() {
+  const select = document.getElementById('genre-filter');
+  if (!select) return;
+  const { counts, total } = countCasesByGenre();
+
+  select.innerHTML = '';
+  const allOpt = document.createElement('option');
+  allOpt.value = 'all';
+  allOpt.textContent = `すべて (${total}案件)`;
+  select.appendChild(allOpt);
+
+  // ジャンルはソートして表示(交通→環境→その他 の順、だが実データ次第で自動)
+  const GENRE_ORDER = ['交通', '環境'];
+  const sortedGenres = Object.keys(counts).sort((a, b) => {
+    const ia = GENRE_ORDER.indexOf(a);
+    const ib = GENRE_ORDER.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
+
+  sortedGenres.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = `${g} (${counts[g]}案件)`;
+    select.appendChild(opt);
+  });
+
+  // 現在の選択値がなければallに
+  const hasOpt = Array.from(select.options).some(o => o.value === currentGenreFilter);
+  if (!hasOpt && currentGenreFilter !== 'all') {
+    currentGenreFilter = 'all';
+  }
+  select.value = currentGenreFilter;
+
+  const label = select.closest('.user-filter-label');
+  if (label) {
+    if (currentGenreFilter !== 'all') {
+      label.classList.add('filtered');
+    } else {
+      label.classList.remove('filtered');
+    }
+  }
+}
+
+function onGenreFilterChange() {
+  const select = document.getElementById('genre-filter');
+  currentGenreFilter = select.value;
+  try {
+    const url = new URL(window.location.href);
+    if (currentGenreFilter === 'all') {
+      url.searchParams.delete('genre');
+    } else {
+      url.searchParams.set('genre', currentGenreFilter);
+    }
+    window.history.replaceState({}, '', url);
+    localStorage.setItem('genreFilter', currentGenreFilter);
+  } catch(e) {}
+  // ジャンルを変えたら、現在選択中のユーザーがそのジャンルに存在しない可能性もあるので、
+  // 再計算してドロップダウンも再描画させる(render内でpopulateUserFilter呼ばれる)
+  render();
 }
 
 function populateUserFilter() {
@@ -1450,13 +1550,36 @@ function parseFmt(text) {
 }
 
 function parseLine(line) {
-  // 【交通N】部分を解析(正規表現を使わず文字列操作で)
-  const start = line.indexOf('【交通');
-  if (start !== 0) throw new Error('【交通で始まりません');
+  // 【ジャンル名N】部分を解析(正規表現を使わず文字列操作で)
+  // ジャンル名: 交通, 環境, その他任意の文字列
+  // N: 半角数字、丸数字(①〜⑳)
+  if (line[0] !== '【') throw new Error('【で始まりません');
   const endBracket = line.indexOf('】');
   if (endBracket === -1) throw new Error('】が見つかりません');
-  // 案件番号は半角数字でも丸数字(①②③...)でもOK。そのまま保持する
-  const num = line.substring(start + 3, endBracket).trim();
+
+  // 【〜】の中身を ジャンル名 + 番号 に分解
+  const bracketContent = line.substring(1, endBracket).trim();
+  if (!bracketContent) throw new Error('ジャンル・案件番号が空です');
+
+  // 番号と認識する文字: 丸数字+半角/全角数字
+  const NUM_CHARS = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳0123456789０１２３４５６７８９';
+  let splitIdx = -1;
+  for (let i = 0; i < bracketContent.length; i++) {
+    if (NUM_CHARS.includes(bracketContent[i])) {
+      splitIdx = i;
+      break;
+    }
+  }
+
+  let genre, num;
+  if (splitIdx === -1) {
+    // 番号が見つからない場合: 全部ジャンル名と見なす(異常ケース)
+    genre = bracketContent;
+    num = '?';
+  } else {
+    genre = bracketContent.substring(0, splitIdx).trim() || '案件';
+    num = bracketContent.substring(splitIdx).trim();
+  }
   if (!num) throw new Error('案件番号が空です');
 
   // 】以降、最初の | または ｜ までが「自治体名 + (担当者)」
@@ -1546,7 +1669,7 @@ function parseLine(line) {
     };
   }
 
-  return { num, city, kind, leaders, tasks };
+  return { num, city, kind, leaders, tasks, genre };
 }
 
 function parseTask(str) {
@@ -1794,7 +1917,7 @@ function renderPersonView() {
         <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
         <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
         <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
-        <span class="task-city"><span class="case-num-badge">交通${t.num}</span><span class="task-city-name">${t.city}</span></span>
+        <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
         ${personsCell}
       </li>`;
     }
@@ -1851,7 +1974,7 @@ function renderCaseView() {
     }
     html += `<div class="section">
       <div class="section-header">
-        <span class="case-num-badge">交通${caseObj.num}</span>
+        <span class="case-num-badge">${caseObj.genre}${caseObj.num}</span>
         <div class="section-title">${caseObj.city}</div>
         <span class="kind-badge ${caseObj.kind}">${caseObj.kind}</span>
         <span class="persons-text">${buildLeadersText(caseObj.leaders)}</span>
@@ -1941,7 +2064,7 @@ function renderDeadlineView() {
         <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
         <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
         <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
-        <span class="task-city"><span class="case-num-badge">交通${t.num}</span><span class="task-city-name">${t.city}</span></span>
+        <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
         <span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span>
       </li>`;
     }
@@ -2016,7 +2139,7 @@ function renderTaskView() {
         <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
         <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
         <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
-        <span class="task-city"><span class="case-num-badge">交通${t.num}</span><span class="task-city-name">${t.city}</span></span>
+        <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
         <span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span>
       </li>`;
     }
@@ -2209,7 +2332,7 @@ function renderGanttView() {
     const leadersText = caseObj.leaders.map(p => p === '●●' ? `<span class="person-unassigned">●●</span>` : p).join('・');
     html += `<tr class="gantt-row-case ${rowCls}">`;
     html += `<td class="gantt-th-sticky gantt-name-cell">
-      <span class="case-num-badge">交通${caseObj.num}</span>${caseObj.city}
+      <span class="case-num-badge">${caseObj.genre}${caseObj.num}</span>${caseObj.city}
       <span class="gantt-leaders">${leadersText}</span>
     </td>`;
 
@@ -2563,7 +2686,7 @@ function renderTodayFocusView() {
           <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
           <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
           <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
-          <span class="task-city"><span class="case-num-badge">交通${t.num}</span><span class="task-city-name">${t.city}</span></span>
+          <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
           ${personsHtml}
         </li>`;
       }
@@ -2657,7 +2780,7 @@ function exportCSV() {
       const daysStr = tdata.done ? '済' :
         (delta === null ? '未定' : (delta < 0 ? `${-delta}日超過` : (delta === 0 ? '本日' : `あと${delta}日`)));
       rows.push([
-        `交通${c.num}`,
+        `${c.genre}${c.num}`,
         c.city,
         c.kind,
         c.leaders.join('・'),
@@ -2688,8 +2811,9 @@ function exportCSV() {
   const pad = n => String(n).padStart(2, '0');
   const dateStr = `${today.getFullYear()}${pad(today.getMonth()+1)}${pad(today.getDate())}`;
   a.href = url;
-  const suffix = currentUserFilter === 'all' ? '' : `_${currentUserFilter}`;
-  a.download = `プロポーザルタスク${suffix}_${dateStr}.csv`;
+  const genreSuffix = currentGenreFilter === 'all' ? '' : `_${currentGenreFilter}`;
+  const userSuffix = currentUserFilter === 'all' ? '' : `_${currentUserFilter}`;
+  a.download = `プロポーザルタスク${genreSuffix}${userSuffix}_${dateStr}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -2702,6 +2826,7 @@ function exportPDF() {
 }
 
 function render() {
+  populateGenreFilter();
   populateUserFilter();
   renderDashboard();
   renderTodayAlert();
@@ -2867,7 +2992,7 @@ function csvToFmt(csvText) {
       cell = commaIdx === -1 ? raw : raw.substring(0, commaIdx);
     }
     cell = cell.trim();
-    if (cell && cell.startsWith('【交通')) {
+    if (cell && cell.startsWith('【')) {
       fmtLines.push(cell);
     }
   }
