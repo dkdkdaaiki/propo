@@ -13,6 +13,18 @@ body {
   line-height: 1.5;
 }
 .container { max-width: 1500px; margin: 0 auto; }
+
+/* ヘッダー行: タイトル左 / フィルタ右 */
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.header-left { flex: 1; min-width: 0; }
+.header-right { flex-shrink: 0; }
+
 h1 {
   font-size: 20px;
   font-weight: 600;
@@ -23,11 +35,49 @@ h1 {
 .subtitle {
   font-size: 12px;
   color: #90A4AE;
-  margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+.subtitle-sep { color: #CFD8DC; }
+
+/* ユーザーフィルタ */
+.user-filter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #455A64;
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+}
+.user-filter-label:hover {
+  border-color: #1E88E5;
+}
+.user-filter-label.filtered {
+  background: #E3F2FD;
+  border-color: #1E88E5;
+  color: #0D47A1;
+}
+.user-filter-icon { font-size: 16px; }
+.user-filter-select {
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  min-width: 120px;
+  font-family: inherit;
 }
 
 .input-panel {
@@ -784,6 +834,19 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   h1 { font-size: 16px; line-height: 1.3; }
   .subtitle { font-size: 11px; flex-direction: column; align-items: flex-start; gap: 4px; }
 
+  /* ヘッダー: 縦積み */
+  .header-row {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .header-right { width: 100%; }
+  .user-filter-label {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .user-filter-select { flex: 1; }
+
   /* ダッシュボード: 2列×3段 */
   .dashboard {
     grid-template-columns: repeat(2, 1fr);
@@ -982,6 +1045,18 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   min-width: 100px;
 }
 .workload-table tr.alt .person-cell { background: #F5F5F5; }
+.workload-table tr.workload-highlight .person-cell {
+  background: #FFF8E1 !important;
+  color: #E65100;
+  font-weight: 700;
+  border-left: 3px solid #FF9800;
+}
+.workload-table tr.workload-highlight .workload-cell {
+  background: #FFFDE7;
+}
+.workload-table tr.workload-highlight .workload-cell.workload-today-col {
+  background: #FFF3E0;
+}
 
 .workload-cell {
   position: relative;
@@ -1083,11 +1158,23 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
 
 <div class="app-content" id="app-content">
 <div class="container">
-<h1>公共交通計画プロポーザルプロジェクトマネジメント</h1>
-<div class="subtitle">
-  本日: <span id="today-display"></span>
-  &nbsp;｜&nbsp;
-  <span id="sync-status">読み込み中...</span>
+<div class="header-row">
+  <div class="header-left">
+    <h1>公共交通計画プロポーザルプロジェクトマネジメント</h1>
+    <div class="subtitle">
+      本日: <span id="today-display"></span>
+      <span class="subtitle-sep">｜</span>
+      <span id="sync-status">読み込み中...</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <label class="user-filter-label">
+      <span class="user-filter-icon">👤</span>
+      <select id="user-filter" class="user-filter-select" onchange="onUserFilterChange()">
+        <option value="all">全員を表示</option>
+      </select>
+    </label>
+  </div>
 </div>
 
 <div class="input-panel">
@@ -1242,6 +1329,110 @@ function prevBusinessDay(date) {
 }
 
 let cases = [];
+let currentUserFilter = 'all'; // 'all' or 担当者名
+
+// URLパラメータから初期値を取得
+(function() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const userParam = params.get('user');
+    if (userParam) {
+      currentUserFilter = userParam;
+    } else {
+      // localStorageから復元
+      const saved = localStorage.getItem('userFilter');
+      if (saved) currentUserFilter = saved;
+    }
+  } catch(e) {}
+})();
+
+// 現在のフィルタに応じて「対象か」判定
+// caseObj: 案件 / taskName: タスク名
+// trueなら現在のフィルタで表示対象
+function isTaskInFilter(caseObj, taskName) {
+  if (currentUserFilter === 'all') return true;
+  const persons = getTaskPersons(caseObj, taskName);
+  return persons.includes(currentUserFilter);
+}
+
+// 案件が現在のフィルタに該当するか(いずれかのタスクで担当していればtrue)
+function isCaseInFilter(caseObj) {
+  if (currentUserFilter === 'all') return true;
+  return Object.keys(caseObj.tasks).some(tname => isTaskInFilter(caseObj, tname));
+}
+
+// ユーザー別のタスク数をカウント(ドロップダウン表示用)
+function countTasksByUser() {
+  const counts = {};
+  cases.forEach(c => {
+    Object.entries(c.tasks).forEach(([tname, tdata]) => {
+      if (tdata.done) return;
+      const persons = getTaskPersons(c, tname);
+      persons.forEach(p => {
+        counts[p] = (counts[p] || 0) + 1;
+      });
+    });
+  });
+  return counts;
+}
+
+function populateUserFilter() {
+  const select = document.getElementById('user-filter');
+  if (!select) return;
+  const counts = countTasksByUser();
+  const totalUndone = Object.values(counts).reduce((s,n) => s+n, 0);
+
+  // 既存のオプションをクリアして再構築
+  select.innerHTML = '';
+  const allOpt = document.createElement('option');
+  allOpt.value = 'all';
+  allOpt.textContent = `全員を表示 (${totalUndone}件)`;
+  select.appendChild(allOpt);
+
+  // PERSON_ORDERの順で、未完了タスクがいる人だけ追加
+  PERSON_ORDER.forEach(p => {
+    if (!counts[p] || counts[p] === 0) return;
+    const opt = document.createElement('option');
+    opt.value = p;
+    const display = p === '●●' ? '●● 担当未定' : p;
+    opt.textContent = `${display} (${counts[p]}件)`;
+    select.appendChild(opt);
+  });
+
+  // 現在の選択値を反映(存在しなければallに)
+  const hasOpt = Array.from(select.options).some(o => o.value === currentUserFilter);
+  if (!hasOpt && currentUserFilter !== 'all') {
+    currentUserFilter = 'all';
+  }
+  select.value = currentUserFilter;
+
+  // ラベルに視覚的な強調
+  const label = select.closest('.user-filter-label');
+  if (label) {
+    if (currentUserFilter !== 'all') {
+      label.classList.add('filtered');
+    } else {
+      label.classList.remove('filtered');
+    }
+  }
+}
+
+function onUserFilterChange() {
+  const select = document.getElementById('user-filter');
+  currentUserFilter = select.value;
+  // URLとlocalStorageを更新
+  try {
+    const url = new URL(window.location.href);
+    if (currentUserFilter === 'all') {
+      url.searchParams.delete('user');
+    } else {
+      url.searchParams.set('user', currentUserFilter);
+    }
+    window.history.replaceState({}, '', url);
+    localStorage.setItem('userFilter', currentUserFilter);
+  } catch(e) {}
+  render();
+}
 
 function parseFmt(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
@@ -1522,9 +1713,11 @@ function renderDashboard() {
   let overdue = 0, today = 0, week = 0, nextweek = 0;
   const unassignedCases = new Set();
   cases.forEach((caseObj, ci) => {
-    if (caseObj.leaders.includes('●●')) unassignedCases.add(ci);
-    Object.entries(caseObj.tasks).forEach(([_, t]) => {
+    const caseRelevant = isCaseInFilter(caseObj);
+    if (caseRelevant && caseObj.leaders.includes('●●')) unassignedCases.add(ci);
+    Object.entries(caseObj.tasks).forEach(([tname, t]) => {
       if (t.done || !t.date) return;
+      if (!isTaskInFilter(caseObj, tname)) return;
       const d = daysUntil(t.date);
       if (d < 0) overdue++;
       else if (d === 0) today++;
@@ -1568,6 +1761,8 @@ function renderPersonView() {
   let html = '';
   for (const person of PERSON_ORDER) {
     if (!tasksByPerson[person]) continue;
+    // フィルタ適用: 特定ユーザー選択中は、その人のセクションだけ
+    if (currentUserFilter !== 'all' && person !== currentUserFilter) continue;
     const tasks = tasksByPerson[person];
     const undone = tasks.filter(t => !t.done);
     const upcoming = undone.filter(t => { const d = daysUntil(t.date); return d === null || d >= 0; }).length;
@@ -1624,6 +1819,8 @@ function renderCaseView() {
     return da.localeCompare(db);
   });
   indexed.forEach(({ c: caseObj, idx: caseIdx }) => {
+    // フィルタ適用: この案件に自分のタスクがなければスキップ
+    if (!isCaseInFilter(caseObj)) return;
     const sortedTasks = Object.entries(caseObj.tasks)
       .sort(([, a], [, b]) => {
         if (!a.date) return 1;
@@ -1686,6 +1883,7 @@ function renderDeadlineView() {
   const allTasks = [];
   cases.forEach((caseObj, caseIdx) => {
     Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
+      if (!isTaskInFilter(caseObj, taskName)) return;
       const persons = getTaskPersons(caseObj, taskName);
       allTasks.push({
         caseIdx, taskName,
@@ -1758,6 +1956,7 @@ function renderTaskView() {
   const tasksByName = {};
   cases.forEach((caseObj, caseIdx) => {
     Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
+      if (!isTaskInFilter(caseObj, taskName)) return;
       if (!tasksByName[taskName]) tasksByName[taskName] = [];
       const persons = getTaskPersons(caseObj, taskName);
       tasksByName[taskName].push({
@@ -1898,7 +2097,9 @@ function renderGanttView() {
     if (c.tasks['提案書郵送'] && c.tasks['提案書郵送'].deadline) return c.tasks['提案書郵送'].deadline;
     return '9999-12-31';
   }
-  const sortedCases = [...cases].sort((a, b) => (getFinalDate(a) || '9999').localeCompare(getFinalDate(b) || '9999'));
+  const sortedCases = [...cases]
+    .filter(c => isCaseInFilter(c))
+    .sort((a, b) => (getFinalDate(a) || '9999').localeCompare(getFinalDate(b) || '9999'));
 
   // ===== HTML構築 =====
   let html = '<div class="gantt-wrapper"><div class="gantt-scroll"><table class="gantt-table">';
@@ -2188,7 +2389,11 @@ function renderWorkloadView() {
   html += '</tr></thead><tbody>';
 
   personsToShow.forEach((person, pIdx) => {
-    const rowCls = pIdx % 2 === 0 ? '' : 'alt';
+    let rowCls = pIdx % 2 === 0 ? '' : 'alt';
+    // フィルタ中のユーザー行はハイライト
+    if (currentUserFilter !== 'all' && person === currentUserFilter) {
+      rowCls += ' workload-highlight';
+    }
     const displayName = person === '●●'
       ? '<span class="person-unassigned">●●</span>(未定)'
       : person;
@@ -2231,7 +2436,12 @@ function renderWorkloadView() {
 // ===== 担当未定警告 =====
 function renderUnassignedAlert() {
   const c = document.getElementById('unassigned-alert-container');
-  // ●●が担当になっている未完了タスクをカウント
+  // フィルタ中で ●● 以外を選んでる場合、このアラートは自分に無関係なので非表示
+  if (currentUserFilter !== 'all' && currentUserFilter !== '●●') {
+    c.innerHTML = '';
+    return;
+  }
+  // ●●が担当になっている未完了タスクをカウント(全体)
   let count = 0;
   cases.forEach(caseObj => {
     Object.entries(caseObj.tasks).forEach(([tname, tdata]) => {
@@ -2261,6 +2471,7 @@ function renderTodayFocusView() {
   cases.forEach((caseObj, caseIdx) => {
     Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
       if (taskData.done || !taskData.date) return;
+      if (!isTaskInFilter(caseObj, taskName)) return;
       const delta = daysUntil(taskData.date);
       // 超過/本日/3日以内までを対象
       let urgency = null;
@@ -2271,6 +2482,8 @@ function renderTodayFocusView() {
 
       const persons = getTaskPersons(caseObj, taskName);
       persons.forEach(person => {
+        // フィルタ中はそのユーザーのセクションのみ
+        if (currentUserFilter !== 'all' && person !== currentUserFilter) return;
         if (!tasksByPerson[person]) tasksByPerson[person] = [];
         tasksByPerson[person].push({
           caseIdx, taskName, urgency,
@@ -2366,8 +2579,9 @@ function renderTodayAlert() {
   const alertContainer = document.getElementById('today-alert-container');
   let overdue = 0, today = 0;
   cases.forEach(c => {
-    Object.values(c.tasks).forEach(t => {
+    Object.entries(c.tasks).forEach(([tname, t]) => {
       if (t.done || !t.date) return;
+      if (!isTaskInFilter(c, tname)) return;
       const d = daysUntil(t.date);
       if (d < 0) overdue++;
       else if (d === 0) today++;
@@ -2437,6 +2651,7 @@ function exportCSV() {
   const rows = [['案件番号', '自治体', '案件種別', '案件担当者', 'タスク', '締切', '必着', '残日数', '担当者', '済']];
   cases.forEach(c => {
     Object.entries(c.tasks).forEach(([tname, tdata]) => {
+      if (!isTaskInFilter(c, tname)) return;
       const persons = getTaskPersons(c, tname);
       const delta = daysUntil(tdata.date);
       const daysStr = tdata.done ? '済' :
@@ -2473,7 +2688,8 @@ function exportCSV() {
   const pad = n => String(n).padStart(2, '0');
   const dateStr = `${today.getFullYear()}${pad(today.getMonth()+1)}${pad(today.getDate())}`;
   a.href = url;
-  a.download = `プロポーザルタスク_${dateStr}.csv`;
+  const suffix = currentUserFilter === 'all' ? '' : `_${currentUserFilter}`;
+  a.download = `プロポーザルタスク${suffix}_${dateStr}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -2486,6 +2702,7 @@ function exportPDF() {
 }
 
 function render() {
+  populateUserFilter();
   renderDashboard();
   renderTodayAlert();
   renderUnassignedAlert();
