@@ -2327,16 +2327,21 @@ function renderCaseView() {
         nextActionHtml = `<div class="next-action">次: <strong>${nextIcon}${nextTaskName}</strong> ${formatDate(nextTaskData.date)} (${daysStr})</div>`;
       }
     }
-    // プレゼン出席者が提案書作成チームと違う場合のみ別途表示
+    // 入札案件は[プ]表示不要、[提]タグも不要(括弧内の人をそのまま表示)
+    const isNyusatsu = caseObj.kind === '郵便入札';
+    // プレゼン出席者が提案書作成チームと違う場合のみ別途表示(プロポ案件のみ)
     const presenSame = JSON.stringify(caseObj.presenLeaders) === JSON.stringify(caseObj.leaders);
-    const presenText = presenSame ? '' :
-      `<span class="persons-text" style="color:#7B1FA2;">[プ]${buildLeadersText(caseObj.presenLeaders)}</span>`;
+    const showPresen = !isNyusatsu && !presenSame && caseObj.presenLeaders && caseObj.presenLeaders.length > 0;
+    const presenText = showPresen
+      ? `<span class="persons-text" style="color:#7B1FA2;">[プ]${buildLeadersText(caseObj.presenLeaders)}</span>`
+      : '';
+    const showTeianTag = !isNyusatsu && showPresen;
     html += `<div class="section">
       <div class="section-header">
         <span class="case-num-badge">${caseObj.genre}${caseObj.num}</span>
         <div class="section-title">${caseObj.city}</div>
         <span class="kind-badge ${caseObj.kind}">${caseObj.kind === '郵便入札' ? '入札' : caseObj.kind}</span>
-        <span class="persons-text">${presenSame ? '' : '[提]'}${buildLeadersText(caseObj.leaders)}</span>
+        <span class="persons-text">${showTeianTag ? '[提]' : ''}${buildLeadersText(caseObj.leaders)}</span>
         ${presenText}
         <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
         <span class="progress-text">${doneCount}/${total}</span>
