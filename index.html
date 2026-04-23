@@ -205,6 +205,16 @@ h1.app-title:active {
 .btn-link:hover { color: #455A64; text-decoration: underline; }
 .parse-info { font-size: 12px; color: #666; margin-left: auto; }
 .parse-error { color: #C62828; }
+.parse-error-detail {
+  font-size: 11px;
+  color: #B71C1C;
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: #FFEBEE;
+  border-radius: 4px;
+  line-height: 1.5;
+  max-width: 520px;
+}
 .parse-ok { color: #2E7D32; }
 
 /* 同期ステータス */
@@ -1538,12 +1548,20 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
 </div><!-- app-content -->
 
 <script>
-// 今日の日付(ブラウザ基準)
-const TODAY = (() => {
+// 今日の日付(呼ぶたびに最新取得、ページ開きっぱなしでも日付跨ぎに対応)
+function getToday() {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   return d;
-})();
+}
+// レガシー互換: 既存コードが参照する TODAY プロパティをgetterで提供
+const TODAY = new Proxy({}, {
+  get(_target, prop) {
+    const d = getToday();
+    const v = d[prop];
+    return typeof v === 'function' ? v.bind(d) : v;
+  }
+});
 const PERSON_ORDER = ['岸岡', '齊藤', '長谷川', '松澤', '浅川', '大須賀', '矢嶋', '藤井', '植松', '北見', '菅原', '●●'];
 
 // 部署マッピング(2部署体制)
@@ -1565,6 +1583,17 @@ const DEPT_MAP = {
 
 function getDept(person) {
   return DEPT_MAP[person] || 'other';
+}
+
+// HTMLエスケープ: 動的文字列(ユーザー入力由来)をDOMに入れる前に必ず通す
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ※旧TASK_DEFAULT_PERSONは削除。現在はgetTaskPersons()内でジャンル別ロジックで決定
@@ -1603,13 +1632,20 @@ const TASK_SHORT_NAMES = {
   '郵便入札': '入札',
 };
 
-// 日本の祝日 2026年(必要に応じて追加)
+// 日本の祝日(年ごとに追加、正式発表前は概算)
 const HOLIDAYS_JP = new Set([
+  // 2026年
   '2026-01-01', '2026-01-12', '2026-02-11', '2026-02-23',
   '2026-03-20', '2026-04-29',
   '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06',
   '2026-07-20', '2026-08-11', '2026-09-21', '2026-09-23',
   '2026-10-12', '2026-11-03', '2026-11-23',
+  // 2027年(概算・正式発表後に要更新)
+  '2027-01-01', '2027-01-11', '2027-02-11', '2027-02-23',
+  '2027-03-21', '2027-03-22', '2027-04-29',
+  '2027-05-03', '2027-05-04', '2027-05-05',
+  '2027-07-19', '2027-08-11', '2027-09-20', '2027-09-23',
+  '2027-10-11', '2027-11-03', '2027-11-23',
 ]);
 
 // 営業日判定(土日祝を除く)
@@ -2195,10 +2231,17 @@ function parseDate(str) {
     if (!m.includes('●') && d.includes('●')) return { date: null, note: `${m}月中旬` };
     return { date: null, note: str };
   }
-  const year = 2026;
   const month = parseInt(m);
   const day = parseInt(d);
   if (isNaN(month) || isNaN(day)) return { date: null, note: str };
+  // 年推定: 基本は今年、ただし10-12月に入力月が1-3月なら翌年扱い(年末跨ぎ運用)
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  let year = currentYear;
+  if (currentMonth >= 10 && month <= 3) {
+    year = currentYear + 1;
+  }
   const pad = n => String(n).padStart(2, '0');
   return { date: `${year}-${pad(month)}-${pad(day)}` };
 }
@@ -2282,7 +2325,7 @@ function buildPersonsText(persons, taskName) {
     const dept = getDept(p);
     const isMain = taskName === 'プレゼン' && i === 0;
     const mainCls = isMain ? ' person-main' : '';
-    return `<span class="person-tag dept-${dept}${mainCls}">${p}</span>`;
+    return `<span class="person-tag dept-${dept}${mainCls}">${escapeHtml(p)}</span>`;
   }).join('');
 }
 
@@ -2293,7 +2336,7 @@ function buildRoleTeam(members) {
     if (p === '●●') return `<span class="person-unassigned">●●</span>`;
     const dept = getDept(p);
     const mainCls = i === 0 ? ' person-main' : '';
-    return `<span class="person-tag dept-${dept}${mainCls}">${p}</span>`;
+    return `<span class="person-tag dept-${dept}${mainCls}">${escapeHtml(p)}</span>`;
   }).join('');
 }
 
@@ -2315,21 +2358,26 @@ function buildLeadersText(leaders) {
     if (p === '●●') return `<span class="person-unassigned">●●</span>`;
     const dept = getDept(p);
     const mainCls = i === 0 ? ' person-main' : '';
-    return `<span class="person-tag dept-${dept}${mainCls}">${p}</span>`;
+    return `<span class="person-tag dept-${dept}${mainCls}">${escapeHtml(p)}</span>`;
   }).join('');
 }
 
 function buildTaskNameHtml(taskName, taskData) {
   const icon = getTaskIcon(taskName);
-  let html = `<span class="task-icon">${icon}</span>${taskName}`;
+  let html = `<span class="task-icon">${icon}</span>${escapeHtml(taskName)}`;
   if (taskData.deadline) {
     const dl = formatDate(taskData.deadline);
-    html += ` <span class="deadline-info">必着${dl}</span>`;
+    html += ` <span class="deadline-info">必着${escapeHtml(dl)}</span>`;
   }
   if (taskData.note) {
-    html += ` <span class="deadline-info" style="background:#F3E5F5;color:#6A1B9A">${taskData.note}</span>`;
+    html += ` <span class="deadline-info" style="background:#F3E5F5;color:#6A1B9A">${escapeHtml(taskData.note)}</span>`;
   }
   return html;
+}
+
+// 案件の通し番号バッジと自治体名セル(リスト表示用)を生成
+function buildCaseBadgeCity(caseObj, num, city) {
+  return `<span class="case-num-badge">${escapeHtml(caseObj.genre)}${escapeHtml(num)}</span><span class="task-city-name">${escapeHtml(city)}</span>`;
 }
 
 function doneMarkHtml(done) {
@@ -2449,8 +2497,8 @@ function renderPersonView() {
 
     html += `<div class="section">
       <div class="section-header">
-        <div class="section-title">${nameLabel}</div>
-        <div class="section-count">${countStr}</div>
+        <div class="section-title">${escapeHtml(nameLabel)}</div>
+        <div class="section-count">${escapeHtml(countStr)}</div>
       </div>
       ${listHeaderHtml()}
       <ul class="task-list">`;
@@ -2464,7 +2512,7 @@ function renderPersonView() {
         <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
         <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
         <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
-        <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
+        <span class="task-city">${buildCaseBadgeCity(t.caseObj, t.num, t.city)}</span>
         ${buildTeamCells(t.caseObj)}
       </li>`;
     }
@@ -2530,8 +2578,8 @@ function renderCaseView() {
     const showTeianTag = !isNyusatsu && showPresen;
     html += `<div class="section">
       <div class="section-header">
-        <span class="case-num-badge">${caseObj.genre}${caseObj.num}</span>
-        <div class="section-title">${caseObj.city}</div>
+        <span class="case-num-badge">${escapeHtml(caseObj.genre)}${escapeHtml(caseObj.num)}</span>
+        <div class="section-title">${escapeHtml(caseObj.city)}</div>
         <span class="kind-badge ${caseObj.kind}">${caseObj.kind === '郵便入札' ? '入札' : caseObj.kind}</span>
         <span class="persons-text">${showTeianTag ? '[提]' : ''}${buildLeadersText(caseObj.leaders)}</span>
         ${presenText}
@@ -2620,7 +2668,7 @@ function renderDeadlineView() {
         <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
         <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
         <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
-        <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
+        <span class="task-city">${buildCaseBadgeCity(t.caseObj, t.num, t.city)}</span>
         ${buildTeamCells(t.caseObj)}
       </li>`;
     }
@@ -2679,8 +2727,8 @@ function renderTaskView() {
 
     html += `<div class="section">
       <div class="section-header">
-        <div class="section-title">${icon} ${taskName}</div>
-        <div class="section-count">${countStr}</div>
+        <div class="section-title">${icon} ${escapeHtml(taskName)}</div>
+        <div class="section-count">${escapeHtml(countStr)}</div>
       </div>
       ${listHeaderHtml()}
       <ul class="task-list">`;
@@ -2695,7 +2743,7 @@ function renderTaskView() {
         <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
         <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
         <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
-        <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
+        <span class="task-city">${buildCaseBadgeCity(t.caseObj, t.num, t.city)}</span>
         ${buildTeamCells(t.caseObj)}
       </li>`;
     }
@@ -2903,7 +2951,7 @@ function renderGanttView() {
     }
     html += `<tr class="gantt-row-case ${rowCls}">`;
     html += `<td class="gantt-th-sticky gantt-name-cell">
-      <div class="gantt-name-top"><span class="case-num-badge">${caseObj.genre}${caseObj.num}</span>${caseObj.city}</div>
+      <div class="gantt-name-top"><span class="case-num-badge">${escapeHtml(caseObj.genre)}${escapeHtml(caseObj.num)}</span>${escapeHtml(caseObj.city)}</div>
       <div class="gantt-leaders">${leadersHtml}</div>
     </td>`;
 
@@ -2950,10 +2998,10 @@ function renderGanttView() {
       const barCls = `gantt-bar-${task.name}`;
       const doneOverlay = task.done ? `<span class="gantt-done-overlay">済</span>` : '';
       const shortName = TASK_SHORT_NAMES[task.name] || task.name;
-      const label = `<span class="gantt-bar-label">${shortName}</span>`;
+      const label = `<span class="gantt-bar-label">${escapeHtml(shortName)}</span>`;
 
-      // ツールチップ
-      const tooltip = `${caseObj.city} / ${task.name}\n期限: ${formatDate(task.date)}${task.done ? ' [済]' : ''}`;
+      // ツールチップ(HTMLエスケープ済み)
+      const tooltip = escapeHtml(`${caseObj.city} / ${task.name}\n期限: ${formatDate(task.date)}${task.done ? ' [済]' : ''}`);
 
       // 今日列の判定(連続範囲内に今日があるか)
       let barTodayCls = '';
@@ -3266,7 +3314,7 @@ function renderTodayFocusView() {
           <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
           <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
           <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
-          <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
+          <span class="task-city">${buildCaseBadgeCity(t.caseObj, t.num, t.city)}</span>
           ${buildTeamCells(t.caseObj)}
         </li>`;
       }
@@ -3307,18 +3355,28 @@ function renderTodayAlert() {
 }
 
 // ===== カードクリックでジャンプ =====
-function switchViewByName(name) {
+// ビュー遷移の単一API(旧switchView/switchViewByNameを統合)
+function setView(view) {
+  if (!view) return;
+  currentViewId = view;
   document.querySelectorAll('.view-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.view === name);
+    b.classList.toggle('active', b.dataset.view === view);
   });
   document.querySelectorAll('.view-content').forEach(v => {
-    v.classList.toggle('active', v.id === name + '-view');
+    v.classList.toggle('active', v.id === view + '-view');
   });
+  applyTabDefaultScope();
+  updateScopeVisibility();
+  render();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// レガシー互換: 既存のonclickハンドラで使われてる名前を残す
+function switchView(view, btn) { setView(view); }
+function switchViewByName(name) { setView(name); }
+
 function jumpToDeadline(groupKey) {
-  switchViewByName('deadline');
+  setView('deadline');
   setTimeout(() => {
     const label = {
       overdue: '期限超過',
@@ -3349,32 +3407,32 @@ function scrollToPerson(personName) {
   }, 100);
 }
 
-function render() {
+// 共通部(ダッシュボード・アラート・フィルタ類)の描画
+function renderCommon() {
   populateGenreFilter();
   populateUserFilter();
   updateScopeVisibility();
   renderDashboard();
   renderTodayAlert();
   renderUnassignedAlert();
-  renderTodayFocusView();
-  renderPersonView();
-  renderCaseView();
-  renderDeadlineView();
-  renderTaskView();
-  renderGanttView();
-  renderWorkloadView();
 }
 
-function switchView(view, btn) {
-  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-  document.getElementById(view + '-view').classList.add('active');
-  currentViewId = view;
-  applyTabDefaultScope();
-  updateScopeVisibility();
-  // scopeが変わった可能性があるので再レンダー
-  render();
+// アクティブタブだけ描画(重いビューを毎回全部描かない)
+function renderCurrentView() {
+  switch (currentViewId) {
+    case 'today-focus': renderTodayFocusView(); break;
+    case 'person': renderPersonView(); break;
+    case 'case': renderCaseView(); break;
+    case 'deadline': renderDeadlineView(); break;
+    case 'task': renderTaskView(); break;
+    case 'gantt': renderGanttView(); break;
+    case 'workload': renderWorkloadView(); break;
+  }
+}
+
+function render() {
+  renderCommon();
+  renderCurrentView();
 }
 
 function toggleDone() {
@@ -3407,13 +3465,11 @@ function toggleLegend() {
 
 // 全フィルタをクリアしてホーム状態に戻す(PPMタイトルクリック)
 function resetAllFilters() {
+  // 状態をクリア
   currentUserFilter = 'all';
   currentGenreFilter = 'all';
   currentKindFilter = 'all';
   userScopeOverride = null;
-  // 今日やることタブに移動
-  currentViewId = 'today-focus';
-  applyTabDefaultScope();
   // UIのセレクタ値を同期
   try {
     const uSel = document.getElementById('user-filter');
@@ -3422,15 +3478,6 @@ function resetAllFilters() {
     if (gSel) gSel.value = 'all';
     const kSel = document.getElementById('kind-filter');
     if (kSel) kSel.value = 'all';
-  } catch(e) {}
-  // タブ表示を切替
-  try {
-    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-    const targetBtn = document.querySelector('.view-btn[data-view="today-focus"]');
-    const targetView = document.getElementById('today-focus-view');
-    if (targetBtn) targetBtn.classList.add('active');
-    if (targetView) targetView.classList.add('active');
   } catch(e) {}
   // URLとlocalStorageをクリア
   try {
@@ -3444,10 +3491,8 @@ function resetAllFilters() {
     localStorage.removeItem('genreFilter');
     localStorage.removeItem('kindFilter');
   } catch(e) {}
-  updateScopeVisibility();
-  render();
-  // 画面を最上部にスクロール
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // 「今日やること」タブに戻す(setView内でscope適用・再描画・スクロールを一括処理)
+  setView('today-focus');
 }
 
 // 初期状態の復元
@@ -3470,8 +3515,14 @@ function restoreDoneToggle() {
 }
 
 const wd = ['日','月','火','水','木','金','土'];
-document.getElementById('today-display').textContent = 
-  `${TODAY.getFullYear()}年${TODAY.getMonth()+1}月${TODAY.getDate()}日 (${wd[TODAY.getDay()]})`;
+function updateTodayDisplay() {
+  const today = getToday();
+  const el = document.getElementById('today-display');
+  if (el) {
+    el.textContent = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日 (${wd[today.getDay()]})`;
+  }
+}
+updateTodayDisplay();
 
 // ===== パスワード認証 =====
 const APP_PASSWORD = 'splspl';
@@ -3490,11 +3541,18 @@ function checkPassword() {
   }
 }
 
+let refreshTimer = null;
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(fetchAndRender, AUTO_REFRESH_MS);
+}
+
 function showApp() {
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('app-content').classList.add('authed');
   restoreDoneToggle();
   applyTabDefaultScope(); // タブデフォルトscope適用
+  updateTodayDisplay(); // 日付表示を最新化
   // genre/kind/user filterのUI初期値を復元
   try {
     const gSel = document.getElementById('genre-filter');
@@ -3503,8 +3561,7 @@ function showApp() {
     if (kSel) kSel.value = currentKindFilter;
   } catch(e) {}
   fetchAndRender();
-  // 10分ごとに自動更新
-  setInterval(fetchAndRender, AUTO_REFRESH_MS);
+  startAutoRefresh();
 }
 
 function logout() {
@@ -3527,7 +3584,9 @@ try {
 // ===== スプシfetch =====
 let lastFetchTime = null;
 
+let fetchSeq = 0;
 async function fetchAndRender() {
+  const mySeq = ++fetchSeq;
   const statusEl = document.getElementById('sync-status');
   statusEl.className = 'syncing';
   statusEl.textContent = '🔄 同期中...';
@@ -3537,19 +3596,26 @@ async function fetchAndRender() {
     const res = await fetch(url);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const csvText = await res.text();
+    // 古いリクエスト(もう新しいのが走っている)はここで破棄
+    if (mySeq !== fetchSeq) return;
     const fmtText = csvToFmt(csvText);
     const { cases: parsedCases, errors } = parseFmt(fmtText);
+    if (mySeq !== fetchSeq) return;
     cases = parsedCases;
     lastFetchTime = new Date();
     const info = document.getElementById('parse-info');
     if (errors.length > 0) {
-      info.innerHTML = `<span class="parse-error">${errors.length}件の解析エラー(${parsedCases.length}件は成功)</span>`;
+      // エラー先頭3件を詳細表示(案件名があればそれを優先)
+      const sample = errors.slice(0, 3).map(e => escapeHtml(e)).join('<br>');
+      const more = errors.length > 3 ? `<br>…他 ${errors.length - 3}件` : '';
+      info.innerHTML = `<span class="parse-error">⚠ ${errors.length}件の解析エラー(${parsedCases.length}件は成功)</span><div class="parse-error-detail">${sample}${more}</div>`;
     } else {
       info.innerHTML = `<span class="parse-ok">${parsedCases.length}件を読み込み</span>`;
     }
     render();
     updateSyncStatus();
   } catch (e) {
+    if (mySeq !== fetchSeq) return; // 古いリクエストのエラーは無視
     statusEl.className = 'error';
     statusEl.textContent = '⚠️ 同期失敗: ' + e.message;
     console.error('fetchAndRender error:', e);
