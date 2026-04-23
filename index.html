@@ -2314,10 +2314,25 @@ function renderDashboard() {
 
 function renderPersonView() {
   const tasksByPerson = {};
+  // scope=project時: 選択ユーザーが関わる案件のセットを先に作る
+  const projectCaseIdxs = new Set();
+  if (currentUserFilter !== 'all' && currentScopeFilter === 'project') {
+    cases.forEach((caseObj, idx) => {
+      if (!isCaseInGenreFilter(caseObj)) return;
+      if (!isCaseInKindFilter(caseObj)) return;
+      if (isUserInvolvedInCase(caseObj, currentUserFilter)) {
+        projectCaseIdxs.add(idx);
+      }
+    });
+  }
+
   cases.forEach((caseObj, caseIdx) => {
     // ジャンル+案件種別フィルタ: 該当しない案件はスキップ
     if (!isCaseInGenreFilter(caseObj)) return;
     if (!isCaseInKindFilter(caseObj)) return;
+    // scope=project: 選択ユーザーが関わる案件のみ集約
+    if (currentUserFilter !== 'all' && currentScopeFilter === 'project' && !projectCaseIdxs.has(caseIdx)) return;
+
     Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
       const persons = getTaskPersons(caseObj, taskName);
       persons.forEach(person => {
@@ -2344,8 +2359,10 @@ function renderPersonView() {
   let html = '';
   for (const person of PERSON_ORDER) {
     if (!tasksByPerson[person]) continue;
-    // フィルタ適用: 特定ユーザー選択中は、その人のセクションだけ
-    if (currentUserFilter !== 'all' && person !== currentUserFilter) continue;
+    // scope=my: 選択ユーザーのセクションのみ(他メンバーは非表示)
+    // scope=project: 関わる案件に登場する全メンバーのセクションを表示
+    // scope=team: 全員のセクションを表示(ユーザー選択を実質無視)
+    if (currentUserFilter !== 'all' && currentScopeFilter === 'my' && person !== currentUserFilter) continue;
     const tasks = tasksByPerson[person];
     const undone = tasks.filter(t => !t.done);
     const upcoming = undone.filter(t => { const d = daysUntil(t.date); return d === null || d >= 0; }).length;
@@ -3070,8 +3087,9 @@ function renderTodayFocusView() {
 
       const persons = getTaskPersons(caseObj, taskName);
       persons.forEach(person => {
-        // フィルタ中はそのユーザーのセクションのみ
-        if (currentUserFilter !== 'all' && person !== currentUserFilter) return;
+        // scope=my: 選択ユーザーのセクションのみ
+        // scope=project/team: 制限なし(isTaskInFilterで既に案件は絞ってある)
+        if (currentUserFilter !== 'all' && currentScopeFilter === 'my' && person !== currentUserFilter) return;
         if (!tasksByPerson[person]) tasksByPerson[person] = [];
         tasksByPerson[person].push({
           caseIdx, taskName, urgency,
