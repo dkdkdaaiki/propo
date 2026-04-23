@@ -85,6 +85,33 @@ h1 {
   font-family: inherit;
 }
 
+/* スコープトグル */
+.scope-filter-wrapper {
+  display: inline-flex;
+  background: white;
+  border: 2px solid #CFD8DC;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.scope-btn {
+  border: none;
+  background: transparent;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #78909C;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.scope-btn:hover { color: #455A64; }
+.scope-btn.active {
+  background: #1E88E5;
+  color: white;
+}
+
 .input-panel {
   background: white;
   border-radius: 8px;
@@ -564,6 +591,38 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   font-weight: bold;
   animation: pulse 2s infinite;
 }
+
+/* 部署タグ(担当者バッジ) */
+.person-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  margin-right: 4px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid;
+  line-height: 1.5;
+}
+.person-tag:last-child { margin-right: 0; }
+.person-tag.dept-eigyo {
+  background: #E3F2FD;
+  color: #0D47A1;
+  border-color: #90CAF9;
+}
+.person-tag.dept-consul {
+  background: #E8F5E9;
+  color: #1B5E20;
+  border-color: #A5D6A7;
+}
+.person-tag.dept-other {
+  background: #F5F5F5;
+  color: #37474F;
+  border-color: #CFD8DC;
+}
+.person-tag.person-main {
+  font-weight: 700;
+}
+.task-item.done .person-tag { opacity: 0.5; }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.65; }
@@ -1187,6 +1246,10 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
         <option value="all">全員を表示</option>
       </select>
     </label>
+    <div class="scope-filter-wrapper" id="scope-filter-wrapper" style="display:none;">
+      <button class="scope-btn active" data-scope="related" onclick="onScopeFilterChange('related')">関係案件すべて</button>
+      <button class="scope-btn" data-scope="main" onclick="onScopeFilterChange('main')">主担当案件のみ</button>
+    </div>
   </div>
 </div>
 
@@ -1194,8 +1257,6 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   <div class="input-actions">
     <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit" target="_blank" rel="noopener">📝 スプレッドシートを編集</a>
     <button class="btn btn-secondary" onclick="fetchAndRender()">🔄 最新を取得</button>
-    <button class="btn btn-secondary" onclick="exportCSV()">📊 CSV出力</button>
-    <button class="btn btn-secondary" onclick="exportPDF()">📄 PDF出力</button>
     <span class="parse-info" id="parse-info"></span>
     <button class="btn btn-link" onclick="logout()" title="パスワード認証を解除">ログアウト</button>
   </div>
@@ -1267,8 +1328,13 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
     <span class="legend-item">📮郵便入札</span>
   </div>
   <div class="legend-group">
-    <span class="legend-title">担当者ルール</span>
-    <span class="legend-item" style="font-size:11px;">※案件担当者の1人目＝<strong>提案書作成 主担当</strong>、2人目＝<strong>副担当</strong>（草案作成の伴走役）</span>
+    <span class="legend-title">部署</span>
+    <span class="legend-item"><span class="person-tag dept-eigyo">営業</span></span>
+    <span class="legend-item"><span class="person-tag dept-consul">コンサル</span></span>
+  </div>
+  <div class="legend-group">
+    <span class="legend-title">担当者記法</span>
+    <span class="legend-item" style="font-size:11px;">※[提]提案書作成チーム(1人目=<strong>主担当</strong>、2人目=<strong>副担当</strong>)｜[プ]プロポーザル出席(1人目=<strong>主担当</strong>、2人目=<strong>副担当</strong>)</span>
   </div>
 </div>
 
@@ -1290,6 +1356,27 @@ const TODAY = (() => {
   return d;
 })();
 const PERSON_ORDER = ['岸岡', '齊藤', '長谷川', '松澤', '浅川', '大須賀', '矢嶋', '藤井', '植松', '北見', '菅原', '●●'];
+
+// 部署マッピング(2部署体制)
+// 営業部: 浅川(部長)/戦略G:岸岡・矢嶋/広域G:齊藤/企画G:松澤
+// コンサル部: 植松(部長)/交通T:北見・大須賀・菅原・長谷川
+const DEPT_MAP = {
+  '浅川': 'eigyo',    // 営業部長(カンパニー長)
+  '岸岡': 'eigyo',    // 営業部 戦略G
+  '矢嶋': 'eigyo',    // 営業部 戦略G(G長)
+  '齊藤': 'eigyo',    // 営業部 広域G
+  '松澤': 'eigyo',    // 営業部 企画G
+  '植松': 'consul',   // コンサル部長
+  '大須賀': 'consul', // コンサル部 交通T
+  '長谷川': 'consul', // コンサル部 交通T
+  '北見': 'consul',   // コンサル部 交通T
+  '菅原': 'consul',   // コンサル部 交通T
+  '藤井': 'consul',   // コンサル部(予備)
+};
+
+function getDept(person) {
+  return DEPT_MAP[person] || 'other';
+}
 
 // ※旧TASK_DEFAULT_PERSONは削除。現在はgetTaskPersons()内でジャンル別ロジックで決定
 // 呼称: 案件リーダー[0] = 提案書作成 主担当, 案件リーダー[1] = 提案書作成 副担当
@@ -1351,6 +1438,7 @@ function prevBusinessDay(date) {
 let cases = [];
 let currentUserFilter = 'all'; // 'all' or 担当者名
 let currentGenreFilter = 'all'; // 'all' or ジャンル名
+let currentScopeFilter = 'related'; // 'related' = 関係案件すべて, 'main' = 主担当案件のみ
 
 // URLパラメータから初期値を取得
 (function() {
@@ -1358,6 +1446,7 @@ let currentGenreFilter = 'all'; // 'all' or ジャンル名
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get('user');
     const genreParam = params.get('genre');
+    const scopeParam = params.get('scope');
     if (userParam) {
       currentUserFilter = userParam;
     } else {
@@ -1370,6 +1459,12 @@ let currentGenreFilter = 'all'; // 'all' or ジャンル名
       const saved = localStorage.getItem('genreFilter');
       if (saved) currentGenreFilter = saved;
     }
+    if (scopeParam === 'main' || scopeParam === 'related') {
+      currentScopeFilter = scopeParam;
+    } else {
+      const saved = localStorage.getItem('scopeFilter');
+      if (saved === 'main' || saved === 'related') currentScopeFilter = saved;
+    }
   } catch(e) {}
 })();
 
@@ -1379,10 +1474,23 @@ function isCaseInGenreFilter(caseObj) {
   return caseObj.genre === currentGenreFilter;
 }
 
-// 現在のフィルタに応じて「対象か」判定(ジャンル+ユーザー 両方AND)
+// ユーザーが案件の主担当か判定(スコープ:main用)
+// 主担当 = 提案書作成[提]の1人目
+function isUserMainOfCase(caseObj, userName) {
+  const teian = caseObj.teianLeaders || caseObj.leaders || [];
+  return teian.length > 0 && teian[0] === userName;
+}
+
+// 現在のフィルタに応じて「対象か」判定(ジャンル+ユーザー+スコープ)
 function isTaskInFilter(caseObj, taskName) {
   if (!isCaseInGenreFilter(caseObj)) return false;
   if (currentUserFilter === 'all') return true;
+
+  // スコープ: 主担当のみ → 主担当でない案件は除外
+  if (currentScopeFilter === 'main' && !isUserMainOfCase(caseObj, currentUserFilter)) {
+    return false;
+  }
+
   const persons = getTaskPersons(caseObj, taskName);
   return persons.includes(currentUserFilter);
 }
@@ -1391,7 +1499,17 @@ function isTaskInFilter(caseObj, taskName) {
 function isCaseInFilter(caseObj) {
   if (!isCaseInGenreFilter(caseObj)) return false;
   if (currentUserFilter === 'all') return true;
-  return Object.keys(caseObj.tasks).some(tname => isTaskInFilter(caseObj, tname));
+
+  // スコープ: 主担当のみ → 主担当でなければ除外
+  if (currentScopeFilter === 'main') {
+    return isUserMainOfCase(caseObj, currentUserFilter);
+  }
+
+  // スコープ: 関係案件すべて → いずれかのタスクで関わっていればOK
+  return Object.keys(caseObj.tasks).some(tname => {
+    const persons = getTaskPersons(caseObj, tname);
+    return persons.includes(currentUserFilter);
+  });
 }
 
 // ユーザー別のタスク数をカウント(ジャンルフィルタは適用)
@@ -1540,7 +1658,43 @@ function onUserFilterChange() {
     window.history.replaceState({}, '', url);
     localStorage.setItem('userFilter', currentUserFilter);
   } catch(e) {}
+  updateScopeVisibility();
   render();
+}
+
+function onScopeFilterChange(scope) {
+  currentScopeFilter = scope;
+  // ボタンのactive切替
+  document.querySelectorAll('.scope-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.scope === scope);
+  });
+  // URLとlocalStorageを更新
+  try {
+    const url = new URL(window.location.href);
+    if (scope === 'related') {
+      url.searchParams.delete('scope');
+    } else {
+      url.searchParams.set('scope', scope);
+    }
+    window.history.replaceState({}, '', url);
+    localStorage.setItem('scopeFilter', scope);
+  } catch(e) {}
+  render();
+}
+
+// 個人選択時のみスコープトグル表示
+function updateScopeVisibility() {
+  const wrapper = document.getElementById('scope-filter-wrapper');
+  if (!wrapper) return;
+  if (currentUserFilter === 'all') {
+    wrapper.style.display = 'none';
+  } else {
+    wrapper.style.display = 'inline-flex';
+    // 現在のscopeに応じてボタンactive反映
+    document.querySelectorAll('.scope-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.scope === currentScopeFilter);
+    });
+  }
 }
 
 function parseFmt(text) {
@@ -1595,7 +1749,19 @@ function parseLine(line) {
   const afterBracket = line.substring(endBracket + 1);
   // 全角・半角パイプどちらも区切り文字として扱う
   const normalizedAfter = afterBracket.replace(/｜/g, '|');
-  const firstPipe = normalizedAfter.indexOf('|');
+
+  // 括弧外の最初のパイプを見つける(括弧内のパイプは担当者区切りなので無視)
+  let firstPipe = -1;
+  let depth = 0;
+  for (let i = 0; i < normalizedAfter.length; i++) {
+    const c = normalizedAfter[i];
+    if (c === '(' || c === '（') depth++;
+    else if (c === ')' || c === '）') depth--;
+    else if (c === '|' && depth === 0) {
+      firstPipe = i;
+      break;
+    }
+  }
   const headerPart = firstPipe === -1 ? normalizedAfter : normalizedAfter.substring(0, firstPipe);
   const tasksPart = firstPipe === -1 ? '' : normalizedAfter.substring(firstPipe + 1);
 
@@ -1619,7 +1785,31 @@ function parseLine(line) {
     }
   }
 
-  const leaders = leadersStr ? leadersStr.split(/[・､、]/).map(s => s.trim()).filter(s => s) : [];
+  // FMT記法: ([提]主担当・副担当｜[プ]主・副) の形式必須
+  // [提] = 提案書作成(1人目=主担当, 2人目=副担当)
+  // [プ] = プロポーザル出席(1人目=メインスピーカー, 2人目=副)
+  // 未定の場合は ●● を使用
+  let teianLeaders = [];
+  let presenLeaders = [];
+  if (leadersStr) {
+    // パイプで分割
+    const rawParts = leadersStr.replace(/｜/g, '|').split('|').map(s => s.trim()).filter(s => s);
+    for (const part of rawParts) {
+      // [提] or [プ] のタグを探す
+      const teianMatch = part.match(/^\[提\]\s*(.+)$/);
+      const presenMatch = part.match(/^\[プ\]\s*(.+)$/);
+      if (teianMatch) {
+        teianLeaders = teianMatch[1].split(/[・､、]/).map(s => s.trim()).filter(s => s);
+      } else if (presenMatch) {
+        presenLeaders = presenMatch[1].split(/[・､、]/).map(s => s.trim()).filter(s => s);
+      }
+      // タグなしの旧FMTは無視(v28以降は新FMT必須)
+    }
+  }
+  // どちらも未指定なら空配列のまま(画面上で"担当者未記載"として扱う)
+
+  // 互換性のため leaders には[提]を格納(既存コードが使っている)
+  const leaders = teianLeaders;
 
   // タスク部分をパイプで分割
   const parts = tasksPart.split('|').map(s => s.trim()).filter(s => s);
@@ -1702,7 +1892,7 @@ function parseLine(line) {
     };
   }
 
-  return { num, city, kind, leaders, tasks, genre };
+  return { num, city, kind, leaders, teianLeaders, presenLeaders, tasks, genre };
 }
 
 function parseTask(str) {
@@ -1751,10 +1941,16 @@ function parseDate(str) {
 }
 
 function getTaskPersons(caseObj, taskName) {
-  if (taskName === 'プレゼン') return caseObj.leaders;
+  // プレゼンは[プ]のメンバー(未指定なら●●)
+  if (taskName === 'プレゼン') {
+    return (caseObj.presenLeaders && caseObj.presenLeaders.length > 0)
+      ? caseObj.presenLeaders
+      : ['●●', '●●'];
+  }
 
-  const mainPerson = caseObj.leaders.length >= 1 ? caseObj.leaders[0] : '●●'; // 提案書作成 主担当
-  const subPerson  = caseObj.leaders.length >= 2 ? caseObj.leaders[1] : '●●'; // 提案書作成 副担当
+  const teian = caseObj.teianLeaders || caseObj.leaders || [];
+  const mainPerson = teian.length >= 1 ? teian[0] : '●●'; // 提案書作成 主担当
+  const subPerson  = teian.length >= 2 ? teian[1] : '●●'; // 提案書作成 副担当
   const isTransport = caseObj.genre === '交通';
 
   // 提案書QC・骨子確認: 提案書作成 副担当
@@ -1816,18 +2012,20 @@ function daysUrgency(delta) {
 function buildPersonsText(persons, taskName) {
   return persons.map((p, i) => {
     if (p === '●●') return `<span class="person-unassigned">●●</span>`;
+    const dept = getDept(p);
     const isMain = taskName === 'プレゼン' && i === 0;
-    if (isMain) return `<span class="person-main">${p}</span>`;
-    return p;
-  }).join('・');
+    const mainCls = isMain ? ' person-main' : '';
+    return `<span class="person-tag dept-${dept}${mainCls}">${p}</span>`;
+  }).join('');
 }
 
 function buildLeadersText(leaders) {
   return leaders.map((p, i) => {
     if (p === '●●') return `<span class="person-unassigned">●●</span>`;
-    if (i === 0) return `<span class="person-main">${p}</span>`;
-    return p;
-  }).join('・');
+    const dept = getDept(p);
+    const mainCls = i === 0 ? ' person-main' : '';
+    return `<span class="person-tag dept-${dept}${mainCls}">${p}</span>`;
+  }).join('');
 }
 
 function buildTaskNameHtml(taskName, taskData) {
@@ -1874,7 +2072,10 @@ function renderDashboard() {
   const unassignedCases = new Set();
   cases.forEach((caseObj, ci) => {
     const caseRelevant = isCaseInFilter(caseObj);
-    if (caseRelevant && caseObj.leaders.includes('●●')) unassignedCases.add(ci);
+    // 提案書作成 or プレゼン出席者に未定があればカウント
+    const hasUnassigned = caseObj.leaders.includes('●●') ||
+      (caseObj.presenLeaders && caseObj.presenLeaders.includes('●●'));
+    if (caseRelevant && hasUnassigned) unassignedCases.add(ci);
     Object.entries(caseObj.tasks).forEach(([tname, t]) => {
       if (t.done || !t.date) return;
       if (!isTaskInFilter(caseObj, tname)) return;
@@ -2009,12 +2210,17 @@ function renderCaseView() {
         nextActionHtml = `<div class="next-action">次: <strong>${nextIcon}${nextTaskName}</strong> ${formatDate(nextTaskData.date)} (${daysStr})</div>`;
       }
     }
+    // プレゼン出席者が提案書作成チームと違う場合のみ別途表示
+    const presenSame = JSON.stringify(caseObj.presenLeaders) === JSON.stringify(caseObj.leaders);
+    const presenText = presenSame ? '' :
+      `<span class="persons-text" style="color:#7B1FA2;">[プ]${buildLeadersText(caseObj.presenLeaders)}</span>`;
     html += `<div class="section">
       <div class="section-header">
         <span class="case-num-badge">${caseObj.genre}${caseObj.num}</span>
         <div class="section-title">${caseObj.city}</div>
         <span class="kind-badge ${caseObj.kind}">${caseObj.kind}</span>
-        <span class="persons-text">${buildLeadersText(caseObj.leaders)}</span>
+        <span class="persons-text">${presenSame ? '' : '[提]'}${buildLeadersText(caseObj.leaders)}</span>
+        ${presenText}
         <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
         <span class="progress-text">${doneCount}/${total}</span>
       </div>
@@ -2806,65 +3012,10 @@ function scrollToPerson(personName) {
   }, 100);
 }
 
-// ===== CSV出力 =====
-function exportCSV() {
-  const rows = [['案件番号', '自治体', '案件種別', '案件担当者', 'タスク', '締切', '必着', '残日数', '担当者', '済']];
-  cases.forEach(c => {
-    Object.entries(c.tasks).forEach(([tname, tdata]) => {
-      if (!isTaskInFilter(c, tname)) return;
-      const persons = getTaskPersons(c, tname);
-      const delta = daysUntil(tdata.date);
-      const daysStr = tdata.done ? '済' :
-        (delta === null ? '未定' : (delta < 0 ? `${-delta}日超過` : (delta === 0 ? '本日' : `あと${delta}日`)));
-      rows.push([
-        `${c.genre}${c.num}`,
-        c.city,
-        c.kind,
-        c.leaders.join('・'),
-        tname,
-        tdata.date || (tdata.note || ''),
-        tdata.deadline || '',
-        daysStr,
-        persons.join('・'),
-        tdata.done ? '済' : ''
-      ]);
-    });
-  });
-
-  const csv = rows.map(r => r.map(cell => {
-    const s = String(cell);
-    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-      return '"' + s.replace(/"/g, '""') + '"';
-    }
-    return s;
-  }).join(',')).join('\n');
-
-  // BOM付きUTF-8 for Excel
-  const bom = '\uFEFF';
-  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const today = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  const dateStr = `${today.getFullYear()}${pad(today.getMonth()+1)}${pad(today.getDate())}`;
-  a.href = url;
-  const genreSuffix = currentGenreFilter === 'all' ? '' : `_${currentGenreFilter}`;
-  const userSuffix = currentUserFilter === 'all' ? '' : `_${currentUserFilter}`;
-  a.download = `プロポーザルタスク${genreSuffix}${userSuffix}_${dateStr}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-// ===== PDF出力 =====
-function exportPDF() {
-  window.print();
-}
-
 function render() {
   populateGenreFilter();
   populateUserFilter();
+  updateScopeVisibility();
   renderDashboard();
   renderTodayAlert();
   renderUnassignedAlert();
