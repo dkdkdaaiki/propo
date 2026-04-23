@@ -85,6 +85,29 @@ h1 {
   font-family: inherit;
 }
 
+/* ヘッダーのログアウトボタン */
+.header-logout-btn {
+  background: transparent;
+  border: 1px solid #E0E0E0;
+  color: #9E9E9E;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  padding: 0;
+  font-family: inherit;
+}
+.header-logout-btn:hover {
+  background: #FAFAFA;
+  color: #F44336;
+  border-color: #FFCDD2;
+}
+
 /* スコープトグル */
 .scope-filter-wrapper {
   display: inline-flex;
@@ -1240,6 +1263,14 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
         <option value="all">すべて</option>
       </select>
     </label>
+    <label class="user-filter-label kind-filter-label">
+      <span class="user-filter-icon">📋</span>
+      <select id="kind-filter" class="user-filter-select" onchange="onKindFilterChange()">
+        <option value="all">すべて</option>
+        <option value="プロポーザル">プロポ</option>
+        <option value="郵便入札">入札</option>
+      </select>
+    </label>
     <label class="user-filter-label">
       <span class="user-filter-icon">👤</span>
       <select id="user-filter" class="user-filter-select" onchange="onUserFilterChange()">
@@ -1247,9 +1278,11 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
       </select>
     </label>
     <div class="scope-filter-wrapper" id="scope-filter-wrapper" style="display:none;">
-      <button class="scope-btn active" data-scope="related" onclick="onScopeFilterChange('related')">関係案件すべて</button>
-      <button class="scope-btn" data-scope="main" onclick="onScopeFilterChange('main')">主担当案件のみ</button>
+      <button class="scope-btn active" data-scope="my" onclick="onScopeFilterChange('my')">マイタスク</button>
+      <button class="scope-btn" data-scope="project" onclick="onScopeFilterChange('project')">プロジェクトタスク</button>
+      <button class="scope-btn" data-scope="team" onclick="onScopeFilterChange('team')">チームタスク</button>
     </div>
+    <button class="header-logout-btn" onclick="logout()" title="ログアウト" aria-label="ログアウト">⏻</button>
   </div>
 </div>
 
@@ -1258,7 +1291,6 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
     <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit" target="_blank" rel="noopener">📝 スプレッドシートを編集</a>
     <button class="btn btn-secondary" onclick="fetchAndRender()">🔄 最新を取得</button>
     <span class="parse-info" id="parse-info"></span>
-    <button class="btn btn-link" onclick="logout()" title="パスワード認証を解除">ログアウト</button>
   </div>
 </div>
 
@@ -1325,7 +1357,7 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
     <span class="legend-item">📦最終化</span>
     <span class="legend-item">📬郵送</span>
     <span class="legend-item">🎤プレゼン</span>
-    <span class="legend-item">📮郵便入札</span>
+    <span class="legend-item">📮入札</span>
   </div>
   <div class="legend-group">
     <span class="legend-title">部署</span>
@@ -1438,7 +1470,21 @@ function prevBusinessDay(date) {
 let cases = [];
 let currentUserFilter = 'all'; // 'all' or 担当者名
 let currentGenreFilter = 'all'; // 'all' or ジャンル名
-let currentScopeFilter = 'related'; // 'related' = 関係案件すべて, 'main' = 主担当案件のみ
+let currentKindFilter = 'all'; // 'all' or 'プロポーザル' or '郵便入札'
+let currentScopeFilter = 'my'; // 'my' = マイタスク, 'project' = プロジェクトタスク, 'team' = チームタスク
+let currentViewId = 'person'; // 現在表示中のタブID
+let userScopeOverride = null; // ユーザーが手動でscopeを変更した場合に記録
+
+// タブごとのデフォルトscope
+const TAB_DEFAULT_SCOPE = {
+  'today-focus': 'my',
+  'person': 'my',
+  'case': 'project',
+  'deadline': 'my',
+  'task': 'my',
+  'gantt': 'project',
+  'workload': 'team'
+};
 
 // URLパラメータから初期値を取得
 (function() {
@@ -1446,6 +1492,7 @@ let currentScopeFilter = 'related'; // 'related' = 関係案件すべて, 'main'
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get('user');
     const genreParam = params.get('genre');
+    const kindParam = params.get('kind');
     const scopeParam = params.get('scope');
     if (userParam) {
       currentUserFilter = userParam;
@@ -1459,11 +1506,15 @@ let currentScopeFilter = 'related'; // 'related' = 関係案件すべて, 'main'
       const saved = localStorage.getItem('genreFilter');
       if (saved) currentGenreFilter = saved;
     }
-    if (scopeParam === 'main' || scopeParam === 'related') {
-      currentScopeFilter = scopeParam;
+    if (kindParam) {
+      currentKindFilter = kindParam;
     } else {
-      const saved = localStorage.getItem('scopeFilter');
-      if (saved === 'main' || saved === 'related') currentScopeFilter = saved;
+      const saved = localStorage.getItem('kindFilter');
+      if (saved) currentKindFilter = saved;
+    }
+    if (scopeParam === 'my' || scopeParam === 'project' || scopeParam === 'team') {
+      currentScopeFilter = scopeParam;
+      userScopeOverride = scopeParam;
     }
   } catch(e) {}
 })();
@@ -1474,23 +1525,36 @@ function isCaseInGenreFilter(caseObj) {
   return caseObj.genre === currentGenreFilter;
 }
 
-// ユーザーが案件の主担当か判定(スコープ:main用)
-// 主担当 = 提案書作成[提]の1人目
-function isUserMainOfCase(caseObj, userName) {
-  const teian = caseObj.teianLeaders || caseObj.leaders || [];
-  return teian.length > 0 && teian[0] === userName;
+// 案件種別フィルタ判定
+function isCaseInKindFilter(caseObj) {
+  if (currentKindFilter === 'all') return true;
+  return caseObj.kind === currentKindFilter;
 }
 
-// 現在のフィルタに応じて「対象か」判定(ジャンル+ユーザー+スコープ)
+// ユーザーが案件に関わるか判定
+function isUserInvolvedInCase(caseObj, userName) {
+  // いずれかのタスクでその人が担当に入っていればtrue
+  return Object.keys(caseObj.tasks).some(tname => {
+    const persons = getTaskPersons(caseObj, tname);
+    return persons.includes(userName);
+  });
+}
+
+// 現在のフィルタに応じて「タスク表示対象か」判定
 function isTaskInFilter(caseObj, taskName) {
   if (!isCaseInGenreFilter(caseObj)) return false;
+  if (!isCaseInKindFilter(caseObj)) return false;
   if (currentUserFilter === 'all') return true;
 
-  // スコープ: 主担当のみ → 主担当でない案件は除外
-  if (currentScopeFilter === 'main' && !isUserMainOfCase(caseObj, currentUserFilter)) {
-    return false;
+  // scope='team': チームタスク → 個人フィルタ無視、全タスク表示
+  if (currentScopeFilter === 'team') return true;
+
+  // scope='project': プロジェクトタスク → 関わる案件の全タスク(他人タスクも見える)
+  if (currentScopeFilter === 'project') {
+    return isUserInvolvedInCase(caseObj, currentUserFilter);
   }
 
+  // scope='my' (デフォルト): 自分に担当が振られたタスクのみ
   const persons = getTaskPersons(caseObj, taskName);
   return persons.includes(currentUserFilter);
 }
@@ -1498,18 +1562,14 @@ function isTaskInFilter(caseObj, taskName) {
 // 案件が現在のフィルタに該当するか
 function isCaseInFilter(caseObj) {
   if (!isCaseInGenreFilter(caseObj)) return false;
+  if (!isCaseInKindFilter(caseObj)) return false;
   if (currentUserFilter === 'all') return true;
 
-  // スコープ: 主担当のみ → 主担当でなければ除外
-  if (currentScopeFilter === 'main') {
-    return isUserMainOfCase(caseObj, currentUserFilter);
-  }
+  // scope='team': チームタスク → 全案件
+  if (currentScopeFilter === 'team') return true;
 
-  // スコープ: 関係案件すべて → いずれかのタスクで関わっていればOK
-  return Object.keys(caseObj.tasks).some(tname => {
-    const persons = getTaskPersons(caseObj, tname);
-    return persons.includes(currentUserFilter);
-  });
+  // scope='project' / 'my': その人が関わる案件のみ
+  return isUserInvolvedInCase(caseObj, currentUserFilter);
 }
 
 // ユーザー別のタスク数をカウント(ジャンルフィルタは適用)
@@ -1647,7 +1707,8 @@ function populateUserFilter() {
 function onUserFilterChange() {
   const select = document.getElementById('user-filter');
   currentUserFilter = select.value;
-  // URLとlocalStorageを更新
+  userScopeOverride = null; // ユーザー切り替え時はオーバーライドリセット
+  applyTabDefaultScope();
   try {
     const url = new URL(window.location.href);
     if (currentUserFilter === 'all') {
@@ -1655,6 +1716,7 @@ function onUserFilterChange() {
     } else {
       url.searchParams.set('user', currentUserFilter);
     }
+    url.searchParams.delete('scope');
     window.history.replaceState({}, '', url);
     localStorage.setItem('userFilter', currentUserFilter);
   } catch(e) {}
@@ -1662,24 +1724,43 @@ function onUserFilterChange() {
   render();
 }
 
+function onKindFilterChange() {
+  const select = document.getElementById('kind-filter');
+  currentKindFilter = select.value;
+  try {
+    const url = new URL(window.location.href);
+    if (currentKindFilter === 'all') {
+      url.searchParams.delete('kind');
+    } else {
+      url.searchParams.set('kind', currentKindFilter);
+    }
+    window.history.replaceState({}, '', url);
+    localStorage.setItem('kindFilter', currentKindFilter);
+  } catch(e) {}
+  render();
+}
+
 function onScopeFilterChange(scope) {
   currentScopeFilter = scope;
-  // ボタンのactive切替
+  userScopeOverride = scope; // ユーザーが手動で変えた記録
   document.querySelectorAll('.scope-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.scope === scope);
   });
-  // URLとlocalStorageを更新
   try {
     const url = new URL(window.location.href);
-    if (scope === 'related') {
-      url.searchParams.delete('scope');
-    } else {
-      url.searchParams.set('scope', scope);
-    }
+    url.searchParams.set('scope', scope);
     window.history.replaceState({}, '', url);
-    localStorage.setItem('scopeFilter', scope);
   } catch(e) {}
   render();
+}
+
+// タブに応じたデフォルトscopeを適用(ユーザーオーバーライドがある場合はそれを優先)
+function applyTabDefaultScope() {
+  if (userScopeOverride) {
+    currentScopeFilter = userScopeOverride;
+  } else {
+    currentScopeFilter = TAB_DEFAULT_SCOPE[currentViewId] || 'my';
+  }
 }
 
 // 個人選択時のみスコープトグル表示
@@ -1690,7 +1771,6 @@ function updateScopeVisibility() {
     wrapper.style.display = 'none';
   } else {
     wrapper.style.display = 'inline-flex';
-    // 現在のscopeに応じてボタンactive反映
     document.querySelectorAll('.scope-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.scope === currentScopeFilter);
     });
@@ -1785,9 +1865,10 @@ function parseLine(line) {
     }
   }
 
-  // FMT記法: ([提]主担当・副担当｜[プ]主・副) の形式必須
+  // FMT記法: ([提]主担当・副担当｜[プ]主・副) の形式
   // [提] = 提案書作成(1人目=主担当, 2人目=副担当)
   // [プ] = プロポーザル出席(1人目=メインスピーカー, 2人目=副)
+  // 入札案件は1人担当でタグなしもOK(括弧内の人を担当として扱う)
   // 未定の場合は ●● を使用
   let teianLeaders = [];
   let presenLeaders = [];
@@ -1802,8 +1883,12 @@ function parseLine(line) {
         teianLeaders = teianMatch[1].split(/[・､、]/).map(s => s.trim()).filter(s => s);
       } else if (presenMatch) {
         presenLeaders = presenMatch[1].split(/[・､、]/).map(s => s.trim()).filter(s => s);
+      } else {
+        // タグなし(入札案件等の単純記法) → teianLeadersにフォールバック
+        if (teianLeaders.length === 0) {
+          teianLeaders = part.split(/[・､、]/).map(s => s.trim()).filter(s => s);
+        }
       }
-      // タグなしの旧FMTは無視(v28以降は新FMT必須)
     }
   }
   // どちらも未指定なら空配列のまま(画面上で"担当者未記載"として扱う)
@@ -1952,15 +2037,19 @@ function getTaskPersons(caseObj, taskName) {
   const mainPerson = teian.length >= 1 ? teian[0] : '●●'; // 提案書作成 主担当
   const subPerson  = teian.length >= 2 ? teian[1] : '●●'; // 提案書作成 副担当
   const isTransport = caseObj.genre === '交通';
+  const isNyusatsu = caseObj.kind === '郵便入札'; // 入札案件
 
-  // 提案書QC・骨子確認: 提案書作成 副担当
+  // 入札案件: 全タスクを括弧内の人(=teianの1人目)が担当
+  // (入札は通常1人担当、[提][プ]記法を使わない)
+  if (isNyusatsu) {
+    return [mainPerson];
+  }
+
+  // プロポ案件の提案書QC・骨子確認: 提案書作成 副担当
   if (taskName === '提案書QC' || taskName === '骨子確認・QC分担決定') return [subPerson];
 
-  // 交通のみ齊藤固定なのは: 参加表明、郵便入札
-  if (isTransport) {
-    if (taskName === '参加表明') return ['齊藤'];
-    if (taskName === '郵便入札') return ['齊藤'];
-  }
+  // プロポ案件の交通×参加表明: 齊藤固定
+  if (isTransport && taskName === '参加表明') return ['齊藤'];
 
   // それ以外は 提案書作成 主担当
   return [mainPerson];
@@ -2218,7 +2307,7 @@ function renderCaseView() {
       <div class="section-header">
         <span class="case-num-badge">${caseObj.genre}${caseObj.num}</span>
         <div class="section-title">${caseObj.city}</div>
-        <span class="kind-badge ${caseObj.kind}">${caseObj.kind}</span>
+        <span class="kind-badge ${caseObj.kind}">${caseObj.kind === '郵便入札' ? '入札' : caseObj.kind}</span>
         <span class="persons-text">${presenSame ? '' : '[提]'}${buildLeadersText(caseObj.leaders)}</span>
         ${presenText}
         <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
@@ -3033,6 +3122,11 @@ function switchView(view, btn) {
   btn.classList.add('active');
   document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
   document.getElementById(view + '-view').classList.add('active');
+  currentViewId = view;
+  applyTabDefaultScope();
+  updateScopeVisibility();
+  // scopeが変わった可能性があるので再レンダー
+  render();
 }
 
 function toggleDone() {
@@ -3083,6 +3177,14 @@ function showApp() {
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('app-content').classList.add('authed');
   restoreDoneToggle();
+  applyTabDefaultScope(); // タブデフォルトscope適用
+  // genre/kind/user filterのUI初期値を復元
+  try {
+    const gSel = document.getElementById('genre-filter');
+    if (gSel) gSel.value = currentGenreFilter;
+    const kSel = document.getElementById('kind-filter');
+    if (kSel) kSel.value = currentKindFilter;
+  } catch(e) {}
   fetchAndRender();
   // 10分ごとに自動更新
   setInterval(fetchAndRender, AUTO_REFRESH_MS);
