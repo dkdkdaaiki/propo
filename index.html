@@ -15,6 +15,10 @@ body {
 .container { max-width: 1500px; margin: 0 auto; padding: 0 20px 20px; }
 
 /* 固定ヘッダー */
+:root {
+  --header-height: 46px;
+  --header-height-mobile: 42px;
+}
 .header-row {
   position: sticky;
   top: 0;
@@ -215,6 +219,16 @@ h1.app-title:active {
   line-height: 1.5;
   max-width: 520px;
 }
+.parse-warning-detail {
+  font-size: 11px;
+  color: #E65100;
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: #FFF8E1;
+  border-radius: 4px;
+  line-height: 1.5;
+  max-width: 520px;
+}
 .parse-ok { color: #2E7D32; }
 
 /* 同期ステータス */
@@ -394,7 +408,7 @@ h1.app-title:active {
 /* サブヘッダー: ビュー切替＋凡例ボタン＋済表示(ヘッダー直下にsticky) */
 .sub-header {
   position: sticky;
-  top: 46px; /* header-rowの高さ分 */
+  top: var(--header-height); /* header-rowの高さ分 */
   z-index: 95;
   background: rgba(245, 245, 245, 0.95);
   backdrop-filter: saturate(1.5) blur(8px);
@@ -1116,7 +1130,7 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
     align-items: stretch;
     padding: 6px 10px;
     margin: 0 -10px 10px;
-    top: 42px;
+    top: var(--header-height-mobile);
     gap: 6px;
   }
   .sub-header-tools {
@@ -1739,12 +1753,25 @@ function isCaseInKindFilter(caseObj) {
 }
 
 // ユーザーが案件に関わるか判定
+// isUserInvolvedInCase結果のレンダーごとキャッシュ(1レンダー中のみ有効)
+const involvementCache = new Map();
+function clearInvolvementCache() {
+  involvementCache.clear();
+}
+
 function isUserInvolvedInCase(caseObj, userName) {
+  // キャッシュキー: 案件のidentifier + ユーザー名
+  const cacheKey = caseObj.genre + caseObj.num + '::' + userName;
+  if (involvementCache.has(cacheKey)) {
+    return involvementCache.get(cacheKey);
+  }
   // いずれかのタスクでその人が担当に入っていればtrue
-  return Object.keys(caseObj.tasks).some(tname => {
+  const result = Object.keys(caseObj.tasks).some(tname => {
     const persons = getTaskPersons(caseObj, tname);
     return persons.includes(userName);
   });
+  involvementCache.set(cacheKey, result);
+  return result;
 }
 
 // 現在のフィルタに応じて「タスク表示対象か」判定
@@ -1791,6 +1818,7 @@ function countTasksByUser() {
   const counts = {};
   cases.forEach(c => {
     if (!isCaseInGenreFilter(c)) return;
+    if (!isCaseInKindFilter(c)) return; // 案件種別フィルタも考慮
     Object.entries(c.tasks).forEach(([tname, tdata]) => {
       if (tdata.done) return;
       const persons = getTaskPersons(c, tname);
@@ -1995,15 +2023,41 @@ function parseFmt(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   const result = [];
   const errors = [];
+  const warnings = [];
   for (const line of lines) {
     try {
-      const caseObj = parseLine(line);
-      if (caseObj) result.push(caseObj);
+      const { caseObj, warnings: caseWarnings } = parseLineWithWarnings(line);
+      if (caseObj) {
+        result.push(caseObj);
+        if (caseWarnings && caseWarnings.length > 0) {
+          warnings.push(...caseWarnings);
+        }
+      }
     } catch (e) {
-      errors.push(`行解析エラー: ${line.substring(0, 40)}... (${e.message})`);
+      // 案件名を抽出してエラー表示を分かりやすく
+      const cityMatch = line.match(/^【[^】]+】([^（(｜|]+)/);
+      const cityName = cityMatch ? cityMatch[1].trim() : line.substring(0, 30);
+      errors.push(`${cityName}: ${e.message}`);
     }
   }
-  return { cases: result, errors };
+  return { cases: result, errors, warnings };
+}
+
+// parseLineをラップしてwarningsも返す
+function parseLineWithWarnings(line) {
+  const caseObj = parseLine(line);
+  const warnings = [];
+  if (caseObj) {
+    // [提]があるのに[プ]がない(プロポ案件で担当者記法の片側だけ記載)
+    if (caseObj.kind === 'プロポーザル') {
+      const hasTeian = caseObj.teianLeaders && caseObj.teianLeaders.length > 0;
+      const hasPresen = caseObj.presenLeaders && caseObj.presenLeaders.length > 0;
+      if (hasTeian && !hasPresen) {
+        warnings.push(`${caseObj.city}: [提]の記載はあるが[プ]が未記載`);
+      }
+    }
+  }
+  return { caseObj, warnings };
 }
 
 function parseLine(line) {
@@ -2761,9 +2815,16 @@ function renderGanttView() {
     return;
   }
 
-  // 表示期間を決定
+  // 表示対象の案件(フィルタ済み)を先に確定
+  const visibleCases = cases.filter(c => isCaseInFilter(c));
+  if (visibleCases.length === 0) {
+    container.innerHTML = '<div class="section">表示対象の案件がありません</div>';
+    return;
+  }
+
+  // 表示期間を決定(表示中の案件のみから算出、他ジャンル/他の遠い案件に引っ張られない)
   let minDate = null, maxDate = null;
-  cases.forEach(c => {
+  visibleCases.forEach(c => {
     Object.values(c.tasks).forEach(t => {
       if (t.date) {
         if (!minDate || t.date < minDate) minDate = t.date;
@@ -2824,8 +2885,7 @@ function renderGanttView() {
     if (c.tasks['提案書郵送'] && c.tasks['提案書郵送'].deadline) return c.tasks['提案書郵送'].deadline;
     return '9999-12-31';
   }
-  const sortedCases = [...cases]
-    .filter(c => isCaseInFilter(c))
+  const sortedCases = [...visibleCases]
     .sort((a, b) => (getFinalDate(a) || '9999').localeCompare(getFinalDate(b) || '9999'));
 
   // ===== HTML構築 =====
@@ -3431,6 +3491,7 @@ function renderCurrentView() {
 }
 
 function render() {
+  clearInvolvementCache();
   renderCommon();
   renderCurrentView();
 }
@@ -3547,6 +3608,20 @@ function startAutoRefresh() {
   refreshTimer = setInterval(fetchAndRender, AUTO_REFRESH_MS);
 }
 
+// ヘッダーの実高さを測定してCSS変数に反映(フォント・追加ボタンで高さが変わっても追従)
+function syncHeaderHeightVar() {
+  try {
+    const header = document.querySelector('.header-row');
+    if (!header) return;
+    const h = header.offsetHeight;
+    if (h > 0) {
+      const isMobile = window.innerWidth <= 768;
+      const varName = isMobile ? '--header-height-mobile' : '--header-height';
+      document.documentElement.style.setProperty(varName, h + 'px');
+    }
+  } catch(e) {}
+}
+
 function showApp() {
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('app-content').classList.add('authed');
@@ -3562,6 +3637,9 @@ function showApp() {
   } catch(e) {}
   fetchAndRender();
   startAutoRefresh();
+  // ヘッダー高さ測定(初回+リサイズ時)
+  requestAnimationFrame(syncHeaderHeightVar);
+  window.addEventListener('resize', syncHeaderHeightVar);
 }
 
 function logout() {
@@ -3599,19 +3677,28 @@ async function fetchAndRender() {
     // 古いリクエスト(もう新しいのが走っている)はここで破棄
     if (mySeq !== fetchSeq) return;
     const fmtText = csvToFmt(csvText);
-    const { cases: parsedCases, errors } = parseFmt(fmtText);
+    const { cases: parsedCases, errors, warnings } = parseFmt(fmtText);
     if (mySeq !== fetchSeq) return;
     cases = parsedCases;
     lastFetchTime = new Date();
     const info = document.getElementById('parse-info');
+    const parts = [];
+    // 成功件数(メイン)
     if (errors.length > 0) {
-      // エラー先頭3件を詳細表示(案件名があればそれを優先)
+      parts.push(`<span class="parse-error">⚠ ${errors.length}件の解析エラー(${parsedCases.length}件は成功)</span>`);
       const sample = errors.slice(0, 3).map(e => escapeHtml(e)).join('<br>');
       const more = errors.length > 3 ? `<br>…他 ${errors.length - 3}件` : '';
-      info.innerHTML = `<span class="parse-error">⚠ ${errors.length}件の解析エラー(${parsedCases.length}件は成功)</span><div class="parse-error-detail">${sample}${more}</div>`;
+      parts.push(`<div class="parse-error-detail">${sample}${more}</div>`);
     } else {
-      info.innerHTML = `<span class="parse-ok">${parsedCases.length}件を読み込み</span>`;
+      parts.push(`<span class="parse-ok">${parsedCases.length}件を読み込み</span>`);
     }
+    // 警告(errorsとは別枠)
+    if (warnings && warnings.length > 0) {
+      const wSample = warnings.slice(0, 3).map(w => escapeHtml(w)).join('<br>');
+      const wMore = warnings.length > 3 ? `<br>…他 ${warnings.length - 3}件` : '';
+      parts.push(`<div class="parse-warning-detail">💡 ${warnings.length}件の記法確認:<br>${wSample}${wMore}</div>`);
+    }
+    info.innerHTML = parts.join('');
     render();
     updateSyncStatus();
   } catch (e) {
@@ -3638,8 +3725,13 @@ function updateSyncStatus() {
 // CSV → プロポFMT変換
 // A列に1行1案件のFMT文字列が入っている前提
 function csvToFmt(csvText) {
+  // BOM除去(Excelエクスポート等で混入することがある)
+  if (csvText.charCodeAt(0) === 0xFEFF) {
+    csvText = csvText.slice(1);
+  }
   const lines = csvText.split(/\r?\n/);
   const fmtLines = [];
+  const seenCaseKeys = new Set(); // 重複案件の検知用
   for (const raw of lines) {
     if (!raw) continue;
     // CSVの最初のセルだけ取り出す(""で囲まれてる可能性あり)
@@ -3664,8 +3756,23 @@ function csvToFmt(csvText) {
       const commaIdx = raw.indexOf(',');
       cell = commaIdx === -1 ? raw : raw.substring(0, commaIdx);
     }
-    cell = cell.trim();
+    // 前後の全角/半角空白・タブを除去(入力事故対策)
+    cell = cell.replace(/^[\s\u3000]+|[\s\u3000]+$/g, '');
     if (cell && cell.startsWith('【')) {
+      // 重複検知: 同じ【xxx】番号の行が複数ある場合は後勝ち(警告はparseFmt側で)
+      const keyMatch = cell.match(/^【([^】]+)】/);
+      if (keyMatch) {
+        const key = keyMatch[1];
+        if (seenCaseKeys.has(key)) {
+          // 既存行を上書き(最新の入力を優先)
+          const idx = fmtLines.findIndex(l => l.startsWith(`【${key}】`));
+          if (idx >= 0) {
+            fmtLines[idx] = cell;
+            continue;
+          }
+        }
+        seenCaseKeys.add(key);
+      }
       fmtLines.push(cell);
     }
   }
