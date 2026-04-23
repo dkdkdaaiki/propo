@@ -919,6 +919,10 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   overflow: hidden;
   text-overflow: ellipsis;
   background: #FAFAFA;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.08);
 }
 .gantt-row-case.alt .gantt-name-cell {
   background: #F5F5F5;
@@ -2916,6 +2920,18 @@ function renderGanttView() {
 
   html += '</tbody></table></div></div>';
   container.innerHTML = html;
+  // 今日列が見えるようにスクロール位置を調整(中央やや左寄り)
+  requestAnimationFrame(() => {
+    const scrollWrapper = container.querySelector('.gantt-scroll') || container;
+    const todayHeader = container.querySelector('.gantt-header-sub th.today');
+    if (todayHeader && scrollWrapper) {
+      const wrapperRect = scrollWrapper.getBoundingClientRect();
+      const todayRect = todayHeader.getBoundingClientRect();
+      // 今日列を画面の左から1/3の位置に
+      const target = todayRect.left - wrapperRect.left - wrapperRect.width / 3;
+      scrollWrapper.scrollLeft = Math.max(0, target);
+    }
+  });
 }
 
 // ===== 稼働率ビュー =====
