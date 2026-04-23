@@ -844,7 +844,12 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   background: #FAFAFA;
 }
 .gantt-th-sticky.top {
-  z-index: 5;
+  z-index: 6;
+}
+/* 案件名列のヘッダー(左上の空白コーナー): 月ヘッダーと同色に */
+.gantt-name-header {
+  background: #455A64 !important;
+  border-color: #37474F !important;
 }
 .gantt-header-top {
   position: sticky;
@@ -921,9 +926,9 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   background: #ECEFF1;
   position: sticky;
   left: 0;
-  z-index: 3;
-  border-right: 2px solid #CFD8DC;
-  box-shadow: 4px 0 6px rgba(0,0,0,0.08);
+  z-index: 5;
+  border-right: 2px solid #455A64;
+  box-shadow: 6px 0 8px -2px rgba(0,0,0,0.15);
   color: #263238;
 }
 .gantt-row-case.alt .gantt-name-cell {
@@ -2780,7 +2785,7 @@ function renderGanttView() {
 
   // 月ヘッダー行
   html += '<thead><tr class="gantt-header-top">';
-  html += '<th class="gantt-th-sticky top gantt-name-cell" rowspan="2">案件</th>';
+  html += '<th class="gantt-th-sticky top gantt-name-cell gantt-name-header" rowspan="2">&nbsp;</th>';
   monthGroups.forEach(m => {
     html += `<th colspan="${m.span}" class="gantt-month-label">${m.year}年${m.month}月</th>`;
   });
