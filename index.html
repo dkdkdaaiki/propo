@@ -918,24 +918,60 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   max-width: 220px;
   overflow: hidden;
   text-overflow: ellipsis;
-  background: #FAFAFA;
+  background: #ECEFF1;
   position: sticky;
   left: 0;
   z-index: 3;
-  box-shadow: 2px 0 4px rgba(0,0,0,0.08);
+  border-right: 2px solid #CFD8DC;
+  box-shadow: 4px 0 6px rgba(0,0,0,0.08);
+  color: #263238;
 }
 .gantt-row-case.alt .gantt-name-cell {
-  background: #F5F5F5;
+  background: #E0E4E7;
 }
-.gantt-name-cell .case-num-badge {
-  margin-right: 4px;
+.gantt-name-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 3px;
+  line-height: 1.3;
 }
 .gantt-leaders {
   font-size: 10px;
-  color: #666;
+  color: #455A64;
   font-weight: normal;
-  display: block;
-  margin-top: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.gantt-leaders-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+.gantt-leader-tag {
+  display: inline-block;
+  min-width: 14px;
+  height: 14px;
+  font-size: 9px;
+  font-weight: 700;
+  color: white;
+  background: #1976D2;
+  border-radius: 3px;
+  text-align: center;
+  line-height: 14px;
+  flex-shrink: 0;
+}
+.gantt-leader-tag-presen {
+  background: #7B1FA2;
+}
+.gantt-name-cell .case-num-badge {
+  margin-right: 4px;
 }
 
 /* 帯(バー)のスタイル */
@@ -2844,11 +2880,26 @@ function renderGanttView() {
     });
 
     // 案件名セル + 日付セル
-    const leadersText = caseObj.leaders.map(p => p === '●●' ? `<span class="person-unassigned">●●</span>` : p).join('・');
+    // 担当者表示: 提案書(teian) / プロポ(presen) を2段で
+    const isNyusatsu = caseObj.kind === '郵便入札';
+    const teianArr = caseObj.teianLeaders || caseObj.leaders || [];
+    const presenArr = caseObj.presenLeaders || [];
+    const formatNames = arr => arr.map(p => p === '●●' ? `<span class="person-unassigned">●●</span>` : p).join(' ');
+    let leadersHtml = '';
+    if (isNyusatsu) {
+      leadersHtml = `<span class="gantt-leaders-row">${formatNames(teianArr)}</span>`;
+    } else {
+      const teianText = teianArr.length > 0 ? formatNames(teianArr) : '—';
+      const presenText = presenArr.length > 0 ? formatNames(presenArr) : '—';
+      leadersHtml = `
+        <span class="gantt-leaders-row"><span class="gantt-leader-tag">提</span>${teianText}</span>
+        <span class="gantt-leaders-row"><span class="gantt-leader-tag gantt-leader-tag-presen">プ</span>${presenText}</span>
+      `;
+    }
     html += `<tr class="gantt-row-case ${rowCls}">`;
     html += `<td class="gantt-th-sticky gantt-name-cell">
-      <span class="case-num-badge">${caseObj.genre}${caseObj.num}</span>${caseObj.city}
-      <span class="gantt-leaders">${leadersText}</span>
+      <div class="gantt-name-top"><span class="case-num-badge">${caseObj.genre}${caseObj.num}</span>${caseObj.city}</div>
+      <div class="gantt-leaders">${leadersHtml}</div>
     </td>`;
 
     // 日付セルを1日ずつ生成、その間に帯を配置
