@@ -1266,6 +1266,10 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
     <span class="legend-item">🎤プレゼン</span>
     <span class="legend-item">📮郵便入札</span>
   </div>
+  <div class="legend-group">
+    <span class="legend-title">担当者ルール</span>
+    <span class="legend-item" style="font-size:11px;">※案件担当者の1人目＝<strong>提案書作成 主担当</strong>、2人目＝<strong>副担当</strong>（草案作成の伴走役）</span>
+  </div>
 </div>
 
 <div id="today-focus-view" class="view-content"></div>
@@ -1288,12 +1292,13 @@ const TODAY = (() => {
 const PERSON_ORDER = ['岸岡', '齊藤', '長谷川', '松澤', '浅川', '大須賀', '矢嶋', '藤井', '植松', '北見', '菅原', '●●'];
 
 // ※旧TASK_DEFAULT_PERSONは削除。現在はgetTaskPersons()内でジャンル別ロジックで決定
+// 呼称: 案件リーダー[0] = 提案書作成 主担当, 案件リーダー[1] = 提案書作成 副担当
 // ルール:
 //   - プレゼン: リーダー全員
-//   - 提案書QC・骨子確認・QC分担決定: サブ担当者
+//   - 提案書QC・骨子確認・QC分担決定: 提案書作成 副担当
 //   - 交通 x 参加表明: 齊藤(固定)
 //   - 交通 x 郵便入札: 齊藤(固定)
-//   - それ以外(骨子作成・草案・最終化・郵送 等): メイン担当者
+//   - それ以外(骨子作成・草案・最終化・郵送 等): 提案書作成 主担当
 
 const TASK_ICONS = {
   '質問': '❓',
@@ -1748,11 +1753,11 @@ function parseDate(str) {
 function getTaskPersons(caseObj, taskName) {
   if (taskName === 'プレゼン') return caseObj.leaders;
 
-  const mainPerson = caseObj.leaders.length >= 1 ? caseObj.leaders[0] : '●●';
-  const subPerson  = caseObj.leaders.length >= 2 ? caseObj.leaders[1] : '●●';
+  const mainPerson = caseObj.leaders.length >= 1 ? caseObj.leaders[0] : '●●'; // 提案書作成 主担当
+  const subPerson  = caseObj.leaders.length >= 2 ? caseObj.leaders[1] : '●●'; // 提案書作成 副担当
   const isTransport = caseObj.genre === '交通';
 
-  // 提案書QC・骨子確認・QC分担決定: ジャンル問わずサブ担当者
+  // 提案書QC・骨子確認: 提案書作成 副担当
   if (taskName === '提案書QC' || taskName === '骨子確認・QC分担決定') return [subPerson];
 
   // 交通のみ齊藤固定なのは: 参加表明、郵便入札
@@ -1761,7 +1766,7 @@ function getTaskPersons(caseObj, taskName) {
     if (taskName === '郵便入札') return ['齊藤'];
   }
 
-  // それ以外(質問、骨子作成、草案、最終化、郵送、参加表明[非交通]、郵便入札[非交通])は全てメイン担当者
+  // それ以外は 提案書作成 主担当
   return [mainPerson];
 }
 
