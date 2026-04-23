@@ -370,43 +370,86 @@ h1 {
   color: #B71C1C;
 }
 
+/* サブヘッダー: ビュー切替＋凡例ボタン＋済表示(ヘッダー直下にsticky) */
+.sub-header {
+  position: sticky;
+  top: 46px; /* header-rowの高さ分 */
+  z-index: 95;
+  background: rgba(245, 245, 245, 0.95);
+  backdrop-filter: saturate(1.5) blur(8px);
+  -webkit-backdrop-filter: saturate(1.5) blur(8px);
+  border-bottom: 1px solid #E0E0E0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 20px;
+  margin: 0 -20px 12px;
+  flex-wrap: nowrap;
+}
+.sub-header-tools {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .view-switcher {
   background: white;
-  padding: 8px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  padding: 4px;
+  border-radius: 6px;
   display: inline-flex;
-  gap: 4px;
+  gap: 2px;
+  flex-shrink: 0;
+  overflow-x: auto;
 }
 .view-btn {
-  padding: 8px 16px;
+  padding: 5px 11px;
   border: none;
   background: transparent;
   cursor: pointer;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: #666;
+  white-space: nowrap;
+  font-family: inherit;
 }
 .view-btn.active { background: #263238; color: white; }
 
 .done-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 12px;
-  padding: 8px 16px;
+  gap: 4px;
+  padding: 5px 10px;
   background: white;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 11px;
   color: #455A64;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
   user-select: none;
+  flex-shrink: 0;
 }
-.done-toggle input {
+.done-toggle input { cursor: pointer; }
+
+/* 凡例トグルボタン */
+.legend-toggle-btn {
+  padding: 5px 10px;
+  background: white;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 11px;
+  color: #455A64;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  font-family: inherit;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
+.legend-toggle-btn:hover { background: #FAFAFA; }
+.legend-toggle-btn.active { background: #E3F2FD; color: #0D47A1; }
 
 /* 済タスク非表示モード */
 body.hide-done .task-item.done { display: none; }
@@ -987,6 +1030,19 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   .btn-link { font-size: 11px; padding: 6px 8px; }
   .parse-info { margin-left: 0; margin-top: 4px; width: 100%; font-size: 11px; }
 
+  /* サブヘッダー: モバイルでは縦積み */
+  .sub-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 6px 10px;
+    margin: 0 -10px 10px;
+    top: 42px;
+    gap: 6px;
+  }
+  .sub-header-tools {
+    justify-content: flex-end;
+  }
+
   /* ビュー切替タブ: 横スクロール */
   .view-switcher {
     overflow-x: auto;
@@ -994,23 +1050,21 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
     white-space: nowrap;
     display: flex;
     -webkit-overflow-scrolling: touch;
-    padding: 6px;
+    padding: 3px;
     scrollbar-width: thin;
   }
   .view-switcher::-webkit-scrollbar { height: 4px; }
   .view-switcher::-webkit-scrollbar-thumb { background: #CFD8DC; border-radius: 2px; }
   .view-btn {
     flex-shrink: 0;
-    padding: 8px 12px;
+    padding: 6px 10px;
     font-size: 12px;
   }
 
-  /* 済タスクトグル: 別行に */
-  .done-toggle {
-    margin-left: 0;
-    margin-top: 8px;
-    width: 100%;
-    justify-content: flex-start;
+  /* 済タスクトグル/凡例ボタン */
+  .done-toggle, .legend-toggle-btn {
+    font-size: 10px;
+    padding: 4px 8px;
   }
 
   /* タスクリスト: グリッドから縦積みカードへ */
@@ -1351,21 +1405,26 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   </div>
 </div>
 
-<div class="view-switcher">
-  <button class="view-btn" data-view="today-focus" onclick="switchView('today-focus', this)">📍 今日やること</button>
-  <button class="view-btn active" data-view="person" onclick="switchView('person', this)">担当者別</button>
-  <button class="view-btn" data-view="case" onclick="switchView('case', this)">案件別</button>
-  <button class="view-btn" data-view="deadline" onclick="switchView('deadline', this)">締切別</button>
-  <button class="view-btn" data-view="task" onclick="switchView('task', this)">タスク別</button>
-  <button class="view-btn" data-view="gantt" onclick="switchView('gantt', this)">ガント</button>
-  <button class="view-btn" data-view="workload" onclick="switchView('workload', this)">稼働率</button>
+<div class="sub-header">
+  <div class="view-switcher">
+    <button class="view-btn" data-view="today-focus" onclick="switchView('today-focus', this)">📍 今日やること</button>
+    <button class="view-btn active" data-view="person" onclick="switchView('person', this)">担当者別</button>
+    <button class="view-btn" data-view="case" onclick="switchView('case', this)">案件別</button>
+    <button class="view-btn" data-view="deadline" onclick="switchView('deadline', this)">締切別</button>
+    <button class="view-btn" data-view="task" onclick="switchView('task', this)">タスク別</button>
+    <button class="view-btn" data-view="gantt" onclick="switchView('gantt', this)">ガント</button>
+    <button class="view-btn" data-view="workload" onclick="switchView('workload', this)">稼働率</button>
+  </div>
+  <div class="sub-header-tools">
+    <label class="done-toggle">
+      <input type="checkbox" id="show-done" checked onchange="toggleDone()">
+      <span>済タスクを表示</span>
+    </label>
+    <button class="legend-toggle-btn" id="legend-toggle" onclick="toggleLegend()" title="凡例を表示">ℹ️ 凡例</button>
+  </div>
 </div>
-<label class="done-toggle">
-  <input type="checkbox" id="show-done" checked onchange="toggleDone()">
-  <span>済タスクを表示</span>
-</label>
 
-<div class="legend">
+<div class="legend" id="legend-panel" style="display:none;">
   <div class="legend-group">
     <span class="legend-title">緊急度</span>
     <span class="legend-item"><span class="legend-swatch overdue"></span>超過</span>
@@ -1598,6 +1657,13 @@ function isCaseInFilter(caseObj) {
 
   // scope='project' / 'my': その人が関わる案件のみ
   return isUserInvolvedInCase(caseObj, currentUserFilter);
+}
+
+// 各render関数で使う: ジャンル+案件種別フィルタを適用したケースのみ返す
+// (ユーザーフィルタ/scopeは各タスク単位でisTaskInFilterが判定するため、
+//  ここではジャンル+案件種別の2つだけ先に絞る)
+function getGenreKindFilteredCases() {
+  return cases.filter(c => isCaseInGenreFilter(c) && isCaseInKindFilter(c));
 }
 
 // ユーザー別のタスク数をカウント(ジャンルフィルタは適用)
@@ -2213,6 +2279,9 @@ function renderDashboard() {
 function renderPersonView() {
   const tasksByPerson = {};
   cases.forEach((caseObj, caseIdx) => {
+    // ジャンル+案件種別フィルタ: 該当しない案件はスキップ
+    if (!isCaseInGenreFilter(caseObj)) return;
+    if (!isCaseInKindFilter(caseObj)) return;
     Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
       const persons = getTaskPersons(caseObj, taskName);
       persons.forEach(person => {
@@ -3174,6 +3243,22 @@ function toggleDone() {
   } catch(e) {}
 }
 
+function toggleLegend() {
+  const panel = document.getElementById('legend-panel');
+  const btn = document.getElementById('legend-toggle');
+  if (!panel || !btn) return;
+  const isHidden = panel.style.display === 'none' || !panel.style.display;
+  if (isHidden) {
+    panel.style.display = 'flex';
+    btn.classList.add('active');
+    try { localStorage.setItem('legendOpen', '1'); } catch(e) {}
+  } else {
+    panel.style.display = 'none';
+    btn.classList.remove('active');
+    try { localStorage.setItem('legendOpen', '0'); } catch(e) {}
+  }
+}
+
 // 初期状態の復元
 function restoreDoneToggle() {
   try {
@@ -3181,6 +3266,14 @@ function restoreDoneToggle() {
     if (saved === '0') {
       document.getElementById('show-done').checked = false;
       document.body.classList.add('hide-done');
+    }
+    // 凡例の開閉状態も復元
+    const legendSaved = localStorage.getItem('legendOpen');
+    const panel = document.getElementById('legend-panel');
+    const btn = document.getElementById('legend-toggle');
+    if (panel && btn && legendSaved === '1') {
+      panel.style.display = 'flex';
+      btn.classList.add('active');
     }
   } catch(e) {}
 }
