@@ -56,6 +56,17 @@ h1 {
   white-space: nowrap;
   margin: 0;
 }
+h1.app-title {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s, transform 0.15s;
+}
+h1.app-title:hover {
+  color: #303F9F;
+}
+h1.app-title:active {
+  transform: scale(0.98);
+}
 .subtitle {
   font-size: 10px;
   color: #90A4AE;
@@ -1341,7 +1352,7 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
 <div class="container">
 <div class="header-row">
   <div class="header-left">
-    <h1 title="プロポーザルプロジェクトマネジメント">PPM</h1>
+    <h1 title="ホームに戻る(フィルタ全解除)" onclick="resetAllFilters()" class="app-title">PPM</h1>
     <div class="subtitle">
       <span id="today-display"></span>
       <span class="subtitle-sep">｜</span>
@@ -3303,6 +3314,40 @@ function toggleLegend() {
     btn.classList.remove('active');
     try { localStorage.setItem('legendOpen', '0'); } catch(e) {}
   }
+}
+
+// 全フィルタをクリアしてホーム状態に戻す(PPMタイトルクリック)
+function resetAllFilters() {
+  currentUserFilter = 'all';
+  currentGenreFilter = 'all';
+  currentKindFilter = 'all';
+  userScopeOverride = null;
+  applyTabDefaultScope();
+  // UIのセレクタ値を同期
+  try {
+    const uSel = document.getElementById('user-filter');
+    if (uSel) uSel.value = 'all';
+    const gSel = document.getElementById('genre-filter');
+    if (gSel) gSel.value = 'all';
+    const kSel = document.getElementById('kind-filter');
+    if (kSel) kSel.value = 'all';
+  } catch(e) {}
+  // URLとlocalStorageをクリア
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('user');
+    url.searchParams.delete('genre');
+    url.searchParams.delete('kind');
+    url.searchParams.delete('scope');
+    window.history.replaceState({}, '', url.pathname);
+    localStorage.removeItem('userFilter');
+    localStorage.removeItem('genreFilter');
+    localStorage.removeItem('kindFilter');
+  } catch(e) {}
+  updateScopeVisibility();
+  render();
+  // 画面を最上部にスクロール
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // 初期状態の復元
