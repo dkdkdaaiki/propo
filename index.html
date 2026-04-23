@@ -543,7 +543,7 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
 /* 担当者別/締切別ビュー用: 自治体列あり */
 .task-item {
   display: grid;
-  grid-template-columns: 40px 100px 90px 220px 180px 1fr;
+  grid-template-columns: 40px 100px 90px 220px 180px 170px 170px;
   align-items: center;
   gap: 12px;
   padding: 9px 10px;
@@ -554,7 +554,7 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
 
 /* 案件別ビュー用: 自治体列なし */
 .task-item.case-mode {
-  grid-template-columns: 40px 100px 90px 220px 1fr;
+  grid-template-columns: 40px 100px 90px 220px 170px 170px;
 }
 
 .task-item:hover { background: #FAFAFA; }
@@ -713,6 +713,16 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   font-weight: 700;
 }
 .task-item.done .person-tag { opacity: 0.5; }
+.person-empty {
+  color: #CFD8DC;
+  font-size: 13px;
+}
+.team-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+}
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.65; }
@@ -721,7 +731,7 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
 /* リストヘッダー(列見出し) */
 .list-header {
   display: grid;
-  grid-template-columns: 40px 100px 90px 220px 180px 1fr;
+  grid-template-columns: 40px 100px 90px 220px 180px 170px 170px;
   align-items: center;
   gap: 12px;
   padding: 6px 10px;
@@ -734,7 +744,7 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   letter-spacing: 0.5px;
 }
 .list-header.case-mode {
-  grid-template-columns: 40px 100px 90px 220px 1fr;
+  grid-template-columns: 40px 100px 90px 220px 170px 170px;
 }
 
 .progress-container {
@@ -2202,6 +2212,30 @@ function buildPersonsText(persons, taskName) {
   }).join('');
 }
 
+// 担当者タグ生成(役割付き): 主担当は太字、未定は●●バッジ
+function buildRoleTeam(members) {
+  if (!members || members.length === 0) return '<span class="person-empty">—</span>';
+  return members.map((p, i) => {
+    if (p === '●●') return `<span class="person-unassigned">●●</span>`;
+    const dept = getDept(p);
+    const mainCls = i === 0 ? ' person-main' : '';
+    return `<span class="person-tag dept-${dept}${mainCls}">${p}</span>`;
+  }).join('');
+}
+
+// 2列の担当者セル: 提案書担当 / プロポ担当
+function buildTeamCells(caseObj) {
+  const isNyusatsu = caseObj.kind === '郵便入札';
+  if (isNyusatsu) {
+    // 入札案件: 提案書担当のみ(プロポ列は空)
+    const teian = caseObj.teianLeaders || caseObj.leaders || [];
+    return `<span class="team-cell">${buildRoleTeam(teian)}</span><span class="team-cell"></span>`;
+  }
+  const teian = caseObj.teianLeaders || caseObj.leaders || [];
+  const presen = caseObj.presenLeaders || [];
+  return `<span class="team-cell">${buildRoleTeam(teian)}</span><span class="team-cell">${buildRoleTeam(presen)}</span>`;
+}
+
 function buildLeadersText(leaders) {
   return leaders.map((p, i) => {
     if (p === '●●') return `<span class="person-unassigned">●●</span>`;
@@ -2237,7 +2271,8 @@ function listHeaderHtml(caseMode = false) {
       <span>締切</span>
       <span>残日数</span>
       <span>タスク</span>
-      <span>担当者</span>
+      <span>提案書担当</span>
+      <span>プロポ担当</span>
     </div>`;
   }
   return `<div class="${cls}">
@@ -2246,7 +2281,8 @@ function listHeaderHtml(caseMode = false) {
     <span>残日数</span>
     <span>タスク</span>
     <span>自治体</span>
-    <span>担当者</span>
+    <span>提案書担当</span>
+    <span>プロポ担当</span>
   </div>`;
 }
 
@@ -2331,10 +2367,6 @@ function renderPersonView() {
       const delta = daysUntil(t.date);
       const cls = statusClass(delta, t.done);
       const taskDataForName = { deadline: t.deadline, note: t.note };
-      // プレゼン時は同席者表示、それ以外は空
-      const personsCell = t.taskName === 'プレゼン'
-        ? `<span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span>`
-        : `<span></span>`;
 
       html += `<li class="task-item ${cls}">
         ${doneMarkHtml(t.done)}
@@ -2342,7 +2374,7 @@ function renderPersonView() {
         <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
         <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
         <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
-        ${personsCell}
+        ${buildTeamCells(t.caseObj)}
       </li>`;
     }
     html += '</ul></div>';
@@ -2422,13 +2454,12 @@ function renderCaseView() {
       const delta = daysUntil(taskData.date);
       const cls = statusClass(delta, taskData.done);
       const isNext = taskName === nextTaskName;
-      const persons = getTaskPersons(caseObj, taskName);
       html += `<li class="task-item case-mode ${cls} ${isNext ? 'next' : ''}">
         ${doneMarkHtml(taskData.done)}
         <span class="date-badge ${!taskData.date ? 'nodate' : ''}">${formatDate(taskData.date)}</span>
         <span class="days-left ${daysUrgency(delta)}">${daysText(delta, taskData.done)}</span>
         <span class="task-name">${buildTaskNameHtml(taskName, taskData)}</span>
-        <span class="persons-text">${buildPersonsText(persons, taskName)}</span>
+        ${buildTeamCells(caseObj)}
       </li>`;
     }
     html += '</ul></div>';
@@ -2499,7 +2530,7 @@ function renderDeadlineView() {
         <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
         <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
         <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
-        <span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span>
+        ${buildTeamCells(t.caseObj)}
       </li>`;
     }
     html += '</ul></div>';
@@ -2574,7 +2605,7 @@ function renderTaskView() {
         <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
         <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
         <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
-        <span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span>
+        ${buildTeamCells(t.caseObj)}
       </li>`;
     }
     html += '</ul></div>';
@@ -3111,9 +3142,6 @@ function renderTodayFocusView() {
         const delta = daysUntil(t.date);
         const cls = statusClass(delta, t.done);
         const taskDataForName = { deadline: t.deadline, note: t.note };
-        const personsHtml = t.taskName === 'プレゼン'
-          ? `<span class="persons-text">${buildPersonsText(t.persons, t.taskName)}</span>`
-          : `<span></span>`;
 
         html += `<li class="task-item ${cls}">
           ${doneMarkHtml(t.done)}
@@ -3121,7 +3149,7 @@ function renderTodayFocusView() {
           <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
           <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
           <span class="task-city"><span class="case-num-badge">${t.caseObj.genre}${t.num}</span><span class="task-city-name">${t.city}</span></span>
-          ${personsHtml}
+          ${buildTeamCells(t.caseObj)}
         </li>`;
       }
       html += '</ul></div>';
