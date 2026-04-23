@@ -1633,6 +1633,10 @@ function parseLine(line) {
     const pad = n => String(n).padStart(2, '0');
     const toKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
+    // 案B: 郵送が済なら、社内3タスクも自動的に済扱い
+    // (郵送できたということは、その前工程は事実上終わっているはず)
+    const mailingDone = !!tasks['提案書郵送'].done;
+
     // 最終化・提出準備: 郵送日の前営業日までの2営業日
     const finalizeEnd = subtractBusinessDays(mailingDate, 1); // 郵送日の前営業日
     const finalizeStart = subtractBusinessDays(finalizeEnd, 1); // 2営業日分(end含めて)
@@ -1640,7 +1644,7 @@ function parseLine(line) {
       name: '最終化・提出準備',
       date: toKey(finalizeEnd),
       startDate: toKey(finalizeStart),
-      done: false,
+      done: mailingDone,
       auto: true,
     };
 
@@ -1651,7 +1655,7 @@ function parseLine(line) {
       name: '提案書QC',
       date: toKey(qcEnd),
       startDate: toKey(qcStart),
-      done: false,
+      done: mailingDone,
       auto: true,
     };
 
@@ -1662,7 +1666,7 @@ function parseLine(line) {
       name: '提案書草案作成',
       date: toKey(draftEnd),
       startDate: toKey(draftStart),
-      done: false,
+      done: mailingDone,
       auto: true,
     };
   }
