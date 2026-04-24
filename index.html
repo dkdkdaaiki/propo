@@ -19,7 +19,9 @@ body {
 /* 固定ヘッダー */
 :root {
   --header-height: 46px;
-  --header-height-mobile: 42px;
+  --header-height-mobile: 56px;
+  --safe-top: env(safe-area-inset-top, 0);
+  --safe-bottom: env(safe-area-inset-bottom, 0);
 }
 .header-row {
   position: sticky;
@@ -1477,23 +1479,45 @@ body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
   .section-count { font-size: 11px; }
 
   /* 案件別ヘッダーの担当者情報もコンパクトに */
-  .section-header .persons-text { font-size: 11px; }
-  .section-header .kind-badge { font-size: 11px; padding: 2px 6px; }
-  .section-header .progress-container { max-width: 100%; margin: 4px 0; }
+  .section-header .persons-text {
+    font-size: 11px;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+  .section-header .kind-badge { font-size: 10px; padding: 2px 5px; }
+  .section-header .progress-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 6px 0 0;
+    order: 10;
+  }
+  .section-header .progress-text {
+    font-size: 10px;
+    order: 11;
+  }
+  .section-header .case-num-badge { font-size: 10px; }
 
   /* 今日のアラート */
   .today-alert {
-    padding: 10px 14px;
-    font-size: 13px;
+    padding: 8px 12px;
+    font-size: 12px;
     margin: 0 -10px 10px;
     border-radius: 0;
+    line-height: 1.5;
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
+  .today-alert > * { word-break: break-word; }
 
   /* 担当未定アラート */
   .unassigned-alert {
-    padding: 10px 14px;
-    font-size: 12px;
+    padding: 8px 12px;
+    font-size: 11px;
     margin: 0 -10px 10px;
+    line-height: 1.5;
+    flex-wrap: wrap;
   }
 
   /* 凡例: 小さめに */
