@@ -2486,7 +2486,30 @@ function parseLine(line) {
   // 】以降、最初の | または ｜ までが「自治体名 + (担当者)」
   const afterBracket = line.substring(endBracket + 1);
   // 全角・半角パイプどちらも区切り文字として扱う
-  const normalizedAfter = afterBracket.replace(/｜/g, '|');
+  let normalizedAfter = afterBracket.replace(/｜/g, '|');
+
+  // ※済:〜 を抽出して、自動展開タスクの完了状態を決定
+  // 仕様:
+  //   ※済:        → 何も完了させない(空指定は無視)
+  //   ※済:骨子    → 骨子作成、骨子確認・QC分担決定
+  //   ※済:骨子・草案 → 骨子作成、骨子確認・QC分担決定、提案書草案作成
+  // ※半角/全角コロン両対応、※の前後の空白は許容
+  const autoDoneSet = new Set();
+  const doneMarkMatch = normalizedAfter.match(/\s*※\s*済\s*[:：]\s*([^|]*)$/);
+  if (doneMarkMatch) {
+    const tokens = doneMarkMatch[1].split(/[・､、]/).map(s => s.trim()).filter(s => s);
+    for (const tok of tokens) {
+      if (tok === '骨子') {
+        autoDoneSet.add('骨子作成');
+        autoDoneSet.add('骨子確認・QC分担決定');
+      } else if (tok === '草案') {
+        autoDoneSet.add('提案書草案作成');
+      }
+      // 未知のトークンは無視(タイポ防御)
+    }
+    // ※済:〜 の部分を文字列から除去
+    normalizedAfter = normalizedAfter.substring(0, doneMarkMatch.index).trimEnd();
+  }
 
   // 括弧外の最初のパイプを見つける(括弧内のパイプは担当者区切りなので無視)
   let firstPipe = -1;
@@ -2581,6 +2604,9 @@ function parseLine(line) {
     // (郵送できたということは、その前工程は事実上終わっているはず)
     const mailingDone = !!tasks['提案書郵送'].done;
 
+    // ※済:〜 で個別指定された自動展開タスクは、郵送未済でも済扱いにする
+    const isAutoDone = (taskName) => mailingDone || autoDoneSet.has(taskName);
+
     // 最終化・提出準備: 郵送日の前営業日までの2営業日
     const finalizeEnd = subtractBusinessDays(mailingDate, 1); // 郵送日の前営業日
     const finalizeStart = subtractBusinessDays(finalizeEnd, 1); // 2営業日分(end含めて)
@@ -2588,7 +2614,7 @@ function parseLine(line) {
       name: '最終化・提出準備',
       date: toKey(finalizeEnd),
       startDate: toKey(finalizeStart),
-      done: mailingDone,
+      done: isAutoDone('最終化・提出準備'),
       auto: true,
     };
 
@@ -2599,7 +2625,7 @@ function parseLine(line) {
       name: '提案書QC',
       date: toKey(qcEnd),
       startDate: toKey(qcStart),
-      done: mailingDone,
+      done: isAutoDone('提案書QC'),
       auto: true,
     };
 
@@ -2610,7 +2636,7 @@ function parseLine(line) {
       name: '提案書草案作成',
       date: toKey(draftEnd),
       startDate: toKey(draftStart),
-      done: mailingDone,
+      done: isAutoDone('提案書草案作成'),
       auto: true,
     };
 
@@ -2620,7 +2646,7 @@ function parseLine(line) {
       name: '骨子確認・QC分担決定',
       date: toKey(skeletonReviewDate),
       startDate: toKey(skeletonReviewDate), // 1営業日なのでstart=end
-      done: mailingDone,
+      done: isAutoDone('骨子確認・QC分担決定'),
       auto: true,
     };
 
@@ -2630,7 +2656,7 @@ function parseLine(line) {
       name: '骨子作成',
       date: toKey(skeletonDate),
       startDate: toKey(skeletonDate),
-      done: mailingDone,
+      done: isAutoDone('骨子作成'),
       auto: true,
     };
   }
