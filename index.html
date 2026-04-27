@@ -1,24 +1,4 @@
-"""
-公共交通計画プロポーザルプロジェクトマネジメント v22
-- 環境ジャンル対応、ジャンル/ユーザーフィルタ
-- スプレッドシート連携版
-- パスワード保護
-- 10分ごと自動更新
-"""
-from datetime import date
-
-# 開発時プレビュー用の日付(ブラウザでは実際のtodayを使う)
-TODAY = date(2026, 4, 20)
-today_str = TODAY.strftime('%Y-%m-%d')
-
-# Google SpreadsheetのURL
-SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQoEzRihpNiOfpjj4NFBXd0khIJkYkHsh01_DnbTI-JdhDO4QDSAqgBSk97Boa0uLXtGy7esFdWxJLl/pub?output=csv"
-SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit"
-
-# 簡易パスワード(クライアントサイドで照合、社内軽アクセス制限用)
-APP_PASSWORD = "splspl"
-
-html = f'''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -26,24 +6,24 @@ html = f'''<!DOCTYPE html>
 <meta name="theme-color" content="#1A237E">
 <title>プロポーザルプロジェクトマネジメント</title>
 <style>
-* {{ box-sizing: border-box; margin: 0; padding: 0; }}
-body {{
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
   background: #F5F5F5;
   padding: 0;
   color: #333;
   line-height: 1.5;
-}}
-.container {{ max-width: 1500px; margin: 0 auto; padding: 0 20px 20px; }}
+}
+.container { max-width: 1500px; margin: 0 auto; padding: 0 20px 20px; }
 
 /* 固定ヘッダー */
-:root {{
+:root {
   --header-height: 46px;
   --header-height-mobile: 56px;
   --safe-top: env(safe-area-inset-top, 0);
   --safe-bottom: env(safe-area-inset-bottom, 0);
-}}
-.header-row {{
+}
+.header-row {
   position: sticky;
   top: 0;
   z-index: 100;
@@ -57,15 +37,15 @@ body {{
   gap: 12px;
   padding: 8px 20px;
   margin: 0 -20px 16px;
-}}
-.header-left {{
+}
+.header-left {
   flex-shrink: 0;
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-}}
-.header-right {{
+}
+.header-right {
   flex: 1;
   display: flex;
   gap: 6px;
@@ -74,28 +54,28 @@ body {{
   justify-content: flex-end;
   min-width: 0;
   overflow-x: auto;
-}}
+}
 
-h1 {{
+h1 {
   font-size: 14px;
   font-weight: 700;
   color: #1A237E;
   letter-spacing: 0.3px;
   white-space: nowrap;
   margin: 0;
-}}
-h1.app-title {{
+}
+h1.app-title {
   cursor: pointer;
   user-select: none;
   transition: color 0.15s, transform 0.15s;
-}}
-h1.app-title:hover {{
+}
+h1.app-title:hover {
   color: #303F9F;
-}}
-h1.app-title:active {{
+}
+h1.app-title:active {
   transform: scale(0.98);
-}}
-.subtitle {{
+}
+.subtitle {
   font-size: 10px;
   color: #90A4AE;
   display: flex;
@@ -103,11 +83,11 @@ h1.app-title:active {{
   gap: 6px;
   flex-wrap: nowrap;
   white-space: nowrap;
-}}
-.subtitle-sep {{ color: #CFD8DC; }}
+}
+.subtitle-sep { color: #CFD8DC; }
 
 /* ユーザーフィルタ */
-.user-filter-label {{
+.user-filter-label {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -122,17 +102,17 @@ h1.app-title:active {{
   border: 1.5px solid transparent;
   transition: border-color 0.15s;
   flex-shrink: 0;
-}}
-.user-filter-label:hover {{
+}
+.user-filter-label:hover {
   border-color: #1E88E5;
-}}
-.user-filter-label.filtered {{
+}
+.user-filter-label.filtered {
   background: #E3F2FD;
   border-color: #1E88E5;
   color: #0D47A1;
-}}
-.user-filter-icon {{ font-size: 13px; }}
-.user-filter-select {{
+}
+.user-filter-icon { font-size: 13px; }
+.user-filter-select {
   border: none;
   background: transparent;
   font-size: 12px;
@@ -143,10 +123,10 @@ h1.app-title:active {{
   padding: 0;
   min-width: 80px;
   font-family: inherit;
-}}
+}
 
 /* ヘッダーのログアウトボタン */
-.header-logout-btn {{
+.header-logout-btn {
   background: transparent;
   border: 1px solid #E0E0E0;
   color: #9E9E9E;
@@ -162,15 +142,15 @@ h1.app-title:active {{
   padding: 0;
   font-family: inherit;
   flex-shrink: 0;
-}}
-.header-logout-btn:hover {{
+}
+.header-logout-btn:hover {
   background: #FAFAFA;
   color: #F44336;
   border-color: #FFCDD2;
-}}
+}
 
 /* スコープトグル */
-.scope-filter-wrapper {{
+.scope-filter-wrapper {
   display: inline-flex;
   background: white;
   border: 1.5px solid #CFD8DC;
@@ -178,8 +158,8 @@ h1.app-title:active {{
   padding: 2px;
   gap: 1px;
   flex-shrink: 0;
-}}
-.scope-btn {{
+}
+.scope-btn {
   border: none;
   background: transparent;
   padding: 4px 10px;
@@ -191,26 +171,26 @@ h1.app-title:active {{
   font-family: inherit;
   transition: all 0.15s;
   white-space: nowrap;
-}}
-.scope-btn:hover {{ color: #455A64; }}
-.scope-btn.active {{
+}
+.scope-btn:hover { color: #455A64; }
+.scope-btn.active {
   background: #1E88E5;
   color: white;
-}}
+}
 
-.input-panel {{
+.input-panel {
   background: white;
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}}
-.input-actions {{
+}
+.input-actions {
   display: flex;
   gap: 8px;
   align-items: center;
-}}
-.btn {{
+}
+.btn {
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
@@ -219,21 +199,21 @@ h1.app-title:active {{
   font-weight: 500;
   text-decoration: none;
   display: inline-block;
-}}
-.btn-primary {{ background: #1E88E5; color: white; }}
-.btn-primary:hover {{ background: #1976D2; }}
-.btn-secondary {{ background: #ECEFF1; color: #455A64; }}
-.btn-secondary:hover {{ background: #CFD8DC; }}
-.btn-link {{
+}
+.btn-primary { background: #1E88E5; color: white; }
+.btn-primary:hover { background: #1976D2; }
+.btn-secondary { background: #ECEFF1; color: #455A64; }
+.btn-secondary:hover { background: #CFD8DC; }
+.btn-link {
   background: transparent;
   color: #90A4AE;
   padding: 8px 12px;
   font-size: 12px;
-}}
-.btn-link:hover {{ color: #455A64; text-decoration: underline; }}
-.parse-info {{ font-size: 12px; color: #666; margin-left: auto; }}
-.parse-error {{ color: #C62828; }}
-.parse-error-detail {{
+}
+.btn-link:hover { color: #455A64; text-decoration: underline; }
+.parse-info { font-size: 12px; color: #666; margin-left: auto; }
+.parse-error { color: #C62828; }
+.parse-error-detail {
   font-size: 11px;
   color: #B71C1C;
   margin-top: 4px;
@@ -242,8 +222,8 @@ h1.app-title:active {{
   border-radius: 4px;
   line-height: 1.5;
   max-width: 520px;
-}}
-.parse-warning-detail {{
+}
+.parse-warning-detail {
   font-size: 11px;
   color: #E65100;
   margin-top: 4px;
@@ -252,20 +232,20 @@ h1.app-title:active {{
   border-radius: 4px;
   line-height: 1.5;
   max-width: 520px;
-}}
-.parse-ok {{ color: #2E7D32; }}
+}
+.parse-ok { color: #2E7D32; }
 
 /* 同期ステータス */
-#sync-status {{
+#sync-status {
   font-size: 12px;
   color: #666;
-}}
-#sync-status.syncing {{ color: #1565C0; }}
-#sync-status.ok {{ color: #2E7D32; }}
-#sync-status.error {{ color: #C62828; }}
+}
+#sync-status.syncing { color: #1565C0; }
+#sync-status.ok { color: #2E7D32; }
+#sync-status.error { color: #C62828; }
 
 /* パスワード画面 */
-.auth-overlay {{
+.auth-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: #263238;
@@ -273,8 +253,8 @@ h1.app-title:active {{
   align-items: center;
   justify-content: center;
   z-index: 9999;
-}}
-.auth-box {{
+}
+.auth-box {
   background: white;
   padding: 40px;
   border-radius: 12px;
@@ -282,37 +262,37 @@ h1.app-title:active {{
   width: 400px;
   max-width: 90%;
   text-align: center;
-}}
-.auth-title {{
+}
+.auth-title {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 8px;
   color: #263238;
-}}
-.auth-subtitle {{
+}
+.auth-subtitle {
   font-size: 13px;
   color: #666;
   margin-bottom: 24px;
-}}
-.auth-input {{
+}
+.auth-input {
   width: 100%;
   padding: 12px 14px;
   font-size: 16px;
   border: 2px solid #CFD8DC;
   border-radius: 6px;
   margin-bottom: 12px;
-}}
-.auth-input:focus {{
+}
+.auth-input:focus {
   border-color: #1E88E5;
   outline: none;
-}}
-.auth-error {{
+}
+.auth-error {
   color: #C62828;
   font-size: 12px;
   margin-bottom: 12px;
   min-height: 16px;
-}}
-.auth-btn {{
+}
+.auth-btn {
   width: 100%;
   padding: 12px;
   background: #1E88E5;
@@ -322,18 +302,18 @@ h1.app-title:active {{
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
-}}
-.auth-btn:hover {{ background: #1976D2; }}
-.app-content {{ display: none; }}
-.app-content.authed {{ display: block; }}
+}
+.auth-btn:hover { background: #1976D2; }
+.app-content { display: none; }
+.app-content.authed { display: block; }
 
-.dashboard {{
+.dashboard {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 14px;
   margin-bottom: 24px;
-}}
-.stat-card {{
+}
+.stat-card {
   background: white;
   border-radius: 10px;
   padding: 18px 14px 16px;
@@ -343,71 +323,71 @@ h1.app-title:active {{
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
   user-select: none;
-}}
-.stat-card:hover {{
+}
+.stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-}}
-.stat-card:active {{
+}
+.stat-card:active {
   transform: translateY(0);
-}}
-.stat-card.overdue {{ border-top-color: #D32F2F; }}
-.stat-card.today {{ border-top-color: #F57C00; }}
-.stat-card.week {{ border-top-color: #FBC02D; }}
-.stat-card.nextweek {{ border-top-color: #43A047; }}
-.stat-card.unassigned {{ border-top-color: #7B1FA2; }}
-.stat-label {{
+}
+.stat-card.overdue { border-top-color: #D32F2F; }
+.stat-card.today { border-top-color: #F57C00; }
+.stat-card.week { border-top-color: #FBC02D; }
+.stat-card.nextweek { border-top-color: #43A047; }
+.stat-card.unassigned { border-top-color: #7B1FA2; }
+.stat-label {
   font-size: 11px;
   color: #78909C;
   margin-bottom: 6px;
   font-weight: 500;
   letter-spacing: 0.5px;
-}}
-.stat-value {{
+}
+.stat-value {
   font-size: 32px;
   font-weight: 700;
   color: #263238;
   line-height: 1;
   font-feature-settings: 'tnum';
-}}
-.stat-unit {{
+}
+.stat-unit {
   font-size: 13px;
   color: #90A4AE;
   margin-left: 4px;
-}}
-.stat-card.empty .stat-value {{ color: #CFD8DC; }}
+}
+.stat-card.empty .stat-value { color: #CFD8DC; }
 
 /* 今日やることビュー専用スタイル */
-.focus-summary {{
+.focus-summary {
   background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
   padding: 16px 20px;
   border-radius: 10px;
   margin-bottom: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}}
-.focus-summary-title {{
+}
+.focus-summary-title {
   font-size: 14px;
   font-weight: 600;
   color: #E65100;
   margin-bottom: 8px;
-}}
-.focus-summary-stats {{
+}
+.focus-summary-stats {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-}}
-.focus-stat {{
+}
+.focus-stat {
   font-size: 13px;
   color: #5D4037;
-}}
-.focus-stat strong {{
+}
+.focus-stat strong {
   font-size: 18px;
   color: #263238;
   margin: 0 2px;
-}}
+}
 
 /* 今日のアラート */
-.today-alert {{
+.today-alert {
   background: linear-gradient(90deg, #FFE082 0%, #FFCC80 100%);
   padding: 10px 16px;
   border-radius: 8px;
@@ -420,17 +400,17 @@ h1.app-title:active {{
   gap: 8px;
   cursor: pointer;
   transition: transform 0.15s;
-}}
-.today-alert:hover {{
+}
+.today-alert:hover {
   transform: translateY(-1px);
-}}
-.today-alert.overdue {{
+}
+.today-alert.overdue {
   background: linear-gradient(90deg, #FFCDD2 0%, #EF9A9A 100%);
   color: #B71C1C;
-}}
+}
 
 /* サブヘッダー: ビュー切替＋凡例ボタン＋済表示(ヘッダー直下にsticky) */
-.sub-header {{
+.sub-header {
   position: sticky;
   top: var(--header-height); /* header-rowの高さ分 */
   z-index: 95;
@@ -445,15 +425,15 @@ h1.app-title:active {{
   padding: 6px 20px;
   margin: 0 -20px 12px;
   flex-wrap: nowrap;
-}}
-.sub-header-tools {{
+}
+.sub-header-tools {
   display: inline-flex;
   gap: 8px;
   align-items: center;
   flex-shrink: 0;
-}}
+}
 
-.view-switcher {{
+.view-switcher {
   background: white;
   padding: 4px;
   border-radius: 6px;
@@ -461,8 +441,8 @@ h1.app-title:active {{
   gap: 2px;
   flex-shrink: 0;
   overflow-x: auto;
-}}
-.view-btn {{
+}
+.view-btn {
   padding: 5px 11px;
   border: none;
   background: transparent;
@@ -473,10 +453,10 @@ h1.app-title:active {{
   color: #666;
   white-space: nowrap;
   font-family: inherit;
-}}
-.view-btn.active {{ background: #263238; color: white; }}
+}
+.view-btn.active { background: #263238; color: white; }
 
-.done-toggle {{
+.done-toggle {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -489,11 +469,11 @@ h1.app-title:active {{
   box-shadow: 0 1px 2px rgba(0,0,0,0.06);
   user-select: none;
   flex-shrink: 0;
-}}
-.done-toggle input {{ cursor: pointer; }}
+}
+.done-toggle input { cursor: pointer; }
 
 /* 凡例トグルボタン */
-.legend-toggle-btn {{
+.legend-toggle-btn {
   padding: 5px 10px;
   background: white;
   border: none;
@@ -506,15 +486,15 @@ h1.app-title:active {{
   transition: background 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
-}}
-.legend-toggle-btn:hover {{ background: #FAFAFA; }}
-.legend-toggle-btn.active {{ background: #E3F2FD; color: #0D47A1; }}
+}
+.legend-toggle-btn:hover { background: #FAFAFA; }
+.legend-toggle-btn.active { background: #E3F2FD; color: #0D47A1; }
 
 /* 済タスク非表示モード */
-body.hide-done .task-item.done {{ display: none; }}
-body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
+body.hide-done .task-item.done { display: none; }
+body.hide-done .gantt-done-cell .gantt-bar { visibility: hidden; }
 
-.legend {{
+.legend {
   background: white;
   padding: 10px 16px;
   border-radius: 8px;
@@ -525,46 +505,46 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   gap: 20px;
   flex-wrap: wrap;
   align-items: center;
-}}
-.legend-group {{
+}
+.legend-group {
   display: flex;
   gap: 10px;
   align-items: center;
   padding: 4px 12px;
   border-radius: 4px;
   background: #FAFAFA;
-}}
-.legend-title {{
+}
+.legend-title {
   font-weight: bold;
   color: #455A64;
   font-size: 11px;
-}}
-.legend-item {{
+}
+.legend-item {
   display: flex;
   align-items: center;
   gap: 4px;
-}}
-.legend-swatch {{
+}
+.legend-swatch {
   display: inline-block;
   width: 14px;
   height: 10px;
   border-radius: 2px;
   vertical-align: middle;
-}}
-.legend-swatch.overdue {{ background: #D32F2F; }}
-.legend-swatch.today {{ background: #F57C00; }}
-.legend-swatch.urgent {{ background: #FBC02D; }}
-.legend-swatch.upcoming {{ background: #43A047; }}
-.legend-swatch.future {{ background: #BDBDBD; }}
+}
+.legend-swatch.overdue { background: #D32F2F; }
+.legend-swatch.today { background: #F57C00; }
+.legend-swatch.urgent { background: #FBC02D; }
+.legend-swatch.upcoming { background: #43A047; }
+.legend-swatch.future { background: #BDBDBD; }
 
-.section {{
+.section {
   background: white;
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}}
-.section-header {{
+}
+.section-header {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -572,10 +552,10 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   padding-bottom: 10px;
   border-bottom: 2px solid #ECEFF1;
   flex-wrap: wrap;
-}}
-.section-title {{ font-size: 17px; font-weight: bold; }}
-.section-count {{ font-size: 12px; color: #666; margin-left: auto; }}
-.case-num-badge {{
+}
+.section-title { font-size: 17px; font-weight: bold; }
+.section-count { font-size: 12px; color: #666; margin-left: auto; }
+.case-num-badge {
   display: inline-block;
   background: #455A64;
   color: white;
@@ -584,23 +564,23 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   font-size: 11px;
   font-weight: bold;
   flex-shrink: 0;
-}}
-.kind-badge {{
+}
+.kind-badge {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 10px;
   font-size: 10px;
   font-weight: bold;
   flex-shrink: 0;
-}}
-.kind-badge.プロポーザル {{ background: #E3F2FD; color: #1565C0; }}
-.kind-badge.郵便入札 {{ background: #FFF3E0; color: #E65100; }}
+}
+.kind-badge.プロポーザル { background: #E3F2FD; color: #1565C0; }
+.kind-badge.郵便入札 { background: #FFF3E0; color: #E65100; }
 
 /* === ここが今回の肝: グリッドレイアウト === */
-.task-list {{ list-style: none; }}
+.task-list { list-style: none; }
 
 /* 担当者別/締切別ビュー用: 自治体列あり */
-.task-item {{
+.task-item {
   display: grid;
   grid-template-columns: 40px 100px 90px 220px 180px 170px 170px;
   align-items: center;
@@ -609,30 +589,30 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   border-bottom: 1px solid #F0F0F0;
   border-left: 4px solid transparent;
   transition: background 0.15s;
-}}
+}
 
 /* 案件別ビュー用: 自治体列なし */
-.task-item.case-mode {{
+.task-item.case-mode {
   grid-template-columns: 40px 100px 90px 220px 170px 170px;
-}}
+}
 
-.task-item:hover {{ background: #FAFAFA; }}
-.task-item:last-child {{ border-bottom: none; }}
-.task-item.overdue {{ border-left-color: #D32F2F; background: #FFF5F5; }}
-.task-item.today {{ border-left-color: #F57C00; background: #FFF8F0; }}
-.task-item.urgent {{ border-left-color: #FBC02D; background: #FFFEF3; }}
-.task-item.upcoming {{ border-left-color: #43A047; }}
-.task-item.future {{ border-left-color: #BDBDBD; }}
-.task-item.done {{ opacity: 0.5; border-left-color: #E0E0E0; background: #FAFAFA; }}
+.task-item:hover { background: #FAFAFA; }
+.task-item:last-child { border-bottom: none; }
+.task-item.overdue { border-left-color: #D32F2F; background: #FFF5F5; }
+.task-item.today { border-left-color: #F57C00; background: #FFF8F0; }
+.task-item.urgent { border-left-color: #FBC02D; background: #FFFEF3; }
+.task-item.upcoming { border-left-color: #43A047; }
+.task-item.future { border-left-color: #BDBDBD; }
+.task-item.done { opacity: 0.5; border-left-color: #E0E0E0; background: #FAFAFA; }
 .task-item.done .task-name,
 .task-item.done .task-city,
-.task-item.done .persons-text {{ text-decoration: line-through; color: #999; }}
-.task-item.next {{
+.task-item.done .persons-text { text-decoration: line-through; color: #999; }
+.task-item.next {
   background: #FFF8E1;
   font-weight: 500;
-}}
+}
 
-.done-mark {{
+.done-mark {
   display: inline-block;
   background: #43A047;
   color: white;
@@ -642,8 +622,8 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   font-weight: bold;
   text-align: center;
   width: 36px;
-}}
-.undone-mark {{
+}
+.undone-mark {
   display: inline-block;
   background: transparent;
   border: 1px dashed #CFD8DC;
@@ -653,9 +633,9 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   color: #90A4AE;
   text-align: center;
   width: 36px;
-}}
+}
 
-.date-badge {{
+.date-badge {
   padding: 3px 8px;
   border-radius: 4px;
   font-size: 12px;
@@ -664,15 +644,15 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   background: #ECEFF1;
   color: #455A64;
   width: 96px;
-}}
-.task-item.overdue .date-badge {{ background: #FFEBEE; color: #C62828; font-weight: bold; }}
-.task-item.today .date-badge {{ background: #FFF3E0; color: #E65100; font-weight: bold; }}
-.task-item.urgent .date-badge {{ background: #FFFDE7; color: #F57F17; }}
-.task-item.upcoming .date-badge {{ background: #E8F5E9; color: #2E7D32; }}
-.task-item.done .date-badge {{ background: #ECEFF1; color: #90A4AE; }}
-.date-badge.nodate {{ background: #F3E5F5; color: #6A1B9A; }}
+}
+.task-item.overdue .date-badge { background: #FFEBEE; color: #C62828; font-weight: bold; }
+.task-item.today .date-badge { background: #FFF3E0; color: #E65100; font-weight: bold; }
+.task-item.urgent .date-badge { background: #FFFDE7; color: #F57F17; }
+.task-item.upcoming .date-badge { background: #E8F5E9; color: #2E7D32; }
+.task-item.done .date-badge { background: #ECEFF1; color: #90A4AE; }
+.date-badge.nodate { background: #F3E5F5; color: #6A1B9A; }
 
-.deadline-info {{
+.deadline-info {
   font-size: 10px;
   background: #FFEBEE;
   color: #C62828;
@@ -681,30 +661,30 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   font-weight: bold;
   margin-left: 4px;
   white-space: nowrap;
-}}
+}
 
-.days-left {{
+.days-left {
   font-size: 11px;
   color: #999;
   text-align: left;
-}}
-.days-left.urgent {{ color: #C62828; font-weight: bold; }}
-.days-left.overdue {{ color: #C62828; font-weight: bold; }}
+}
+.days-left.urgent { color: #C62828; font-weight: bold; }
+.days-left.overdue { color: #C62828; font-weight: bold; }
 
-.task-name {{
+.task-name {
   font-size: 13px;
   font-weight: 600;
   color: #37474F;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}}
-.task-icon {{
+}
+.task-icon {
   display: inline-block;
   margin-right: 3px;
   font-size: 14px;
-}}
-.task-city {{
+}
+.task-city {
   font-size: 14px;
   font-weight: 600;
   color: #333;
@@ -712,26 +692,26 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   align-items: center;
   gap: 6px;
   overflow: hidden;
-}}
-.task-city-name {{
+}
+.task-city-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}}
+}
 
-.persons-text {{
+.persons-text {
   font-size: 12px;
   color: #546E7A;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}}
-.person-main {{
+}
+.person-main {
   font-weight: bold;
   color: #263238;
-}}
-.person-unassigned {{
+}
+.person-unassigned {
   background: #7B1FA2;
   color: white;
   padding: 1px 6px;
@@ -739,10 +719,10 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   font-size: 11px;
   font-weight: bold;
   animation: pulse 2s infinite;
-}}
+}
 
 /* 部署タグ(担当者バッジ) */
-.person-tag {{
+.person-tag {
   display: inline-block;
   padding: 1px 8px;
   margin-right: 4px;
@@ -751,44 +731,44 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   font-weight: 500;
   border: 1px solid;
   line-height: 1.5;
-}}
-.person-tag:last-child {{ margin-right: 0; }}
-.person-tag.dept-eigyo {{
+}
+.person-tag:last-child { margin-right: 0; }
+.person-tag.dept-eigyo {
   background: #E3F2FD;
   color: #0D47A1;
   border-color: #90CAF9;
-}}
-.person-tag.dept-consul {{
+}
+.person-tag.dept-consul {
   background: #E8F5E9;
   color: #1B5E20;
   border-color: #A5D6A7;
-}}
-.person-tag.dept-other {{
+}
+.person-tag.dept-other {
   background: #F5F5F5;
   color: #37474F;
   border-color: #CFD8DC;
-}}
-.person-tag.person-main {{
+}
+.person-tag.person-main {
   font-weight: 700;
-}}
-.task-item.done .person-tag {{ opacity: 0.5; }}
-.person-empty {{
+}
+.task-item.done .person-tag { opacity: 0.5; }
+.person-empty {
   color: #CFD8DC;
   font-size: 13px;
-}}
-.team-cell {{
+}
+.team-cell {
   display: flex;
   flex-wrap: wrap;
   gap: 3px;
   align-items: center;
-}}
-@keyframes pulse {{
-  0%, 100% {{ opacity: 1; }}
-  50% {{ opacity: 0.65; }}
-}}
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
 
 /* リストヘッダー(列見出し) */
-.list-header {{
+.list-header {
   display: grid;
   grid-template-columns: 40px 100px 90px 220px 180px 170px 170px;
   align-items: center;
@@ -801,12 +781,12 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   border-bottom: 2px solid #ECEFF1;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}}
-.list-header.case-mode {{
+}
+.list-header.case-mode {
   grid-template-columns: 40px 100px 90px 220px 170px 170px;
-}}
+}
 
-.progress-container {{
+.progress-container {
   flex: 1;
   height: 6px;
   background: #ECEFF1;
@@ -814,15 +794,15 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   overflow: hidden;
   max-width: 160px;
   margin: 0 12px;
-}}
-.progress-bar {{
+}
+.progress-bar {
   height: 100%;
   background: linear-gradient(90deg, #43A047 0%, #66BB6A 100%);
   transition: width 0.3s;
-}}
-.progress-text {{ font-size: 11px; color: #666; font-weight: 500; }}
+}
+.progress-text { font-size: 11px; color: #666; font-weight: 500; }
 
-.next-action {{
+.next-action {
   background: #FFF8E1;
   border-left: 3px solid #FFA726;
   padding: 8px 12px;
@@ -830,19 +810,19 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   font-size: 12px;
   color: #E65100;
   border-radius: 4px;
-}}
-.next-action.overdue-alert {{
+}
+.next-action.overdue-alert {
   background: #FFEBEE;
   border-left-color: #D32F2F;
   color: #C62828;
-}}
-.next-action.done-all {{
+}
+.next-action.done-all {
   background: #E8F5E9;
   border-left-color: #43A047;
   color: #2E7D32;
-}}
+}
 
-.deadline-header {{
+.deadline-header {
   color: white;
   padding: 12px 16px;
   border-radius: 6px;
@@ -851,61 +831,61 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   display: flex;
   align-items: center;
   gap: 12px;
-}}
-.deadline-header.overdue {{ background: linear-gradient(90deg, #D32F2F 0%, #C62828 100%); }}
-.deadline-header.today {{ background: linear-gradient(90deg, #F57C00 0%, #E65100 100%); }}
-.deadline-header.this-week {{ background: linear-gradient(90deg, #FBC02D 0%, #F57F17 100%); }}
-.deadline-header.next-week {{ background: linear-gradient(90deg, #388E3C 0%, #2E7D32 100%); }}
-.deadline-header.future {{ background: linear-gradient(90deg, #616161 0%, #424242 100%); }}
-.deadline-count {{ margin-left: auto; font-size: 13px; opacity: 0.9; }}
+}
+.deadline-header.overdue { background: linear-gradient(90deg, #D32F2F 0%, #C62828 100%); }
+.deadline-header.today { background: linear-gradient(90deg, #F57C00 0%, #E65100 100%); }
+.deadline-header.this-week { background: linear-gradient(90deg, #FBC02D 0%, #F57F17 100%); }
+.deadline-header.next-week { background: linear-gradient(90deg, #388E3C 0%, #2E7D32 100%); }
+.deadline-header.future { background: linear-gradient(90deg, #616161 0%, #424242 100%); }
+.deadline-count { margin-left: auto; font-size: 13px; opacity: 0.9; }
 
-.view-content {{ display: none; }}
-.view-content.active {{ display: block; }}
+.view-content { display: none; }
+.view-content.active { display: block; }
 
 /* === ガントチャート(帯スケ方式) === */
-.gantt-wrapper {{
+.gantt-wrapper {
   background: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   overflow: hidden;
-}}
-.gantt-scroll {{
+}
+.gantt-scroll {
   overflow-x: auto;
   max-height: 85vh;
   overflow-y: auto;
-}}
-.gantt-table {{
+}
+.gantt-table {
   border-collapse: collapse;
   font-size: 11px;
   table-layout: fixed;
-}}
-.gantt-table th, .gantt-table td {{
+}
+.gantt-table th, .gantt-table td {
   border: 1px solid #ECEFF1;
   padding: 0;
   vertical-align: middle;
   white-space: nowrap;
-}}
-.gantt-th-sticky {{
+}
+.gantt-th-sticky {
   position: sticky;
   left: 0;
   z-index: 3;
   background: #FAFAFA;
-}}
-.gantt-th-sticky.top {{
+}
+.gantt-th-sticky.top {
   z-index: 6;
-}}
+}
 /* 案件名列のヘッダー(左上の空白コーナー): 月ヘッダーと同色に */
-.gantt-name-header {{
+.gantt-name-header {
   background: #455A64 !important;
   border-color: #37474F !important;
-}}
-.gantt-header-top {{
+}
+.gantt-header-top {
   position: sticky;
   top: 0;
   z-index: 4;
   background: #455A64;
-}}
-.gantt-header-top th {{
+}
+.gantt-header-top th {
   padding: 6px 4px;
   text-align: center;
   font-size: 12px;
@@ -913,14 +893,14 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   background: #455A64;
   color: white;
   border-color: #37474F;
-}}
-.gantt-header-sub {{
+}
+.gantt-header-sub {
   position: sticky;
   top: 30px;
   z-index: 4;
   background: #ECEFF1;
-}}
-.gantt-header-sub th {{
+}
+.gantt-header-sub th {
   padding: 4px 2px;
   text-align: center;
   font-size: 10px;
@@ -928,41 +908,41 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   font-weight: normal;
   background: #ECEFF1;
   height: 36px;
-}}
-.gantt-header-sub th.sat {{ background: #E3F2FD; color: #1565C0; }}
-.gantt-header-sub th.sun {{ background: #FFEBEE; color: #C62828; }}
-.gantt-header-sub th.holiday {{ background: #FFEBEE; color: #C62828; }}
-.gantt-header-sub th.today {{ background: #1A237E; color: white; font-weight: bold; }}
+}
+.gantt-header-sub th.sat { background: #E3F2FD; color: #1565C0; }
+.gantt-header-sub th.sun { background: #FFEBEE; color: #C62828; }
+.gantt-header-sub th.holiday { background: #FFEBEE; color: #C62828; }
+.gantt-header-sub th.today { background: #1A237E; color: white; font-weight: bold; }
 
-.gantt-date-col {{
+.gantt-date-col {
   width: 28px;
   min-width: 28px;
   height: 60px;
-}}
-.gantt-date-col.sat {{ background: #E3F2FD80; }}
-.gantt-date-col.sun {{ background: #FFEBEE80; }}
-.gantt-date-col.holiday {{ background: #FFEBEE80; }}
+}
+.gantt-date-col.sat { background: #E3F2FD80; }
+.gantt-date-col.sun { background: #FFEBEE80; }
+.gantt-date-col.holiday { background: #FFEBEE80; }
 
 /* 今日列: 青い縦線で強調 */
-.gantt-date-col.today-col {{
+.gantt-date-col.today-col {
   position: relative;
   background: #E8EAF6 !important;
   box-shadow: inset 2px 0 0 #3F51B5, inset -2px 0 0 #3F51B5;
-}}
-.gantt-header-sub th.today {{
+}
+.gantt-header-sub th.today {
   background: #1A237E !important;
   color: white !important;
   font-weight: bold;
-}}
+}
 
-.gantt-row-case {{
+.gantt-row-case {
   background: white;
-}}
-.gantt-row-case.alt {{
+}
+.gantt-row-case.alt {
   background: #FAFAFA;
-}}
+}
 
-.gantt-name-cell {{
+.gantt-name-cell {
   padding: 8px 10px !important;
   font-size: 13px;
   font-weight: 600;
@@ -978,26 +958,26 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   border-right: 2px solid #455A64;
   box-shadow: 6px 0 8px -2px rgba(0,0,0,0.15);
   color: #263238;
-}}
-.gantt-row-case.alt .gantt-name-cell {{
+}
+.gantt-row-case.alt .gantt-name-cell {
   background: #E0E4E7;
-}}
-.gantt-name-top {{
+}
+.gantt-name-top {
   display: flex;
   align-items: center;
   gap: 4px;
   margin-bottom: 3px;
   line-height: 1.3;
-}}
-.gantt-leaders {{
+}
+.gantt-leaders {
   font-size: 10px;
   color: #455A64;
   font-weight: normal;
   display: flex;
   flex-direction: column;
   gap: 2px;
-}}
-.gantt-leaders-row {{
+}
+.gantt-leaders-row {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1006,8 +986,8 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: 1.3;
-}}
-.gantt-leader-tag {{
+}
+.gantt-leader-tag {
   display: inline-block;
   min-width: 14px;
   height: 14px;
@@ -1019,16 +999,16 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   text-align: center;
   line-height: 14px;
   flex-shrink: 0;
-}}
-.gantt-leader-tag-presen {{
+}
+.gantt-leader-tag-presen {
   background: #7B1FA2;
-}}
-.gantt-name-cell .case-num-badge {{
+}
+.gantt-name-cell .case-num-badge {
   margin-right: 4px;
-}}
+}
 
 /* 帯(バー)のスタイル */
-.gantt-bar {{
+.gantt-bar {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1040,8 +1020,8 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   position: relative;
   overflow: hidden;
   cursor: help;
-}}
-.gantt-bar-label {{
+}
+.gantt-bar-label {
   writing-mode: horizontal-tb;
   font-size: 10px;
   font-weight: 700;
@@ -1051,24 +1031,24 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   color: #263238;
   line-height: 1;
   text-align: center;
-}}
+}
 
 /* タスク種別ごとの色(彩度高め、コントラスト確保) */
-.gantt-bar-質問                {{ background: #FFE082; }} /* 黄 */
-.gantt-bar-参加表明            {{ background: #A5D6A7; }} /* 緑 */
-.gantt-bar-骨子作成            {{ background: #B39DDB; }} /* ラベンダー */
-.gantt-bar-骨子確認・QC分担決定 {{ background: #80CBC4; }} /* シアン */
-.gantt-bar-提案書草案作成      {{ background: #81D4FA; }} /* 水色 */
-.gantt-bar-提案書QC            {{ background: #4DB6AC; color: white; }} /* 青緑 */
-.gantt-bar-提案書QC .gantt-bar-label {{ color: white; }}
-.gantt-bar-最終化・提出準備    {{ background: #EF9A9A; }} /* 赤 */
-.gantt-bar-提案書郵送          {{ background: #F8BBD0; }} /* ピンク */
-.gantt-bar-必着                {{ background: #FFCC80; }} /* オレンジ */
-.gantt-bar-プレゼン            {{ background: #CE93D8; }} /* 紫 */
-.gantt-bar-郵便入札            {{ background: #90CAF9; }} /* 青 */
+.gantt-bar-質問                { background: #FFE082; } /* 黄 */
+.gantt-bar-参加表明            { background: #A5D6A7; } /* 緑 */
+.gantt-bar-骨子作成            { background: #B39DDB; } /* ラベンダー */
+.gantt-bar-骨子確認・QC分担決定 { background: #80CBC4; } /* シアン */
+.gantt-bar-提案書草案作成      { background: #81D4FA; } /* 水色 */
+.gantt-bar-提案書QC            { background: #4DB6AC; color: white; } /* 青緑 */
+.gantt-bar-提案書QC .gantt-bar-label { color: white; }
+.gantt-bar-最終化・提出準備    { background: #EF9A9A; } /* 赤 */
+.gantt-bar-提案書郵送          { background: #F8BBD0; } /* ピンク */
+.gantt-bar-必着                { background: #FFCC80; } /* オレンジ */
+.gantt-bar-プレゼン            { background: #CE93D8; } /* 紫 */
+.gantt-bar-郵便入札            { background: #90CAF9; } /* 青 */
 
 /* 済オーバーレイ */
-.gantt-done-overlay {{
+.gantt-done-overlay {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1082,33 +1062,33 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   border-radius: 3px;
   z-index: 2;
   pointer-events: none;
-}}
+}
 
-.gantt-month-label {{
+.gantt-month-label {
   font-weight: bold;
   font-size: 13px;
   padding: 6px 8px;
   color: white;
   text-align: center;
-}}
+}
 
-@media (max-width: 900px) {{
-  .dashboard {{ grid-template-columns: repeat(3, 1fr); gap: 8px; }}
-  .stat-card {{ padding: 12px 8px; }}
-  .stat-value {{ font-size: 24px; }}
-  .stat-label {{ font-size: 10px; }}
-  h1 {{ font-size: 17px; }}
-  .subtitle {{ font-size: 11px; }}
-  body {{ padding: 12px; }}
-}}
+@media (max-width: 900px) {
+  .dashboard { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat-card { padding: 12px 8px; }
+  .stat-value { font-size: 24px; }
+  .stat-label { font-size: 10px; }
+  h1 { font-size: 17px; }
+  .subtitle { font-size: 11px; }
+  body { padding: 12px; }
+}
 
 /* ===== PC/スマホ表示切替基盤 ===== */
 /* デスクトップ標準では mobile-only を隠す */
-.mobile-only {{ display: none !important; }}
-.desktop-only {{ display: flex; }}
+.mobile-only { display: none !important; }
+.desktop-only { display: flex; }
 
 /* ===== ハンバーガーメニューとドロワー(常時定義、モバイル時のみ表示) ===== */
-.hamburger-btn {{
+.hamburger-btn {
   background: transparent;
   border: none;
   padding: 8px;
@@ -1122,27 +1102,27 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   height: 40px;
   border-radius: 6px;
   transition: background 0.15s;
-}}
-.hamburger-btn:hover {{ background: rgba(0,0,0,0.05); }}
-.hamburger-btn span {{
+}
+.hamburger-btn:hover { background: rgba(0,0,0,0.05); }
+.hamburger-btn span {
   display: block;
   width: 22px;
   height: 2px;
   background: #263238;
   border-radius: 2px;
-}}
+}
 
-.mobile-menu-overlay {{
+.mobile-menu-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.4);
   z-index: 200;
   display: none;
   animation: fadeIn 0.2s;
-}}
-.mobile-menu-overlay.open {{ display: block; }}
+}
+.mobile-menu-overlay.open { display: block; }
 
-.mobile-menu {{
+.mobile-menu {
   position: fixed;
   top: 0; right: 0; bottom: 0;
   width: 84%;
@@ -1154,10 +1134,10 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   box-shadow: -4px 0 16px rgba(0,0,0,0.2);
   overflow-y: auto;
   padding: 0;
-}}
-.mobile-menu.open {{ transform: translateX(0); }}
+}
+.mobile-menu.open { transform: translateX(0); }
 
-.mobile-menu-header {{
+.mobile-menu-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1167,13 +1147,13 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   top: 0;
   background: white;
   z-index: 1;
-}}
-.mobile-menu-title {{
+}
+.mobile-menu-title {
   font-size: 16px;
   font-weight: 700;
   color: #1A237E;
-}}
-.mobile-menu-close {{
+}
+.mobile-menu-close {
   background: transparent;
   border: none;
   font-size: 20px;
@@ -1185,22 +1165,22 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-}}
-.mobile-menu-close:hover {{ background: #F5F5F5; }}
+}
+.mobile-menu-close:hover { background: #F5F5F5; }
 
-.mobile-menu-section {{
+.mobile-menu-section {
   padding: 14px 16px;
   border-bottom: 1px solid #F5F5F5;
-}}
-.mobile-menu-label {{
+}
+.mobile-menu-label {
   font-size: 12px;
   font-weight: 600;
   color: #546E7A;
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}}
-.mobile-select {{
+}
+.mobile-select {
   width: 100%;
   padding: 10px 12px;
   font-size: 14px;
@@ -1213,13 +1193,13 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 32px;
-}}
-.mobile-scope-buttons {{
+}
+.mobile-scope-buttons {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}}
-.mobile-scope-btn {{
+}
+.mobile-scope-btn {
   padding: 10px 12px;
   font-size: 14px;
   border: 1px solid #CFD8DC;
@@ -1229,14 +1209,14 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   cursor: pointer;
   text-align: left;
   transition: all 0.15s;
-}}
-.mobile-scope-btn.active {{
+}
+.mobile-scope-btn.active {
   background: #2196F3;
   border-color: #1976D2;
   color: white;
   font-weight: 600;
-}}
-.mobile-menu-action {{
+}
+.mobile-menu-action {
   display: block;
   width: 100%;
   padding: 12px;
@@ -1249,14 +1229,14 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   color: #263238;
   text-decoration: none;
   cursor: pointer;
-}}
-.mobile-menu-action:hover {{ background: #F5F5F5; }}
-.mobile-menu-logout {{
+}
+.mobile-menu-action:hover { background: #F5F5F5; }
+.mobile-menu-logout {
   color: #C62828;
   border-color: #FFCDD2;
   margin-top: 8px;
-}}
-.mobile-menu-toggle {{
+}
+.mobile-menu-toggle {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1267,29 +1247,29 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   border-radius: 6px;
   margin-bottom: 6px;
   background: #FAFAFA;
-}}
-.mobile-menu-toggle input {{
+}
+.mobile-menu-toggle input {
   width: 18px;
   height: 18px;
   cursor: pointer;
-}}
-@keyframes fadeIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* ===== 案件一覧タブ(overview) ===== */
-.overview-section {{
+.overview-section {
   padding: 0;
-}}
-.overview-table-wrapper {{
+}
+.overview-table-wrapper {
   overflow-x: auto;
   width: 100%;
-}}
-.overview-table {{
+}
+.overview-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
   table-layout: auto;
-}}
-.overview-table thead th {{
+}
+.overview-table thead th {
   background: #F5F7FA;
   padding: 10px 8px;
   text-align: left;
@@ -1298,29 +1278,29 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   border-bottom: 2px solid #CFD8DC;
   white-space: nowrap;
   font-size: 12px;
-}}
-.overview-table tbody td {{
+}
+.overview-table tbody td {
   padding: 10px 8px;
   border-bottom: 1px solid #ECEFF1;
   vertical-align: middle;
-}}
-.overview-row:hover {{
+}
+.overview-row:hover {
   background: #FAFBFC;
-}}
-.overview-row.all-done {{
+}
+.overview-row.all-done {
   background: #F1F8E9;
   opacity: 0.75;
-}}
-.overview-row.all-done:hover {{
+}
+.overview-row.all-done:hover {
   background: #E8F5E9;
   opacity: 1;
-}}
+}
 
-.ov-progress {{
+.ov-progress {
   width: 110px;
   white-space: nowrap;
-}}
-.ov-progress-bar-wrap {{
+}
+.ov-progress-bar-wrap {
   display: inline-block;
   width: 70px;
   height: 6px;
@@ -1329,48 +1309,48 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   overflow: hidden;
   vertical-align: middle;
   margin-right: 6px;
-}}
-.ov-progress-bar {{
+}
+.ov-progress-bar {
   height: 100%;
   background: linear-gradient(90deg, #66BB6A, #43A047);
   transition: width 0.3s ease;
-}}
-.ov-progress-text {{
+}
+.ov-progress-text {
   font-size: 11px;
   color: #607D8B;
   font-weight: 600;
-}}
+}
 
-.ov-case {{
+.ov-case {
   white-space: nowrap;
-}}
-.ov-case .case-num-badge {{
+}
+.ov-case .case-num-badge {
   margin-right: 6px;
-}}
-.ov-case-name {{
+}
+.ov-case-name {
   font-weight: 600;
   color: #212121;
-}}
+}
 
-.ov-kind {{
+.ov-kind {
   white-space: nowrap;
   width: 80px;
-}}
+}
 
-.ov-next {{
+.ov-next {
   min-width: 220px;
-}}
-.ov-next-task strong {{
+}
+.ov-next-task strong {
   margin: 0 4px;
-}}
-.ov-next-done {{
+}
+.ov-next-done {
   color: #2E7D32;
   font-weight: 600;
-}}
-.ov-next-empty {{
+}
+.ov-next-empty {
   color: #BDBDBD;
-}}
-.ov-days {{
+}
+.ov-days {
   display: inline-block;
   margin-left: 6px;
   padding: 2px 8px;
@@ -1379,98 +1359,98 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   font-weight: 700;
   background: #F5F5F5;
   color: #616161;
-}}
-.ov-days.overdue {{ background: #FFEBEE; color: #C62828; }}
-.ov-days.today {{ background: #FFF3E0; color: #E65100; }}
-.ov-days.urgent {{ background: #FFF8E1; color: #F57C00; }}
-.ov-days.nodate {{ background: #ECEFF1; color: #78909C; }}
+}
+.ov-days.overdue { background: #FFEBEE; color: #C62828; }
+.ov-days.today { background: #FFF3E0; color: #E65100; }
+.ov-days.urgent { background: #FFF8E1; color: #F57C00; }
+.ov-days.nodate { background: #ECEFF1; color: #78909C; }
 
-.ov-milestone {{
+.ov-milestone {
   white-space: nowrap;
   text-align: center;
   font-size: 12px;
   color: #424242;
-}}
-.ov-milestone.empty {{
+}
+.ov-milestone.empty {
   color: #CFD8DC;
-}}
-.ov-milestone.done {{
+}
+.ov-milestone.done {
   color: #2E7D32;
-}}
-.ov-done-mark {{
+}
+.ov-done-mark {
   display: inline-block;
   color: #43A047;
   font-weight: 700;
   margin-right: 3px;
-}}
-.ov-deadline {{
+}
+.ov-deadline {
   display: block;
   font-size: 10px;
   color: #E65100;
   margin-top: 2px;
-}}
-.ov-leader {{
+}
+.ov-leader {
   white-space: nowrap;
   width: 80px;
-}}
+}
 
 /* ===== スマホ対応(768px以下) ===== */
-@media (max-width: 768px) {{
+@media (max-width: 768px) {
   /* 表示切替: デスクトップ専用要素を隠し、モバイル専用要素を表示 */
-  .desktop-only {{ display: none !important; }}
-  .mobile-only {{ display: flex !important; }}
-  .mobile-only.mobile-dashboard {{ display: flex !important; }}
-  .mobile-hide {{ display: none !important; }}
+  .desktop-only { display: none !important; }
+  .mobile-only { display: flex !important; }
+  .mobile-only.mobile-dashboard { display: flex !important; }
+  .mobile-hide { display: none !important; }
 
-  body {{ padding: 0; font-size: 13px; }}
-  .container {{ padding: 0 10px 10px; }}
-  h1 {{ font-size: 13px; }}
-  .subtitle {{ font-size: 10px; }}
+  body { padding: 0; font-size: 13px; }
+  .container { padding: 0 10px 10px; }
+  h1 { font-size: 13px; }
+  .subtitle { font-size: 10px; }
 
   /* ヘッダー: スマホ用にコンパクトに */
-  .header-row {{
+  .header-row {
     padding: 8px 12px;
     margin: 0 -10px 10px;
     gap: 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-  }}
-  .header-left {{ flex: 1; min-width: 0; }}
-  .header-left h1 {{ font-size: 15px; }}
-  .subtitle {{ font-size: 10px; flex-wrap: wrap; }}
-  .header-right {{
+  }
+  .header-left { flex: 1; min-width: 0; }
+  .header-left h1 { font-size: 15px; }
+  .subtitle { font-size: 10px; flex-wrap: wrap; }
+  .header-right {
     flex-wrap: nowrap;
     gap: 4px;
     align-items: center;
     overflow: visible;
-  }}
-  .user-filter-label {{
+  }
+  .user-filter-label {
     flex-shrink: 0;
     font-size: 12px;
-  }}
-  .user-filter-select {{
+  }
+  .user-filter-select {
     min-width: 90px;
     padding: 6px 8px;
     font-size: 13px;
-  }}
+  }
 
   /* parse-info: モバイルでは独立表示 */
-  .mobile-parse-info {{
+  .mobile-parse-info {
     padding: 4px 12px 8px;
     font-size: 11px;
-  }}
-  .mobile-parse-info:empty {{ display: none !important; }}
+  }
+  .mobile-parse-info:empty { display: none !important; }
 
   /* モバイル用コンパクトダッシュボード(バッジ) */
-  .mobile-dashboard {{
+  .mobile-dashboard {
     gap: 6px;
     padding: 0 12px 4px;
     margin-bottom: 10px;
     flex-wrap: wrap;
-  }}
-  .mobile-dashboard:empty {{ display: none !important; }}
-  .mobile-stat-pill {{
+  }
+  .mobile-dashboard:empty { display: none !important; }
+  .mobile-stat-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -1481,25 +1461,25 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
     cursor: pointer;
     border: 1px solid transparent;
     white-space: nowrap;
-  }}
-  .mobile-stat-pill.overdue {{ background: #FFEBEE; color: #C62828; border-color: #FFCDD2; }}
-  .mobile-stat-pill.today {{ background: #FFF3E0; color: #E65100; border-color: #FFCC80; }}
-  .mobile-stat-pill.week {{ background: #FFFDE7; color: #F57F17; border-color: #FFF59D; }}
-  .mobile-stat-pill.unassigned {{ background: #F3E5F5; color: #6A1B9A; border-color: #CE93D8; }}
-  .mobile-stat-pill .count {{ font-size: 13px; font-weight: 700; }}
+  }
+  .mobile-stat-pill.overdue { background: #FFEBEE; color: #C62828; border-color: #FFCDD2; }
+  .mobile-stat-pill.today { background: #FFF3E0; color: #E65100; border-color: #FFCC80; }
+  .mobile-stat-pill.week { background: #FFFDE7; color: #F57F17; border-color: #FFF59D; }
+  .mobile-stat-pill.unassigned { background: #F3E5F5; color: #6A1B9A; border-color: #CE93D8; }
+  .mobile-stat-pill .count { font-size: 13px; font-weight: 700; }
 
   /* サブヘッダー: モバイルでは縦積み */
-  .sub-header {{
+  .sub-header {
     flex-direction: column;
     align-items: stretch;
     padding: 4px 10px;
     margin: 0 -10px 10px;
     top: var(--header-height-mobile);
     gap: 4px;
-  }}
+  }
 
   /* ビュー切替タブ: 横スクロール、タップしやすく */
-  .view-switcher {{
+  .view-switcher {
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
@@ -1508,19 +1488,19 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
     padding: 3px;
     scrollbar-width: thin;
     gap: 2px;
-  }}
-  .view-switcher::-webkit-scrollbar {{ height: 3px; }}
-  .view-switcher::-webkit-scrollbar-thumb {{ background: #CFD8DC; border-radius: 2px; }}
-  .view-btn {{
+  }
+  .view-switcher::-webkit-scrollbar { height: 3px; }
+  .view-switcher::-webkit-scrollbar-thumb { background: #CFD8DC; border-radius: 2px; }
+  .view-btn {
     flex-shrink: 0;
     padding: 10px 14px;
     font-size: 13px;
     min-height: 40px;
-  }}
+  }
 
   /* ===== カード型タスクレイアウト ===== */
-  .list-header {{ display: none !important; }}
-  .task-item {{
+  .list-header { display: none !important; }
+  .task-item {
     display: block !important;
     grid-template-columns: none !important;
     padding: 12px 14px !important;
@@ -1532,34 +1512,34 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     gap: 0 !important;
     position: relative;
-  }}
+  }
 
   /* 1行目: 日付 + 残日数 (左)、完了チェック(右上) */
-  .task-item .done-mark {{
+  .task-item .done-mark {
     position: absolute;
     top: 12px;
     right: 12px;
     width: 26px;
     height: 26px;
     margin: 0;
-  }}
-  .task-item .date-badge {{
+  }
+  .task-item .date-badge {
     display: inline-block;
     margin-right: 8px;
     font-size: 12px;
     font-weight: 600;
     padding: 3px 8px;
     vertical-align: middle;
-  }}
-  .task-item .days-left {{
+  }
+  .task-item .days-left {
     display: inline-block;
     font-size: 12px;
     font-weight: 700;
     vertical-align: middle;
-  }}
+  }
 
   /* 2行目: タスク名 */
-  .task-item .task-name {{
+  .task-item .task-name {
     display: block;
     margin-top: 8px;
     margin-bottom: 6px;
@@ -1568,35 +1548,35 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
     line-height: 1.35;
     color: #263238;
     padding-right: 32px;
-  }}
-  .task-item .task-icon {{ margin-right: 4px; }}
+  }
+  .task-item .task-icon { margin-right: 4px; }
 
   /* 3行目: 自治体名 */
-  .task-item .task-city {{
+  .task-item .task-city {
     display: flex;
     align-items: center;
     gap: 6px;
     margin-bottom: 8px;
     font-size: 13px;
-  }}
-  .task-item .task-city .case-num-badge {{ font-size: 11px; }}
-  .task-item .task-city-name {{
+  }
+  .task-item .task-city .case-num-badge { font-size: 11px; }
+  .task-item .task-city-name {
     font-weight: 600;
     color: #455A64;
-  }}
+  }
 
   /* 4行目以降: 担当者(提/プの行) */
-  .task-item .team-cell {{
+  .task-item .team-cell {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
     align-items: center;
     padding: 3px 0;
     font-size: 12px;
-  }}
-  .task-item .team-cell:empty {{ display: none; }}
+  }
+  .task-item .team-cell:empty { display: none; }
   /* 提/プラベルを先頭に付与 */
-  .task-item .team-cell:not(:empty)::before {{
+  .task-item .team-cell:not(:empty)::before {
     font-size: 10px;
     font-weight: 700;
     color: white;
@@ -1605,61 +1585,61 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
     margin-right: 4px;
     flex-shrink: 0;
     line-height: 1.2;
-  }}
+  }
   .task-item .team-cell:nth-of-type(6)::before,
-  .task-item .team-cell:nth-last-of-type(2)::before {{ content: '提'; background: #1976D2; }}
+  .task-item .team-cell:nth-last-of-type(2)::before { content: '提'; background: #1976D2; }
   .task-item .team-cell:nth-of-type(7)::before,
-  .task-item .team-cell:last-of-type::before {{ content: 'プ'; background: #7B1FA2; }}
+  .task-item .team-cell:last-of-type::before { content: 'プ'; background: #7B1FA2; }
 
-  .person-tag {{
+  .person-tag {
     font-size: 11px;
     padding: 2px 6px;
-  }}
+  }
 
   /* タスクリスト全体(ulのpadding) */
-  .task-list {{
+  .task-list {
     padding: 0 !important;
     list-style: none;
-  }}
+  }
 
   /* セクション余白 */
-  .section {{
+  .section {
     padding: 12px 14px !important;
     margin-bottom: 16px !important;
     border-radius: 10px;
-  }}
-  .section-header {{
+  }
+  .section-header {
     font-size: 14px;
     margin-bottom: 10px;
     flex-wrap: wrap;
     gap: 6px;
-  }}
-  .section-title {{ font-size: 15px; }}
-  .section-count {{ font-size: 11px; }}
+  }
+  .section-title { font-size: 15px; }
+  .section-count { font-size: 11px; }
 
   /* 案件別ヘッダーの担当者情報もコンパクトに */
-  .section-header .persons-text {{
+  .section-header .persons-text {
     font-size: 11px;
     width: 100%;
     display: flex;
     flex-wrap: wrap;
     gap: 3px;
-  }}
-  .section-header .kind-badge {{ font-size: 10px; padding: 2px 5px; }}
-  .section-header .progress-container {{
+  }
+  .section-header .kind-badge { font-size: 10px; padding: 2px 5px; }
+  .section-header .progress-container {
     width: 100%;
     max-width: 100%;
     margin: 6px 0 0;
     order: 10;
-  }}
-  .section-header .progress-text {{
+  }
+  .section-header .progress-text {
     font-size: 10px;
     order: 11;
-  }}
-  .section-header .case-num-badge {{ font-size: 10px; }}
+  }
+  .section-header .case-num-badge { font-size: 10px; }
 
   /* 今日のアラート */
-  .today-alert {{
+  .today-alert {
     padding: 8px 12px;
     font-size: 12px;
     margin: 0 -10px 10px;
@@ -1667,207 +1647,207 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
     line-height: 1.5;
     flex-wrap: wrap;
     align-items: flex-start;
-  }}
-  .today-alert > * {{ word-break: break-word; }}
+  }
+  .today-alert > * { word-break: break-word; }
 
   /* 担当未定アラート */
-  .unassigned-alert {{
+  .unassigned-alert {
     padding: 8px 12px;
     font-size: 11px;
     margin: 0 -10px 10px;
     line-height: 1.5;
     flex-wrap: wrap;
-  }}
+  }
 
   /* 凡例: 小さめに */
-  .legend {{
+  .legend {
     padding: 8px 12px;
     font-size: 11px;
-  }}
-  .legend-group {{ flex-wrap: wrap; }}
+  }
+  .legend-group { flex-wrap: wrap; }
 
   /* ガント: 案件名列を狭く(モバイルではそもそも非表示だが念のため) */
-  .gantt-name-cell {{
+  .gantt-name-cell {
     min-width: 140px !important;
     width: 140px !important;
     max-width: 140px !important;
     font-size: 11px !important;
     padding: 6px 8px !important;
-  }}
-  .gantt-date-col {{ width: 22px; min-width: 22px; height: 48px; }}
-  .gantt-leaders {{ font-size: 9px; }}
-  .gantt-table {{ font-size: 9px; }}
+  }
+  .gantt-date-col { width: 22px; min-width: 22px; height: 48px; }
+  .gantt-leaders { font-size: 9px; }
+  .gantt-table { font-size: 9px; }
 
   /* 本日アラート: 小さめ */
-  .today-alert {{
+  .today-alert {
     padding: 8px 12px;
     font-size: 12px;
-  }}
+  }
 
   /* パスワード画面: スマホ調整 */
-  .auth-box {{
+  .auth-box {
     padding: 28px 24px;
     width: 90%;
-  }}
-  .auth-title {{ font-size: 15px; }}
+  }
+  .auth-title { font-size: 15px; }
 
   /* 案件別ビュー: ヘッダーを折り返し */
-  .case-header {{
+  .case-header {
     flex-wrap: wrap !important;
-  }}
-  .progress-container {{
+  }
+  .progress-container {
     max-width: none !important;
     width: 100% !important;
     margin: 8px 0 !important;
-  }}
+  }
 
   /* 稼働率ビュー: 横スクロール対応 */
-  .workload-table {{ font-size: 10px; }}
-  .workload-table th, .workload-table td {{ padding: 4px 6px !important; }}
+  .workload-table { font-size: 10px; }
+  .workload-table th, .workload-table td { padding: 4px 6px !important; }
 
   /* 案件一覧タブ(モバイル): 列を絞る */
-  .overview-table {{ font-size: 11px; }}
-  .overview-table thead th {{ padding: 8px 4px; font-size: 10px; }}
-  .overview-table tbody td {{ padding: 8px 4px; }}
+  .overview-table { font-size: 11px; }
+  .overview-table thead th { padding: 8px 4px; font-size: 10px; }
+  .overview-table tbody td { padding: 8px 4px; }
   .overview-table .ov-col-kind,
   .overview-table .ov-col-leader,
   .overview-table .ov-kind,
-  .overview-table .ov-leader {{ display: none; }}
+  .overview-table .ov-leader { display: none; }
   /* 質問・参加表明はモバイルで隠す(郵送・プレゼンを優先) */
   .overview-table thead th:nth-child(5),
   .overview-table thead th:nth-child(6),
   .overview-table tbody td:nth-child(5),
-  .overview-table tbody td:nth-child(6) {{ display: none; }}
-  .ov-progress {{ width: 70px; }}
-  .ov-progress-bar-wrap {{ width: 40px; }}
-  .ov-next {{ min-width: 140px; }}
-  .ov-deadline {{ font-size: 9px; }}
-  .ov-days {{ font-size: 10px; padding: 1px 6px; }}
-}}
+  .overview-table tbody td:nth-child(6) { display: none; }
+  .ov-progress { width: 70px; }
+  .ov-progress-bar-wrap { width: 40px; }
+  .ov-next { min-width: 140px; }
+  .ov-deadline { font-size: 9px; }
+  .ov-days { font-size: 10px; padding: 1px 6px; }
+}
 
-@media print {{
-  @page {{ size: A4 landscape; margin: 10mm; }}
-  body {{ background: white; padding: 0; font-size: 10pt; }}
-  .auth-overlay {{ display: none !important; }}
-  .app-content {{ display: block !important; }}
-  .section {{ box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; margin-bottom: 8px; }}
-  .view-switcher, .input-panel, .today-alert, .done-toggle {{ display: none !important; }}
-  .stat-card {{ cursor: default; box-shadow: none; border: 1px solid #ddd; }}
-  .legend {{ box-shadow: none; border: 1px solid #ddd; }}
-  .view-content {{ display: block !important; page-break-before: always; }}
-  .view-content:first-of-type {{ page-break-before: auto; }}
-  .gantt-bar-label {{ writing-mode: horizontal-tb !important; font-size: 8pt !important; }}
-}}
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  body { background: white; padding: 0; font-size: 10pt; }
+  .auth-overlay { display: none !important; }
+  .app-content { display: block !important; }
+  .section { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; margin-bottom: 8px; }
+  .view-switcher, .input-panel, .today-alert, .done-toggle { display: none !important; }
+  .stat-card { cursor: default; box-shadow: none; border: 1px solid #ddd; }
+  .legend { box-shadow: none; border: 1px solid #ddd; }
+  .view-content { display: block !important; page-break-before: always; }
+  .view-content:first-of-type { page-break-before: auto; }
+  .gantt-bar-label { writing-mode: horizontal-tb !important; font-size: 8pt !important; }
+}
 
 /* ===== 稼働率ビュー ===== */
-.workload-wrapper {{
+.workload-wrapper {
   background: white;
   border-radius: 10px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   overflow-x: auto;
-}}
-.workload-intro {{
+}
+.workload-intro {
   font-size: 13px;
   color: #546E7A;
   margin-bottom: 16px;
   padding: 10px 14px;
   background: #ECEFF1;
   border-radius: 6px;
-}}
-.workload-table {{
+}
+.workload-table {
   border-collapse: collapse;
   width: 100%;
   font-size: 12px;
-}}
-.workload-table th, .workload-table td {{
+}
+.workload-table th, .workload-table td {
   border: 1px solid #ECEFF1;
   padding: 8px 10px;
   text-align: center;
   vertical-align: middle;
-}}
-.workload-table thead th {{
+}
+.workload-table thead th {
   background: #455A64;
   color: white;
   font-weight: 600;
   padding: 10px 8px;
-}}
-.workload-table .week-header {{
+}
+.workload-table .week-header {
   font-size: 11px;
   line-height: 1.3;
-}}
-.workload-table .week-header small {{
+}
+.workload-table .week-header small {
   display: block;
   font-weight: normal;
   opacity: 0.85;
   margin-top: 2px;
-}}
-.workload-table .person-cell {{
+}
+.workload-table .person-cell {
   background: #FAFAFA;
   font-weight: 600;
   text-align: left;
   padding: 8px 12px;
   min-width: 100px;
-}}
-.workload-table tr.alt .person-cell {{ background: #F5F5F5; }}
-.workload-table tr.workload-highlight .person-cell {{
+}
+.workload-table tr.alt .person-cell { background: #F5F5F5; }
+.workload-table tr.workload-highlight .person-cell {
   background: #FFF8E1 !important;
   color: #E65100;
   font-weight: 700;
   border-left: 3px solid #FF9800;
-}}
-.workload-table tr.workload-highlight .workload-cell {{
+}
+.workload-table tr.workload-highlight .workload-cell {
   background: #FFFDE7;
-}}
-.workload-table tr.workload-highlight .workload-cell.workload-today-col {{
+}
+.workload-table tr.workload-highlight .workload-cell.workload-today-col {
   background: #FFF3E0;
-}}
+}
 
-.workload-cell {{
+.workload-cell {
   position: relative;
   min-width: 80px;
   height: 50px;
   padding: 4px 6px !important;
-}}
-.workload-cell-inner {{
+}
+.workload-cell-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
   height: 100%;
-}}
-.workload-bar {{
+}
+.workload-bar {
   width: 100%;
   height: 8px;
   background: #ECEFF1;
   border-radius: 4px;
   overflow: hidden;
   position: relative;
-}}
-.workload-bar-fill {{
+}
+.workload-bar-fill {
   height: 100%;
   border-radius: 4px;
   transition: width 0.3s;
-}}
-.workload-bar-fill.low {{ background: #81C784; }}
-.workload-bar-fill.medium {{ background: #FFB74D; }}
-.workload-bar-fill.high {{ background: #E57373; }}
-.workload-bar-fill.critical {{ background: #C62828; }}
-.workload-count {{
+}
+.workload-bar-fill.low { background: #81C784; }
+.workload-bar-fill.medium { background: #FFB74D; }
+.workload-bar-fill.high { background: #E57373; }
+.workload-bar-fill.critical { background: #C62828; }
+.workload-count {
   font-size: 11px;
   font-weight: 700;
   color: #455A64;
   font-feature-settings: 'tnum';
-}}
-.workload-count.zero {{ color: #CFD8DC; font-weight: 400; }}
-.workload-count.critical {{ color: #C62828; }}
+}
+.workload-count.zero { color: #CFD8DC; font-weight: 400; }
+.workload-count.critical { color: #C62828; }
 
-.workload-today-col {{
+.workload-today-col {
   background: #E8EAF6;
-}}
+}
 
-.workload-legend {{
+.workload-legend {
   margin-top: 14px;
   padding: 10px;
   background: #FAFAFA;
@@ -1877,21 +1857,21 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-}}
-.workload-legend-item {{
+}
+.workload-legend-item {
   display: flex;
   align-items: center;
   gap: 6px;
-}}
-.workload-legend-swatch {{
+}
+.workload-legend-swatch {
   display: inline-block;
   width: 14px;
   height: 10px;
   border-radius: 2px;
-}}
+}
 
 /* 未アサイン警告バナー */
-.unassigned-alert {{
+.unassigned-alert {
   background: linear-gradient(90deg, #E1BEE7 0%, #CE93D8 100%);
   padding: 10px 16px;
   border-radius: 8px;
@@ -1904,8 +1884,8 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   gap: 8px;
   cursor: pointer;
   transition: transform 0.15s;
-}}
-.unassigned-alert:hover {{ transform: translateY(-1px); }}
+}
+.unassigned-alert:hover { transform: translateY(-1px); }
 </style>
 </head>
 <body>
@@ -1997,7 +1977,7 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
   </div>
   <div class="mobile-menu-section">
     <button class="mobile-menu-action" onclick="fetchAndRender(); toggleMobileMenu()">🔄 最新を取得</button>
-    <a class="mobile-menu-action" href="{SHEET_EDIT_URL}" target="_blank" rel="noopener">📝 スプレッドシートを編集</a>
+    <a class="mobile-menu-action" href="https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit" target="_blank" rel="noopener">📝 スプレッドシートを編集</a>
     <button class="mobile-menu-action" onclick="toggleLegend(); toggleMobileMenu()">ℹ️ 凡例を表示</button>
     <label class="mobile-menu-toggle">
       <input type="checkbox" id="show-done-mobile" checked onchange="toggleDoneFromMobile(this.checked)">
@@ -2009,7 +1989,7 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
 
 <div class="input-panel desktop-only">
   <div class="input-actions">
-    <a class="btn btn-primary" href="{SHEET_EDIT_URL}" target="_blank" rel="noopener">📝 スプレッドシートを編集</a>
+    <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/1uZi0NAqFmrUlHDJWolOBfgRQOvfZpjWPbhCxgT5-ktk/edit" target="_blank" rel="noopener">📝 スプレッドシートを編集</a>
     <button class="btn btn-secondary" onclick="fetchAndRender()">🔄 最新を取得</button>
     <span class="parse-info" id="parse-info"></span>
   </div>
@@ -2116,25 +2096,25 @@ body.hide-done .gantt-done-cell .gantt-bar {{ visibility: hidden; }}
 
 <script>
 // 今日の日付(呼ぶたびに最新取得、ページ開きっぱなしでも日付跨ぎに対応)
-function getToday() {{
+function getToday() {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   return d;
-}}
+}
 // レガシー互換: 既存コードが参照する TODAY プロパティをgetterで提供
-const TODAY = new Proxy({{}}, {{
-  get(_target, prop) {{
+const TODAY = new Proxy({}, {
+  get(_target, prop) {
     const d = getToday();
     const v = d[prop];
     return typeof v === 'function' ? v.bind(d) : v;
-  }}
-}});
+  }
+});
 const PERSON_ORDER = ['岸岡', '齊藤', '長谷川', '松澤', '浅川', '大須賀', '矢嶋', '藤井', '植松', '北見', '菅原', '●●'];
 
 // 部署マッピング(2部署体制)
 // 営業部: 浅川(部長)/戦略G:岸岡・矢嶋/広域G:齊藤/企画G:松澤
 // コンサル部: 植松(部長)/交通T:北見・大須賀・菅原・長谷川
-const DEPT_MAP = {{
+const DEPT_MAP = {
   '浅川': 'eigyo',    // 営業部長(カンパニー長)
   '岸岡': 'eigyo',    // 営業部 戦略G
   '矢嶋': 'eigyo',    // 営業部 戦略G(G長)
@@ -2146,14 +2126,14 @@ const DEPT_MAP = {{
   '北見': 'consul',   // コンサル部 交通T
   '菅原': 'consul',   // コンサル部 交通T
   '藤井': 'consul',   // コンサル部(予備)
-}};
+};
 
-function getDept(person) {{
+function getDept(person) {
   return DEPT_MAP[person] || 'other';
-}}
+}
 
 // HTMLエスケープ: 動的文字列(ユーザー入力由来)をDOMに入れる前に必ず通す
-function escapeHtml(str) {{
+function escapeHtml(str) {
   if (str === null || str === undefined) return '';
   return String(str)
     .replace(/&/g, '&amp;')
@@ -2161,7 +2141,7 @@ function escapeHtml(str) {{
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}}
+}
 
 // ※旧TASK_DEFAULT_PERSONは削除。現在はgetTaskPersons()内でジャンル別ロジックで決定
 // 呼称: 案件リーダー[0] = 提案書作成 主担当, 案件リーダー[1] = 提案書作成 副担当
@@ -2172,7 +2152,7 @@ function escapeHtml(str) {{
 //   - 交通 x 郵便入札: 齊藤(固定)
 //   - それ以外(骨子作成・草案・最終化・郵送 等): 提案書作成 主担当
 
-const TASK_ICONS = {{
+const TASK_ICONS = {
   '質問': '❓',
   '参加表明': '📝',
   '骨子作成': '🗂️',
@@ -2183,10 +2163,10 @@ const TASK_ICONS = {{
   '提案書郵送': '📬',
   'プレゼン': '🎤',
   '郵便入札': '📮',
-}};
+};
 
 // ガント用の短縮名(2文字)
-const TASK_SHORT_NAMES = {{
+const TASK_SHORT_NAMES = {
   '質問': '質問',
   '参加表明': '表明',
   '骨子作成': '骨子',
@@ -2197,7 +2177,7 @@ const TASK_SHORT_NAMES = {{
   '提案書郵送': '郵送',
   'プレゼン': 'プレ',
   '郵便入札': '入札',
-}};
+};
 
 // 日本の祝日(年ごとに追加、正式発表前は概算)
 const HOLIDAYS_JP = new Set([
@@ -2216,30 +2196,30 @@ const HOLIDAYS_JP = new Set([
 ]);
 
 // 営業日判定(土日祝を除く)
-function isBusinessDay(d) {{
+function isBusinessDay(d) {
   const dow = d.getDay();
   if (dow === 0 || dow === 6) return false;
   const pad = n => String(n).padStart(2, '0');
-  const key = `${{d.getFullYear()}}-${{pad(d.getMonth()+1)}}-${{pad(d.getDate())}}`;
+  const key = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   if (HOLIDAYS_JP.has(key)) return false;
   return true;
-}}
+}
 
 // 指定日からN営業日前の日付を返す(自身は含まない)
-function subtractBusinessDays(date, n) {{
+function subtractBusinessDays(date, n) {
   const d = new Date(date);
   let count = 0;
-  while (count < n) {{
+  while (count < n) {
     d.setDate(d.getDate() - 1);
     if (isBusinessDay(d)) count++;
-  }}
+  }
   return d;
-}}
+}
 
 // 指定日の前営業日
-function prevBusinessDay(date) {{
+function prevBusinessDay(date) {
   return subtractBusinessDays(date, 1);
-}}
+}
 
 let cases = [];
 let currentUserFilter = 'all'; // 'all' or 担当者名
@@ -2250,7 +2230,7 @@ let currentViewId = 'person'; // 現在表示中のタブID
 let userScopeOverride = null; // ユーザーが手動でscopeを変更した場合に記録
 
 // タブごとのデフォルトscope
-const TAB_DEFAULT_SCOPE = {{
+const TAB_DEFAULT_SCOPE = {
   'today-focus': 'my',
   'overview': 'project',
   'person': 'my',
@@ -2259,77 +2239,77 @@ const TAB_DEFAULT_SCOPE = {{
   'task': 'my',
   'gantt': 'project',
   'workload': 'team'
-}};
+};
 
 // URLパラメータから初期値を取得
-(function() {{
-  try {{
+(function() {
+  try {
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get('user');
     const genreParam = params.get('genre');
     const kindParam = params.get('kind');
     const scopeParam = params.get('scope');
-    if (userParam) {{
+    if (userParam) {
       currentUserFilter = userParam;
-    }} else {{
+    } else {
       const saved = localStorage.getItem('userFilter');
       if (saved) currentUserFilter = saved;
-    }}
-    if (genreParam) {{
+    }
+    if (genreParam) {
       currentGenreFilter = genreParam;
-    }} else {{
+    } else {
       const saved = localStorage.getItem('genreFilter');
       if (saved) currentGenreFilter = saved;
-    }}
-    if (kindParam) {{
+    }
+    if (kindParam) {
       currentKindFilter = kindParam;
-    }} else {{
+    } else {
       const saved = localStorage.getItem('kindFilter');
       if (saved) currentKindFilter = saved;
-    }}
-    if (scopeParam === 'my' || scopeParam === 'project' || scopeParam === 'team') {{
+    }
+    if (scopeParam === 'my' || scopeParam === 'project' || scopeParam === 'team') {
       currentScopeFilter = scopeParam;
       userScopeOverride = scopeParam;
-    }}
-  }} catch(e) {{}}
-}})();
+    }
+  } catch(e) {}
+})();
 
 // ジャンルフィルタ判定
-function isCaseInGenreFilter(caseObj) {{
+function isCaseInGenreFilter(caseObj) {
   if (currentGenreFilter === 'all') return true;
   return caseObj.genre === currentGenreFilter;
-}}
+}
 
 // 案件種別フィルタ判定
-function isCaseInKindFilter(caseObj) {{
+function isCaseInKindFilter(caseObj) {
   if (currentKindFilter === 'all') return true;
   return caseObj.kind === currentKindFilter;
-}}
+}
 
 // ユーザーが案件に関わるか判定
 // isUserInvolvedInCase結果のレンダーごとキャッシュ(1レンダー中のみ有効)
 const involvementCache = new Map();
-function clearInvolvementCache() {{
+function clearInvolvementCache() {
   involvementCache.clear();
-}}
+}
 
-function isUserInvolvedInCase(caseObj, userName) {{
+function isUserInvolvedInCase(caseObj, userName) {
   // キャッシュキー: 案件のidentifier + ユーザー名
   const cacheKey = caseObj.genre + caseObj.num + '::' + userName;
-  if (involvementCache.has(cacheKey)) {{
+  if (involvementCache.has(cacheKey)) {
     return involvementCache.get(cacheKey);
-  }}
+  }
   // いずれかのタスクでその人が担当に入っていればtrue
-  const result = Object.keys(caseObj.tasks).some(tname => {{
+  const result = Object.keys(caseObj.tasks).some(tname => {
     const persons = getTaskPersons(caseObj, tname);
     return persons.includes(userName);
-  }});
+  });
   involvementCache.set(cacheKey, result);
   return result;
-}}
+}
 
 // 現在のフィルタに応じて「タスク表示対象か」判定
-function isTaskInFilter(caseObj, taskName) {{
+function isTaskInFilter(caseObj, taskName) {
   if (!isCaseInGenreFilter(caseObj)) return false;
   if (!isCaseInKindFilter(caseObj)) return false;
   if (currentUserFilter === 'all') return true;
@@ -2338,17 +2318,17 @@ function isTaskInFilter(caseObj, taskName) {{
   if (currentScopeFilter === 'team') return true;
 
   // scope='project': プロジェクトタスク → 関わる案件の全タスク(他人タスクも見える)
-  if (currentScopeFilter === 'project') {{
+  if (currentScopeFilter === 'project') {
     return isUserInvolvedInCase(caseObj, currentUserFilter);
-  }}
+  }
 
   // scope='my' (デフォルト): 自分に担当が振られたタスクのみ
   const persons = getTaskPersons(caseObj, taskName);
   return persons.includes(currentUserFilter);
-}}
+}
 
 // 案件が現在のフィルタに該当するか
-function isCaseInFilter(caseObj) {{
+function isCaseInFilter(caseObj) {
   if (!isCaseInGenreFilter(caseObj)) return false;
   if (!isCaseInKindFilter(caseObj)) return false;
   if (currentUserFilter === 'all') return true;
@@ -2358,115 +2338,115 @@ function isCaseInFilter(caseObj) {{
 
   // scope='project' / 'my': その人が関わる案件のみ
   return isUserInvolvedInCase(caseObj, currentUserFilter);
-}}
+}
 
 // 各render関数で使う: ジャンル+案件種別フィルタを適用したケースのみ返す
 // (ユーザーフィルタ/scopeは各タスク単位でisTaskInFilterが判定するため、
 //  ここではジャンル+案件種別の2つだけ先に絞る)
-function getGenreKindFilteredCases() {{
+function getGenreKindFilteredCases() {
   return cases.filter(c => isCaseInGenreFilter(c) && isCaseInKindFilter(c));
-}}
+}
 
 // ユーザー別のタスク数をカウント(ジャンルフィルタは適用)
-function countTasksByUser() {{
-  const counts = {{}};
-  cases.forEach(c => {{
+function countTasksByUser() {
+  const counts = {};
+  cases.forEach(c => {
     if (!isCaseInGenreFilter(c)) return;
     if (!isCaseInKindFilter(c)) return; // 案件種別フィルタも考慮
-    Object.entries(c.tasks).forEach(([tname, tdata]) => {{
+    Object.entries(c.tasks).forEach(([tname, tdata]) => {
       if (tdata.done) return;
       const persons = getTaskPersons(c, tname);
-      persons.forEach(p => {{
+      persons.forEach(p => {
         counts[p] = (counts[p] || 0) + 1;
-      }});
-    }});
-  }});
+      });
+    });
+  });
   return counts;
-}}
+}
 
 // ジャンル別の案件数をカウント(ユーザーフィルタは影響させない、ジャンルタブ用)
-function countCasesByGenre() {{
-  const counts = {{}};
+function countCasesByGenre() {
+  const counts = {};
   let total = 0;
-  cases.forEach(c => {{
+  cases.forEach(c => {
     counts[c.genre] = (counts[c.genre] || 0) + 1;
     total++;
-  }});
-  return {{ counts, total }};
-}}
+  });
+  return { counts, total };
+}
 
-function populateGenreFilter() {{
+function populateGenreFilter() {
   const select = document.getElementById('genre-filter');
   if (!select) return;
-  const {{ counts, total }} = countCasesByGenre();
+  const { counts, total } = countCasesByGenre();
 
   // PC側とモバイル側、両方のselectを埋める
   const selects = [select, document.getElementById('genre-filter-mobile')].filter(Boolean);
 
-  selects.forEach(sel => {{
+  selects.forEach(sel => {
     sel.innerHTML = '';
     const allOpt = document.createElement('option');
     allOpt.value = 'all';
-    allOpt.textContent = `すべて (${{total}}案件)`;
+    allOpt.textContent = `すべて (${total}案件)`;
     sel.appendChild(allOpt);
-  }});
+  });
 
   // ジャンルはソートして表示(交通→環境→その他 の順、だが実データ次第で自動)
   const GENRE_ORDER = ['交通', '環境'];
-  const sortedGenres = Object.keys(counts).sort((a, b) => {{
+  const sortedGenres = Object.keys(counts).sort((a, b) => {
     const ia = GENRE_ORDER.indexOf(a);
     const ib = GENRE_ORDER.indexOf(b);
     if (ia === -1 && ib === -1) return a.localeCompare(b);
     if (ia === -1) return 1;
     if (ib === -1) return -1;
     return ia - ib;
-  }});
+  });
 
-  sortedGenres.forEach(g => {{
-    selects.forEach(sel => {{
+  sortedGenres.forEach(g => {
+    selects.forEach(sel => {
       const opt = document.createElement('option');
       opt.value = g;
-      opt.textContent = `${{g}} (${{counts[g]}}案件)`;
+      opt.textContent = `${g} (${counts[g]}案件)`;
       sel.appendChild(opt);
-    }});
-  }});
+    });
+  });
 
   // 現在の選択値がなければallに
   const hasOpt = Array.from(select.options).some(o => o.value === currentGenreFilter);
-  if (!hasOpt && currentGenreFilter !== 'all') {{
+  if (!hasOpt && currentGenreFilter !== 'all') {
     currentGenreFilter = 'all';
-  }}
-  selects.forEach(sel => {{ sel.value = currentGenreFilter; }});
+  }
+  selects.forEach(sel => { sel.value = currentGenreFilter; });
 
   const label = select.closest('.user-filter-label');
-  if (label) {{
-    if (currentGenreFilter !== 'all') {{
+  if (label) {
+    if (currentGenreFilter !== 'all') {
       label.classList.add('filtered');
-    }} else {{
+    } else {
       label.classList.remove('filtered');
-    }}
-  }}
-}}
+    }
+  }
+}
 
-function onGenreFilterChange() {{
+function onGenreFilterChange() {
   const select = document.getElementById('genre-filter');
   currentGenreFilter = select.value;
-  try {{
+  try {
     const url = new URL(window.location.href);
-    if (currentGenreFilter === 'all') {{
+    if (currentGenreFilter === 'all') {
       url.searchParams.delete('genre');
-    }} else {{
+    } else {
       url.searchParams.set('genre', currentGenreFilter);
-    }}
-    window.history.replaceState({{}}, '', url);
+    }
+    window.history.replaceState({}, '', url);
     localStorage.setItem('genreFilter', currentGenreFilter);
-  }} catch(e) {{}}
+  } catch(e) {}
   // ジャンルを変えたら、現在選択中のユーザーがそのジャンルに存在しない可能性もあるので、
   // 再計算してドロップダウンも再描画させる(render内でpopulateUserFilter呼ばれる)
   render();
-}}
+}
 
-function populateUserFilter() {{
+function populateUserFilter() {
   const select = document.getElementById('user-filter');
   if (!select) return;
   const counts = countTasksByUser();
@@ -2476,162 +2456,162 @@ function populateUserFilter() {{
   select.innerHTML = '';
   const allOpt = document.createElement('option');
   allOpt.value = 'all';
-  allOpt.textContent = `全員を表示 (${{totalUndone}}件)`;
+  allOpt.textContent = `全員を表示 (${totalUndone}件)`;
   select.appendChild(allOpt);
 
   // PERSON_ORDERの順で、未完了タスクがいる人だけ追加
-  PERSON_ORDER.forEach(p => {{
+  PERSON_ORDER.forEach(p => {
     if (!counts[p] || counts[p] === 0) return;
     const opt = document.createElement('option');
     opt.value = p;
     const display = p === '●●' ? '●● 担当未定' : p;
-    opt.textContent = `${{display}} (${{counts[p]}}件)`;
+    opt.textContent = `${display} (${counts[p]}件)`;
     select.appendChild(opt);
-  }});
+  });
 
   // 現在の選択値を反映(存在しなければallに)
   const hasOpt = Array.from(select.options).some(o => o.value === currentUserFilter);
-  if (!hasOpt && currentUserFilter !== 'all') {{
+  if (!hasOpt && currentUserFilter !== 'all') {
     currentUserFilter = 'all';
-  }}
+  }
   select.value = currentUserFilter;
 
   // ラベルに視覚的な強調
   const label = select.closest('.user-filter-label');
-  if (label) {{
-    if (currentUserFilter !== 'all') {{
+  if (label) {
+    if (currentUserFilter !== 'all') {
       label.classList.add('filtered');
-    }} else {{
+    } else {
       label.classList.remove('filtered');
-    }}
-  }}
-}}
+    }
+  }
+}
 
-function onUserFilterChange() {{
+function onUserFilterChange() {
   const select = document.getElementById('user-filter');
   currentUserFilter = select.value;
   userScopeOverride = null; // ユーザー切り替え時はオーバーライドリセット
   applyTabDefaultScope();
-  try {{
+  try {
     const url = new URL(window.location.href);
-    if (currentUserFilter === 'all') {{
+    if (currentUserFilter === 'all') {
       url.searchParams.delete('user');
-    }} else {{
+    } else {
       url.searchParams.set('user', currentUserFilter);
-    }}
+    }
     url.searchParams.delete('scope');
-    window.history.replaceState({{}}, '', url);
+    window.history.replaceState({}, '', url);
     localStorage.setItem('userFilter', currentUserFilter);
-  }} catch(e) {{}}
+  } catch(e) {}
   updateScopeVisibility();
   render();
-}}
+}
 
-function onKindFilterChange() {{
+function onKindFilterChange() {
   const select = document.getElementById('kind-filter');
   currentKindFilter = select.value;
-  try {{
+  try {
     const url = new URL(window.location.href);
-    if (currentKindFilter === 'all') {{
+    if (currentKindFilter === 'all') {
       url.searchParams.delete('kind');
-    }} else {{
+    } else {
       url.searchParams.set('kind', currentKindFilter);
-    }}
-    window.history.replaceState({{}}, '', url);
+    }
+    window.history.replaceState({}, '', url);
     localStorage.setItem('kindFilter', currentKindFilter);
-  }} catch(e) {{}}
+  } catch(e) {}
   render();
-}}
+}
 
-function onScopeFilterChange(scope) {{
+function onScopeFilterChange(scope) {
   currentScopeFilter = scope;
   userScopeOverride = scope; // ユーザーが手動で変えた記録
   // PC/モバイル両方のscopeボタンを更新
-  document.querySelectorAll('.scope-btn, .mobile-scope-btn').forEach(b => {{
+  document.querySelectorAll('.scope-btn, .mobile-scope-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.scope === scope);
-  }});
-  try {{
+  });
+  try {
     const url = new URL(window.location.href);
     url.searchParams.set('scope', scope);
-    window.history.replaceState({{}}, '', url);
-  }} catch(e) {{}}
+    window.history.replaceState({}, '', url);
+  } catch(e) {}
   render();
   // モバイルメニューが開いてたら閉じる
   const menu = document.getElementById('mobile-menu');
-  if (menu && menu.classList.contains('open')) {{
+  if (menu && menu.classList.contains('open')) {
     setTimeout(() => toggleMobileMenu(), 150);
-  }}
-}}
+  }
+}
 
 // タブに応じたデフォルトscopeを適用(ユーザーオーバーライドがある場合はそれを優先)
-function applyTabDefaultScope() {{
-  if (userScopeOverride) {{
+function applyTabDefaultScope() {
+  if (userScopeOverride) {
     currentScopeFilter = userScopeOverride;
-  }} else {{
+  } else {
     currentScopeFilter = TAB_DEFAULT_SCOPE[currentViewId] || 'my';
-  }}
-}}
+  }
+}
 
 // 個人選択時のみスコープトグル表示(PC/モバイル両方)
-function updateScopeVisibility() {{
+function updateScopeVisibility() {
   const wrapper = document.getElementById('scope-filter-wrapper');
   const mobileSection = document.getElementById('mobile-scope-section');
   const isPersonal = currentUserFilter !== 'all';
-  if (wrapper) {{
+  if (wrapper) {
     wrapper.style.display = isPersonal ? 'inline-flex' : 'none';
-  }}
-  if (mobileSection) {{
+  }
+  if (mobileSection) {
     mobileSection.style.display = isPersonal ? 'block' : 'none';
-  }}
-  if (isPersonal) {{
-    document.querySelectorAll('.scope-btn, .mobile-scope-btn').forEach(b => {{
+  }
+  if (isPersonal) {
+    document.querySelectorAll('.scope-btn, .mobile-scope-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.scope === currentScopeFilter);
-    }});
-  }}
-}}
+    });
+  }
+}
 
-function parseFmt(text) {{
-  const lines = text.split('\\n').map(l => l.trim()).filter(l => l.length > 0);
+function parseFmt(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   const result = [];
   const errors = [];
   const warnings = [];
-  for (const line of lines) {{
-    try {{
-      const {{ caseObj, warnings: caseWarnings }} = parseLineWithWarnings(line);
-      if (caseObj) {{
+  for (const line of lines) {
+    try {
+      const { caseObj, warnings: caseWarnings } = parseLineWithWarnings(line);
+      if (caseObj) {
         result.push(caseObj);
-        if (caseWarnings && caseWarnings.length > 0) {{
+        if (caseWarnings && caseWarnings.length > 0) {
           warnings.push(...caseWarnings);
-        }}
-      }}
-    }} catch (e) {{
+        }
+      }
+    } catch (e) {
       // 案件名を抽出してエラー表示を分かりやすく
       const cityMatch = line.match(/^【[^】]+】([^（(｜|]+)/);
       const cityName = cityMatch ? cityMatch[1].trim() : line.substring(0, 30);
-      errors.push(`${{cityName}}: ${{e.message}}`);
-    }}
-  }}
-  return {{ cases: result, errors, warnings }};
-}}
+      errors.push(`${cityName}: ${e.message}`);
+    }
+  }
+  return { cases: result, errors, warnings };
+}
 
 // parseLineをラップしてwarningsも返す
-function parseLineWithWarnings(line) {{
+function parseLineWithWarnings(line) {
   const caseObj = parseLine(line);
   const warnings = [];
-  if (caseObj) {{
+  if (caseObj) {
     // [提]があるのに[プ]がない(プロポ案件で担当者記法の片側だけ記載)
-    if (caseObj.kind === 'プロポーザル') {{
+    if (caseObj.kind === 'プロポーザル') {
       const hasTeian = caseObj.teianLeaders && caseObj.teianLeaders.length > 0;
       const hasPresen = caseObj.presenLeaders && caseObj.presenLeaders.length > 0;
-      if (hasTeian && !hasPresen) {{
-        warnings.push(`${{caseObj.city}}: [提]の記載はあるが[プ]が未記載`);
-      }}
-    }}
-  }}
-  return {{ caseObj, warnings }};
-}}
+      if (hasTeian && !hasPresen) {
+        warnings.push(`${caseObj.city}: [提]の記載はあるが[プ]が未記載`);
+      }
+    }
+  }
+  return { caseObj, warnings };
+}
 
-function parseLine(line) {{
+function parseLine(line) {
   // 【ジャンル名N】部分を解析(正規表現を使わず文字列操作で)
   // ジャンル名: 交通, 環境, その他任意の文字列
   // N: 半角数字、丸数字(①〜⑳)
@@ -2646,22 +2626,22 @@ function parseLine(line) {{
   // 番号と認識する文字: 丸数字+半角/全角数字
   const NUM_CHARS = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳0123456789０１２３４５６７８９';
   let splitIdx = -1;
-  for (let i = 0; i < bracketContent.length; i++) {{
-    if (NUM_CHARS.includes(bracketContent[i])) {{
+  for (let i = 0; i < bracketContent.length; i++) {
+    if (NUM_CHARS.includes(bracketContent[i])) {
       splitIdx = i;
       break;
-    }}
-  }}
+    }
+  }
 
   let genre, num;
-  if (splitIdx === -1) {{
+  if (splitIdx === -1) {
     // 番号が見つからない場合: 全部ジャンル名と見なす(異常ケース)
     genre = bracketContent;
     num = '?';
-  }} else {{
+  } else {
     genre = bracketContent.substring(0, splitIdx).trim() || '案件';
     num = bracketContent.substring(splitIdx).trim();
-  }}
+  }
   if (!num) throw new Error('案件番号が空です');
 
   // 】以降、最初の | または ｜ までが「自治体名 + (担当者)」
@@ -2676,34 +2656,34 @@ function parseLine(line) {{
   //   ※済:骨子・草案 → 骨子作成、骨子確認・QC分担決定、提案書草案作成
   // ※半角/全角コロン両対応、※の前後の空白は許容
   const autoDoneSet = new Set();
-  const doneMarkMatch = normalizedAfter.match(/\\s*※\\s*済\\s*[:：]\\s*([^|]*)$/);
-  if (doneMarkMatch) {{
+  const doneMarkMatch = normalizedAfter.match(/\s*※\s*済\s*[:：]\s*([^|]*)$/);
+  if (doneMarkMatch) {
     const tokens = doneMarkMatch[1].split(/[・､、]/).map(s => s.trim()).filter(s => s);
-    for (const tok of tokens) {{
-      if (tok === '骨子') {{
+    for (const tok of tokens) {
+      if (tok === '骨子') {
         autoDoneSet.add('骨子作成');
         autoDoneSet.add('骨子確認・QC分担決定');
-      }} else if (tok === '草案') {{
+      } else if (tok === '草案') {
         autoDoneSet.add('提案書草案作成');
-      }}
+      }
       // 未知のトークンは無視(タイポ防御)
-    }}
+    }
     // ※済:〜 の部分を文字列から除去
     normalizedAfter = normalizedAfter.substring(0, doneMarkMatch.index).trimEnd();
-  }}
+  }
 
   // 括弧外の最初のパイプを見つける(括弧内のパイプは担当者区切りなので無視)
   let firstPipe = -1;
   let depth = 0;
-  for (let i = 0; i < normalizedAfter.length; i++) {{
+  for (let i = 0; i < normalizedAfter.length; i++) {
     const c = normalizedAfter[i];
     if (c === '(' || c === '（') depth++;
     else if (c === ')' || c === '）') depth--;
-    else if (c === '|' && depth === 0) {{
+    else if (c === '|' && depth === 0) {
       firstPipe = i;
       break;
-    }}
-  }}
+    }
+  }
   const headerPart = firstPipe === -1 ? normalizedAfter : normalizedAfter.substring(0, firstPipe);
   const tasksPart = firstPipe === -1 ? '' : normalizedAfter.substring(firstPipe + 1);
 
@@ -2714,18 +2694,18 @@ function parseLine(line) {{
   // 半角/全角カッコのどちらかで担当者を抽出
   let openPos = -1;
   let closeChar = '';
-  for (let i = 0; i < headerPart.length; i++) {{
+  for (let i = 0; i < headerPart.length; i++) {
     const c = headerPart[i];
-    if (c === '(') {{ openPos = i; closeChar = ')'; break; }}
-    if (c === '（') {{ openPos = i; closeChar = '）'; break; }}
-  }}
-  if (openPos !== -1) {{
+    if (c === '(') { openPos = i; closeChar = ')'; break; }
+    if (c === '（') { openPos = i; closeChar = '）'; break; }
+  }
+  if (openPos !== -1) {
     const closePos = headerPart.indexOf(closeChar, openPos + 1);
-    if (closePos !== -1) {{
+    if (closePos !== -1) {
       city = headerPart.substring(0, openPos).trim();
       leadersStr = headerPart.substring(openPos + 1, closePos).trim();
-    }}
-  }}
+    }
+  }
 
   // FMT記法: ([提]主担当・副担当｜[プ]主・副) の形式
   // [提] = 提案書作成(1人目=主担当, 2人目=副担当)
@@ -2734,25 +2714,25 @@ function parseLine(line) {{
   // 未定の場合は ●● を使用
   let teianLeaders = [];
   let presenLeaders = [];
-  if (leadersStr) {{
+  if (leadersStr) {
     // パイプで分割
     const rawParts = leadersStr.replace(/｜/g, '|').split('|').map(s => s.trim()).filter(s => s);
-    for (const part of rawParts) {{
+    for (const part of rawParts) {
       // [提] or [プ] のタグを探す
-      const teianMatch = part.match(/^\\[提\\]\\s*(.+)$/);
-      const presenMatch = part.match(/^\\[プ\\]\\s*(.+)$/);
-      if (teianMatch) {{
+      const teianMatch = part.match(/^\[提\]\s*(.+)$/);
+      const presenMatch = part.match(/^\[プ\]\s*(.+)$/);
+      if (teianMatch) {
         teianLeaders = teianMatch[1].split(/[・､、]/).map(s => s.trim()).filter(s => s);
-      }} else if (presenMatch) {{
+      } else if (presenMatch) {
         presenLeaders = presenMatch[1].split(/[・､、]/).map(s => s.trim()).filter(s => s);
-      }} else {{
+      } else {
         // タグなし(入札案件等の単純記法) → teianLeadersにフォールバック
-        if (teianLeaders.length === 0) {{
+        if (teianLeaders.length === 0) {
           teianLeaders = part.split(/[・､、]/).map(s => s.trim()).filter(s => s);
-        }}
-      }}
-    }}
-  }}
+        }
+      }
+    }
+  }
   // どちらも未指定なら空配列のまま(画面上で"担当者未記載"として扱う)
 
   // 互換性のため leaders には[提]を格納(既存コードが使っている)
@@ -2761,25 +2741,25 @@ function parseLine(line) {{
   // タスク部分をパイプで分割
   const parts = tasksPart.split('|').map(s => s.trim()).filter(s => s);
 
-  const tasks = {{}};
+  const tasks = {};
   let kind = 'プロポーザル';
-  for (const part of parts) {{
+  for (const part of parts) {
     const parsed = parseTask(part);
     if (!parsed) continue;
-    for (const t of parsed) {{
+    for (const t of parsed) {
       tasks[t.name] = t;
       if (t.name === '郵便入札') kind = '郵便入札';
-    }}
-  }}
+    }
+  }
   if (tasks['郵便入札']) kind = '郵便入札';
   else if (tasks['プレゼン']) kind = 'プロポーザル';
 
   // 社内タスクをバックキャストで自動生成(提案書郵送がある場合のみ)
   // 各タスクは2営業日、バックキャストで機械的に生成
-  if (tasks['提案書郵送'] && tasks['提案書郵送'].date) {{
+  if (tasks['提案書郵送'] && tasks['提案書郵送'].date) {
     const mailingDate = new Date(tasks['提案書郵送'].date);
     const pad = n => String(n).padStart(2, '0');
-    const toKey = d => `${{d.getFullYear()}}-${{pad(d.getMonth()+1)}}-${{pad(d.getDate())}}`;
+    const toKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
     // 案B: 郵送が済なら、社内タスクも自動的に済扱い
     // (郵送できたということは、その前工程は事実上終わっているはず)
@@ -2791,121 +2771,121 @@ function parseLine(line) {{
     // 最終化・提出準備: 郵送日の前営業日までの2営業日
     const finalizeEnd = subtractBusinessDays(mailingDate, 1); // 郵送日の前営業日
     const finalizeStart = subtractBusinessDays(finalizeEnd, 1); // 2営業日分(end含めて)
-    tasks['最終化・提出準備'] = {{
+    tasks['最終化・提出準備'] = {
       name: '最終化・提出準備',
       date: toKey(finalizeEnd),
       startDate: toKey(finalizeStart),
       done: isAutoDone('最終化・提出準備'),
       auto: true,
-    }};
+    };
 
     // 提案書QC: 最終化開始の前営業日までの2営業日
     const qcEnd = subtractBusinessDays(finalizeStart, 1);
     const qcStart = subtractBusinessDays(qcEnd, 1);
-    tasks['提案書QC'] = {{
+    tasks['提案書QC'] = {
       name: '提案書QC',
       date: toKey(qcEnd),
       startDate: toKey(qcStart),
       done: isAutoDone('提案書QC'),
       auto: true,
-    }};
+    };
 
     // 提案書草案作成: QC開始の前営業日までの2営業日
     const draftEnd = subtractBusinessDays(qcStart, 1);
     const draftStart = subtractBusinessDays(draftEnd, 1);
-    tasks['提案書草案作成'] = {{
+    tasks['提案書草案作成'] = {
       name: '提案書草案作成',
       date: toKey(draftEnd),
       startDate: toKey(draftStart),
       done: isAutoDone('提案書草案作成'),
       auto: true,
-    }};
+    };
 
     // 骨子確認・QC分担決定: 草案開始の前営業日に1営業日(サブ担当者)
     const skeletonReviewDate = subtractBusinessDays(draftStart, 1);
-    tasks['骨子確認・QC分担決定'] = {{
+    tasks['骨子確認・QC分担決定'] = {
       name: '骨子確認・QC分担決定',
       date: toKey(skeletonReviewDate),
       startDate: toKey(skeletonReviewDate), // 1営業日なのでstart=end
       done: isAutoDone('骨子確認・QC分担決定'),
       auto: true,
-    }};
+    };
 
     // 骨子作成: 骨子確認・QC分担決定の前営業日に1営業日(メイン担当者)
     const skeletonDate = subtractBusinessDays(skeletonReviewDate, 1);
-    tasks['骨子作成'] = {{
+    tasks['骨子作成'] = {
       name: '骨子作成',
       date: toKey(skeletonDate),
       startDate: toKey(skeletonDate),
       done: isAutoDone('骨子作成'),
       auto: true,
-    }};
-  }}
+    };
+  }
 
-  return {{ num, city, kind, leaders, teianLeaders, presenLeaders, tasks, genre }};
-}}
+  return { num, city, kind, leaders, teianLeaders, presenLeaders, tasks, genre };
+}
 
-function parseTask(str) {{
+function parseTask(str) {
   // 全角括弧・全角パイプなどを半角に正規化してから処理
   str = str.replace(/（/g, '(').replace(/）/g, ')').replace(/｜/g, '|').trim();
 
   let deadline = null;
-  const dlMatch = str.match(/\\(必着([0-9]+\\/[0-9]+)\\)/);
+  const dlMatch = str.match(/\(必着([0-9]+\/[0-9]+)\)/);
   let strWithoutDl = str;
-  if (dlMatch) {{
+  if (dlMatch) {
     deadline = parseDate(dlMatch[1]);
     strWithoutDl = str.replace(dlMatch[0], '').trim();
-  }}
-  const done = /済\\s*$/.test(strWithoutDl) || /\\[済\\]/.test(strWithoutDl);
-  strWithoutDl = strWithoutDl.replace(/済\\s*$/, '').replace(/\\[済\\]/, '').trim();
-  const dateMatch = strWithoutDl.match(/([0-9]+\\/[0-9●]+)\\s*$/);
+  }
+  const done = /済\s*$/.test(strWithoutDl) || /\[済\]/.test(strWithoutDl);
+  strWithoutDl = strWithoutDl.replace(/済\s*$/, '').replace(/\[済\]/, '').trim();
+  const dateMatch = strWithoutDl.match(/([0-9]+\/[0-9●]+)\s*$/);
   if (!dateMatch) return null;
   const dateStr = dateMatch[1];
   const date = parseDate(dateStr);
   const nameStr = strWithoutDl.substring(0, dateMatch.index).trim();
   const taskNames = nameStr.split(/[・､、]/).map(s => s.trim()).filter(s => s);
   const results = [];
-  for (let name of taskNames) {{
+  for (let name of taskNames) {
     // タスク名の正規化: 「郵送」は「提案書郵送」の省略表記として扱う
     if (name === '郵送') name = '提案書郵送';
-    const task = {{ name, date: date.date, done }};
+    const task = { name, date: date.date, done };
     if (date.note) task.note = date.note;
     if (deadline) task.deadline = deadline.date;
     results.push(task);
-  }}
+  }
   return results;
-}}
+}
 
-function parseDate(str) {{
+function parseDate(str) {
   const parts = str.split('/');
-  if (parts.length !== 2) return {{ date: null, note: str }};
+  if (parts.length !== 2) return { date: null, note: str };
   const [m, d] = parts;
-  if (m.includes('●') || d.includes('●')) {{
-    if (!m.includes('●') && d.includes('●')) return {{ date: null, note: `${{m}}月中旬` }};
-    return {{ date: null, note: str }};
-  }}
+  if (m.includes('●') || d.includes('●')) {
+    if (!m.includes('●') && d.includes('●')) return { date: null, note: `${m}月中旬` };
+    return { date: null, note: str };
+  }
   const month = parseInt(m);
   const day = parseInt(d);
-  if (isNaN(month) || isNaN(day)) return {{ date: null, note: str }};
+  if (isNaN(month) || isNaN(day)) return { date: null, note: str };
   // 年推定: 基本は今年、ただし10-12月に入力月が1-3月なら翌年扱い(年末跨ぎ運用)
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
   let year = currentYear;
-  if (currentMonth >= 10 && month <= 3) {{
+  if (currentMonth >= 10 && month <= 3) {
     year = currentYear + 1;
-  }}
+  }
   const pad = n => String(n).padStart(2, '0');
-  return {{ date: `${{year}}-${{pad(month)}}-${{pad(day)}}` }};
-}}
+  return { date: `${year}-${pad(month)}-${pad(day)}` };
+}
 
-function getTaskPersons(caseObj, taskName) {{
+function getTaskPersons(caseObj, taskName) {
   // プレゼンは[プ]のメンバー(未指定なら●●)
-  if (taskName === 'プレゼン') {{
+  if (taskName === 'プレゼン') {
     return (caseObj.presenLeaders && caseObj.presenLeaders.length > 0)
       ? caseObj.presenLeaders
       : ['●●', '●●'];
-  }}
+  }
 
   const teian = caseObj.teianLeaders || caseObj.leaders || [];
   const mainPerson = teian.length >= 1 ? teian[0] : '●●'; // 提案書作成 主担当
@@ -2915,9 +2895,9 @@ function getTaskPersons(caseObj, taskName) {{
 
   // 入札案件: 全タスクを括弧内の人(=teianの1人目)が担当
   // (入札は通常1人担当、[提][プ]記法を使わない)
-  if (isNyusatsu) {{
+  if (isNyusatsu) {
     return [mainPerson];
-  }}
+  }
 
   // プロポ案件の提案書QC・骨子確認: 提案書作成 副担当
   if (taskName === '提案書QC' || taskName === '骨子確認・QC分担決定') return [subPerson];
@@ -2927,27 +2907,27 @@ function getTaskPersons(caseObj, taskName) {{
 
   // それ以外は 提案書作成 主担当
   return [mainPerson];
-}}
+}
 
-function getTaskIcon(taskName) {{
+function getTaskIcon(taskName) {
   return TASK_ICONS[taskName] || '';
-}}
+}
 
-function formatDate(dateStr) {{
+function formatDate(dateStr) {
   if (!dateStr) return '未定';
   const d = new Date(dateStr);
   const weekdays = ['日','月','火','水','木','金','土'];
-  return `${{d.getMonth()+1}}/${{d.getDate()}}(${{weekdays[d.getDay()]}})`;
-}}
+  return `${d.getMonth()+1}/${d.getDate()}(${weekdays[d.getDay()]})`;
+}
 
-function daysUntil(dateStr) {{
+function daysUntil(dateStr) {
   if (!dateStr) return null;
   const d = new Date(dateStr);
   const t0 = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
   return Math.floor((d - t0) / (1000*60*60*24));
-}}
+}
 
-function statusClass(delta, done) {{
+function statusClass(delta, done) {
   if (done) return 'done';
   if (delta === null) return 'future';
   if (delta < 0) return 'overdue';
@@ -2955,93 +2935,93 @@ function statusClass(delta, done) {{
   if (delta <= 3) return 'urgent';
   if (delta <= 7) return 'upcoming';
   return 'future';
-}}
+}
 
-function daysText(delta, done) {{
+function daysText(delta, done) {
   if (done) return '済';
   if (delta === null) return '未定';
-  if (delta < 0) return `${{-delta}}日超過`;
+  if (delta < 0) return `${-delta}日超過`;
   if (delta === 0) return '本日';
-  return `あと${{delta}}日`;
-}}
+  return `あと${delta}日`;
+}
 
-function daysUrgency(delta) {{
+function daysUrgency(delta) {
   if (delta === null) return '';
   if (delta < 0) return 'overdue';
   if (delta <= 3) return 'urgent';
   return '';
-}}
+}
 
-function buildPersonsText(persons, taskName) {{
-  return persons.map((p, i) => {{
+function buildPersonsText(persons, taskName) {
+  return persons.map((p, i) => {
     if (p === '●●') return `<span class="person-unassigned">●●</span>`;
     const dept = getDept(p);
     const isMain = taskName === 'プレゼン' && i === 0;
     const mainCls = isMain ? ' person-main' : '';
-    return `<span class="person-tag dept-${{dept}}${{mainCls}}">${{escapeHtml(p)}}</span>`;
-  }}).join('');
-}}
+    return `<span class="person-tag dept-${dept}${mainCls}">${escapeHtml(p)}</span>`;
+  }).join('');
+}
 
 // 担当者タグ生成(役割付き): 主担当は太字、未定は●●バッジ
-function buildRoleTeam(members) {{
+function buildRoleTeam(members) {
   if (!members || members.length === 0) return '<span class="person-empty">—</span>';
-  return members.map((p, i) => {{
+  return members.map((p, i) => {
     if (p === '●●') return `<span class="person-unassigned">●●</span>`;
     const dept = getDept(p);
     const mainCls = i === 0 ? ' person-main' : '';
-    return `<span class="person-tag dept-${{dept}}${{mainCls}}">${{escapeHtml(p)}}</span>`;
-  }}).join('');
-}}
+    return `<span class="person-tag dept-${dept}${mainCls}">${escapeHtml(p)}</span>`;
+  }).join('');
+}
 
 // 2列の担当者セル: 提案書担当 / プロポ担当
-function buildTeamCells(caseObj) {{
+function buildTeamCells(caseObj) {
   const isNyusatsu = caseObj.kind === '郵便入札';
-  if (isNyusatsu) {{
+  if (isNyusatsu) {
     // 入札案件: 提案書担当のみ(プロポ列は空)
     const teian = caseObj.teianLeaders || caseObj.leaders || [];
-    return `<span class="team-cell">${{buildRoleTeam(teian)}}</span><span class="team-cell"></span>`;
-  }}
+    return `<span class="team-cell">${buildRoleTeam(teian)}</span><span class="team-cell"></span>`;
+  }
   const teian = caseObj.teianLeaders || caseObj.leaders || [];
   const presen = caseObj.presenLeaders || [];
-  return `<span class="team-cell">${{buildRoleTeam(teian)}}</span><span class="team-cell">${{buildRoleTeam(presen)}}</span>`;
-}}
+  return `<span class="team-cell">${buildRoleTeam(teian)}</span><span class="team-cell">${buildRoleTeam(presen)}</span>`;
+}
 
-function buildLeadersText(leaders) {{
-  return leaders.map((p, i) => {{
+function buildLeadersText(leaders) {
+  return leaders.map((p, i) => {
     if (p === '●●') return `<span class="person-unassigned">●●</span>`;
     const dept = getDept(p);
     const mainCls = i === 0 ? ' person-main' : '';
-    return `<span class="person-tag dept-${{dept}}${{mainCls}}">${{escapeHtml(p)}}</span>`;
-  }}).join('');
-}}
+    return `<span class="person-tag dept-${dept}${mainCls}">${escapeHtml(p)}</span>`;
+  }).join('');
+}
 
-function buildTaskNameHtml(taskName, taskData) {{
+function buildTaskNameHtml(taskName, taskData) {
   const icon = getTaskIcon(taskName);
-  let html = `<span class="task-icon">${{icon}}</span>${{escapeHtml(taskName)}}`;
-  if (taskData.deadline) {{
+  let html = `<span class="task-icon">${icon}</span>${escapeHtml(taskName)}`;
+  if (taskData.deadline) {
     const dl = formatDate(taskData.deadline);
-    html += ` <span class="deadline-info">必着${{escapeHtml(dl)}}</span>`;
-  }}
-  if (taskData.note) {{
-    html += ` <span class="deadline-info" style="background:#F3E5F5;color:#6A1B9A">${{escapeHtml(taskData.note)}}</span>`;
-  }}
+    html += ` <span class="deadline-info">必着${escapeHtml(dl)}</span>`;
+  }
+  if (taskData.note) {
+    html += ` <span class="deadline-info" style="background:#F3E5F5;color:#6A1B9A">${escapeHtml(taskData.note)}</span>`;
+  }
   return html;
-}}
+}
 
 // 案件の通し番号バッジと自治体名セル(リスト表示用)を生成
-function buildCaseBadgeCity(caseObj, num, city) {{
-  return `<span class="case-num-badge">${{escapeHtml(caseObj.genre)}}${{escapeHtml(num)}}</span><span class="task-city-name">${{escapeHtml(city)}}</span>`;
-}}
+function buildCaseBadgeCity(caseObj, num, city) {
+  return `<span class="case-num-badge">${escapeHtml(caseObj.genre)}${escapeHtml(num)}</span><span class="task-city-name">${escapeHtml(city)}</span>`;
+}
 
-function doneMarkHtml(done) {{
+function doneMarkHtml(done) {
   return done ? '<span class="done-mark">済</span>' : '<span class="undone-mark">○</span>';
-}}
+}
 
 // リストヘッダー
-function listHeaderHtml(caseMode = false) {{
+function listHeaderHtml(caseMode = false) {
   const cls = caseMode ? 'list-header case-mode' : 'list-header';
-  if (caseMode) {{
-    return `<div class="${{cls}}">
+  if (caseMode) {
+    return `<div class="${cls}">
       <span></span>
       <span>締切</span>
       <span>残日数</span>
@@ -3049,8 +3029,8 @@ function listHeaderHtml(caseMode = false) {{
       <span>提案書担当</span>
       <span>プロポ担当</span>
     </div>`;
-  }}
-  return `<div class="${{cls}}">
+  }
+  return `<div class="${cls}">
     <span></span>
     <span>締切</span>
     <span>残日数</span>
@@ -3059,18 +3039,18 @@ function listHeaderHtml(caseMode = false) {{
     <span>提案書担当</span>
     <span>プロポ担当</span>
   </div>`;
-}}
+}
 
-function renderDashboard() {{
+function renderDashboard() {
   let overdue = 0, today = 0, week = 0, nextweek = 0;
   const unassignedCases = new Set();
-  cases.forEach((caseObj, ci) => {{
+  cases.forEach((caseObj, ci) => {
     const caseRelevant = isCaseInFilter(caseObj);
     // 提案書作成 or プレゼン出席者に未定があればカウント
     const hasUnassigned = caseObj.leaders.includes('●●') ||
       (caseObj.presenLeaders && caseObj.presenLeaders.includes('●●'));
     if (caseRelevant && hasUnassigned) unassignedCases.add(ci);
-    Object.entries(caseObj.tasks).forEach(([tname, t]) => {{
+    Object.entries(caseObj.tasks).forEach(([tname, t]) => {
       if (t.done || !t.date) return;
       if (!isTaskInFilter(caseObj, tname)) return;
       const d = daysUntil(t.date);
@@ -3078,8 +3058,8 @@ function renderDashboard() {{
       else if (d === 0) today++;
       else if (d <= 7) week++;
       else if (d <= 14) nextweek++;
-    }});
-  }});
+    });
+  });
   document.getElementById('stat-overdue').textContent = overdue;
   document.getElementById('stat-today').textContent = today;
   document.getElementById('stat-week').textContent = week;
@@ -3087,54 +3067,54 @@ function renderDashboard() {{
   document.getElementById('stat-unassigned').textContent = unassignedCases.size;
   // モバイル用コンパクトダッシュボードも更新
   renderMobileDashboard();
-}}
+}
 
-function renderPersonView() {{
-  const tasksByPerson = {{}};
+function renderPersonView() {
+  const tasksByPerson = {};
   // scope=project時: 選択ユーザーが関わる案件のセットを先に作る
   const projectCaseIdxs = new Set();
-  if (currentUserFilter !== 'all' && currentScopeFilter === 'project') {{
-    cases.forEach((caseObj, idx) => {{
+  if (currentUserFilter !== 'all' && currentScopeFilter === 'project') {
+    cases.forEach((caseObj, idx) => {
       if (!isCaseInGenreFilter(caseObj)) return;
       if (!isCaseInKindFilter(caseObj)) return;
-      if (isUserInvolvedInCase(caseObj, currentUserFilter)) {{
+      if (isUserInvolvedInCase(caseObj, currentUserFilter)) {
         projectCaseIdxs.add(idx);
-      }}
-    }});
-  }}
+      }
+    });
+  }
 
-  cases.forEach((caseObj, caseIdx) => {{
+  cases.forEach((caseObj, caseIdx) => {
     // ジャンル+案件種別フィルタ: 該当しない案件はスキップ
     if (!isCaseInGenreFilter(caseObj)) return;
     if (!isCaseInKindFilter(caseObj)) return;
     // scope=project: 選択ユーザーが関わる案件のみ集約
     if (currentUserFilter !== 'all' && currentScopeFilter === 'project' && !projectCaseIdxs.has(caseIdx)) return;
 
-    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {{
+    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
       const persons = getTaskPersons(caseObj, taskName);
-      persons.forEach(person => {{
+      persons.forEach(person => {
         if (!tasksByPerson[person]) tasksByPerson[person] = [];
-        tasksByPerson[person].push({{
+        tasksByPerson[person].push({
           caseIdx, taskName,
           date: taskData.date, done: taskData.done,
           deadline: taskData.deadline, note: taskData.note,
           num: caseObj.num, city: caseObj.city,
           caseObj, persons,
-        }});
-      }});
-    }});
-  }});
-  Object.keys(tasksByPerson).forEach(p => {{
-    tasksByPerson[p].sort((a, b) => {{
+        });
+      });
+    });
+  });
+  Object.keys(tasksByPerson).forEach(p => {
+    tasksByPerson[p].sort((a, b) => {
       if (!a.date) return 1;
       if (!b.date) return -1;
       return a.date.localeCompare(b.date);
-    }});
-  }});
+    });
+  });
 
   const container = document.getElementById('person-view');
   let html = '';
-  for (const person of PERSON_ORDER) {{
+  for (const person of PERSON_ORDER) {
     if (!tasksByPerson[person]) continue;
     // scope=my: 選択ユーザーのセクションのみ(他メンバーは非表示)
     // scope=project: 関わる案件に登場する全メンバーのセクションを表示
@@ -3142,57 +3122,57 @@ function renderPersonView() {{
     if (currentUserFilter !== 'all' && currentScopeFilter === 'my' && person !== currentUserFilter) continue;
     const tasks = tasksByPerson[person];
     const undone = tasks.filter(t => !t.done);
-    const upcoming = undone.filter(t => {{ const d = daysUntil(t.date); return d === null || d >= 0; }}).length;
-    const overdue = undone.filter(t => {{ const d = daysUntil(t.date); return d !== null && d < 0; }}).length;
+    const upcoming = undone.filter(t => { const d = daysUntil(t.date); return d === null || d >= 0; }).length;
+    const overdue = undone.filter(t => { const d = daysUntil(t.date); return d !== null && d < 0; }).length;
     const done = tasks.filter(t => t.done).length;
-    let countStr = `残 ${{upcoming}}`;
-    if (overdue > 0) countStr += ` / 超過 ${{overdue}}`;
-    countStr += ` / 済 ${{done}} / 全 ${{tasks.length}}`;
+    let countStr = `残 ${upcoming}`;
+    if (overdue > 0) countStr += ` / 超過 ${overdue}`;
+    countStr += ` / 済 ${done} / 全 ${tasks.length}`;
     const nameLabel = person === '●●' ? '担当未定(要アサイン)' : person;
 
     html += `<div class="section">
       <div class="section-header">
-        <div class="section-title">${{escapeHtml(nameLabel)}}</div>
-        <div class="section-count">${{escapeHtml(countStr)}}</div>
+        <div class="section-title">${escapeHtml(nameLabel)}</div>
+        <div class="section-count">${escapeHtml(countStr)}</div>
       </div>
-      ${{listHeaderHtml()}}
+      ${listHeaderHtml()}
       <ul class="task-list">`;
-    for (const t of tasks) {{
+    for (const t of tasks) {
       const delta = daysUntil(t.date);
       const cls = statusClass(delta, t.done);
-      const taskDataForName = {{ deadline: t.deadline, note: t.note }};
+      const taskDataForName = { deadline: t.deadline, note: t.note };
 
-      html += `<li class="task-item ${{cls}}">
-        ${{doneMarkHtml(t.done)}}
-        <span class="date-badge ${{!t.date ? 'nodate' : ''}}">${{formatDate(t.date)}}</span>
-        <span class="days-left ${{daysUrgency(delta)}}">${{daysText(delta, t.done)}}</span>
-        <span class="task-name">${{buildTaskNameHtml(t.taskName, taskDataForName)}}</span>
-        <span class="task-city">${{buildCaseBadgeCity(t.caseObj, t.num, t.city)}}</span>
-        ${{buildTeamCells(t.caseObj)}}
+      html += `<li class="task-item ${cls}">
+        ${doneMarkHtml(t.done)}
+        <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
+        <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
+        <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
+        <span class="task-city">${buildCaseBadgeCity(t.caseObj, t.num, t.city)}</span>
+        ${buildTeamCells(t.caseObj)}
       </li>`;
-    }}
+    }
     html += '</ul></div>';
-  }}
+  }
   container.innerHTML = html || '<div class="section">データがありません</div>';
-}}
+}
 
-function renderOverviewView() {{
+function renderOverviewView() {
   const container = document.getElementById('overview-view');
   // 直近未完了タスクの締切日を取得(完了済み案件は'9999-12-31'扱いで最後尾)
-  function getNextUndoneDate(caseObj) {{
+  function getNextUndoneDate(caseObj) {
     const undone = Object.values(caseObj.tasks).filter(t => !t.done && t.date);
     if (undone.length === 0) return '9999-12-31';
     return undone.map(t => t.date).sort()[0];
-  }}
-  function getNextUndoneTask(caseObj) {{
+  }
+  function getNextUndoneTask(caseObj) {
     const undone = Object.entries(caseObj.tasks)
       .filter(([, t]) => !t.done && t.date)
       .sort((a, b) => a[1].date.localeCompare(b[1].date));
     return undone.length > 0 ? undone[0] : null;
-  }}
+  }
   // フィルタ適用 → ソート(直近タスクの締切昇順)
   const filtered = cases.filter(c => isCaseInFilter(c));
-  const indexed = filtered.map((c, idx) => ({{ c, idx, nextDate: getNextUndoneDate(c) }}));
+  const indexed = filtered.map((c, idx) => ({ c, idx, nextDate: getNextUndoneDate(c) }));
   indexed.sort((a, b) => a.nextDate.localeCompare(b.nextDate));
 
   // ヘッダー(PC用)
@@ -3214,11 +3194,11 @@ function renderOverviewView() {{
         </thead>
         <tbody>`;
 
-  if (indexed.length === 0) {{
+  if (indexed.length === 0) {
     html += `<tr><td colspan="9" style="text-align:center; padding:24px; color:#999;">該当する案件がありません</td></tr>`;
-  }}
+  }
 
-  indexed.forEach(({{ c: caseObj }}) => {{
+  indexed.forEach(({ c: caseObj }) => {
     const allTasks = Object.entries(caseObj.tasks);
     const total = allTasks.length;
     const doneCount = allTasks.filter(([, t]) => t.done).length;
@@ -3228,256 +3208,256 @@ function renderOverviewView() {{
     // 直近タスク
     const nextEntry = getNextUndoneTask(caseObj);
     let nextTaskHtml;
-    if (allDone) {{
+    if (allDone) {
       nextTaskHtml = `<span class="ov-next-done">全タスク完了</span>`;
-    }} else if (!nextEntry) {{
+    } else if (!nextEntry) {
       nextTaskHtml = `<span class="ov-next-empty">—</span>`;
-    }} else {{
+    } else {
       const [name, data] = nextEntry;
       const delta = daysUntil(data.date);
       const icon = getTaskIcon(name);
       const dateStr = formatDate(data.date);
       let daysHtml;
-      if (delta === null) {{
+      if (delta === null) {
         daysHtml = `<span class="ov-days nodate">日付未定</span>`;
-      }} else if (delta < 0) {{
-        daysHtml = `<span class="ov-days overdue">${{-delta}}日超過</span>`;
-      }} else if (delta === 0) {{
+      } else if (delta < 0) {
+        daysHtml = `<span class="ov-days overdue">${-delta}日超過</span>`;
+      } else if (delta === 0) {
         daysHtml = `<span class="ov-days today">本日</span>`;
-      }} else if (delta <= 3) {{
-        daysHtml = `<span class="ov-days urgent">あと${{delta}}日</span>`;
-      }} else {{
-        daysHtml = `<span class="ov-days">あと${{delta}}日</span>`;
-      }}
-      nextTaskHtml = `<span class="ov-next-task">${{icon}}<strong>${{escapeHtml(name)}}</strong> ${{escapeHtml(dateStr)}}</span> ${{daysHtml}}`;
-    }}
+      } else if (delta <= 3) {
+        daysHtml = `<span class="ov-days urgent">あと${delta}日</span>`;
+      } else {
+        daysHtml = `<span class="ov-days">あと${delta}日</span>`;
+      }
+      nextTaskHtml = `<span class="ov-next-task">${icon}<strong>${escapeHtml(name)}</strong> ${escapeHtml(dateStr)}</span> ${daysHtml}`;
+    }
 
     // マイルストーン日付セル
-    function milestoneCell(taskName) {{
+    function milestoneCell(taskName) {
       const t = caseObj.tasks[taskName];
       if (!t) return `<td class="ov-milestone empty">—</td>`;
       const cls = t.done ? 'ov-milestone done' : 'ov-milestone';
       const dateStr = formatDate(t.date);
       const doneMark = t.done ? '<span class="ov-done-mark">✓</span>' : '';
-      const deadlineHtml = t.deadline ? `<span class="ov-deadline">必着${{escapeHtml(formatDate(t.deadline))}}</span>` : '';
-      return `<td class="${{cls}}">${{doneMark}}<span class="ov-date">${{escapeHtml(dateStr)}}</span>${{deadlineHtml}}</td>`;
-    }}
+      const deadlineHtml = t.deadline ? `<span class="ov-deadline">必着${escapeHtml(formatDate(t.deadline))}</span>` : '';
+      return `<td class="${cls}">${doneMark}<span class="ov-date">${escapeHtml(dateStr)}</span>${deadlineHtml}</td>`;
+    }
 
     // 種別タグ
     const isNyusatsu = caseObj.kind === '郵便入札';
     const kindLabel = isNyusatsu ? '入札' : caseObj.kind;
-    const kindCls = isNyusatsu ? 'kind-badge 郵便入札' : `kind-badge ${{caseObj.kind}}`;
+    const kindCls = isNyusatsu ? 'kind-badge 郵便入札' : `kind-badge ${caseObj.kind}`;
 
     // 主担当
     const teian = caseObj.teianLeaders || caseObj.leaders || [];
     const mainPerson = teian[0] || '●●';
 
-    html += `<tr class="overview-row ${{allDone ? 'all-done' : ''}}">
+    html += `<tr class="overview-row ${allDone ? 'all-done' : ''}">
       <td class="ov-progress">
-        <div class="ov-progress-bar-wrap"><div class="ov-progress-bar" style="width:${{progress}}%"></div></div>
-        <span class="ov-progress-text">${{doneCount}}/${{total}}</span>
+        <div class="ov-progress-bar-wrap"><div class="ov-progress-bar" style="width:${progress}%"></div></div>
+        <span class="ov-progress-text">${doneCount}/${total}</span>
       </td>
       <td class="ov-case">
-        <span class="case-num-badge">${{escapeHtml(caseObj.genre)}}${{escapeHtml(caseObj.num)}}</span>
-        <span class="ov-case-name">${{escapeHtml(caseObj.city)}}</span>
+        <span class="case-num-badge">${escapeHtml(caseObj.genre)}${escapeHtml(caseObj.num)}</span>
+        <span class="ov-case-name">${escapeHtml(caseObj.city)}</span>
       </td>
-      <td class="ov-kind"><span class="${{kindCls}}">${{escapeHtml(kindLabel)}}</span></td>
-      <td class="ov-next">${{nextTaskHtml}}</td>
-      ${{milestoneCell('質問')}}
-      ${{milestoneCell('参加表明')}}
-      ${{milestoneCell('提案書郵送')}}
-      ${{milestoneCell('プレゼン')}}
-      <td class="ov-leader"><span class="person-tag">${{escapeHtml(mainPerson)}}</span></td>
+      <td class="ov-kind"><span class="${kindCls}">${escapeHtml(kindLabel)}</span></td>
+      <td class="ov-next">${nextTaskHtml}</td>
+      ${milestoneCell('質問')}
+      ${milestoneCell('参加表明')}
+      ${milestoneCell('提案書郵送')}
+      ${milestoneCell('プレゼン')}
+      <td class="ov-leader"><span class="person-tag">${escapeHtml(mainPerson)}</span></td>
     </tr>`;
-  }});
+  });
 
   html += `</tbody></table></div></div>`;
   container.innerHTML = html;
-}}
+}
 
-function renderCaseView() {{
+function renderCaseView() {
   const container = document.getElementById('case-view');
   let html = '';
-  function getFinalDate(caseObj) {{
+  function getFinalDate(caseObj) {
     if (caseObj.tasks['プレゼン'] && caseObj.tasks['プレゼン'].date) return caseObj.tasks['プレゼン'].date;
     if (caseObj.tasks['郵便入札']) return caseObj.tasks['郵便入札'].deadline || caseObj.tasks['郵便入札'].date;
     if (caseObj.tasks['提案書郵送'] && caseObj.tasks['提案書郵送'].deadline) return caseObj.tasks['提案書郵送'].deadline;
     return '9999-12-31';
-  }}
-  const indexed = cases.map((c, idx) => ({{ c, idx }}));
-  indexed.sort((a, b) => {{
+  }
+  const indexed = cases.map((c, idx) => ({ c, idx }));
+  indexed.sort((a, b) => {
     const da = getFinalDate(a.c) || '9999-12-31';
     const db = getFinalDate(b.c) || '9999-12-31';
     return da.localeCompare(db);
-  }});
-  indexed.forEach(({{ c: caseObj, idx: caseIdx }}) => {{
+  });
+  indexed.forEach(({ c: caseObj, idx: caseIdx }) => {
     // フィルタ適用: この案件に自分のタスクがなければスキップ
     if (!isCaseInFilter(caseObj)) return;
     const sortedTasks = Object.entries(caseObj.tasks)
-      .sort(([, a], [, b]) => {{
+      .sort(([, a], [, b]) => {
         if (!a.date) return 1;
         if (!b.date) return -1;
         return a.date.localeCompare(b.date);
-      }});
+      });
     const total = sortedTasks.length;
     const doneCount = sortedTasks.filter(([, t]) => t.done).length;
     const progress = total > 0 ? (doneCount / total) * 100 : 0;
     const undoneTasks = sortedTasks.filter(([, t]) => !t.done);
     let nextTaskName = null;
     let nextTaskData = null;
-    if (undoneTasks.length > 0) {{
+    if (undoneTasks.length > 0) {
       [nextTaskName, nextTaskData] = undoneTasks[0];
-    }}
+    }
     let nextActionHtml = '';
-    if (!nextTaskName) {{
+    if (!nextTaskName) {
       nextActionHtml = `<div class="next-action done-all">全タスク完了</div>`;
-    }} else {{
+    } else {
       const delta = daysUntil(nextTaskData.date);
       const nextIcon = getTaskIcon(nextTaskName);
-      if (delta !== null && delta < 0) {{
-        nextActionHtml = `<div class="next-action overdue-alert"><strong>${{nextIcon}}${{nextTaskName}}</strong>が${{-delta}}日超過中 (${{formatDate(nextTaskData.date)}})</div>`;
-      }} else {{
-        const daysStr = delta === null ? '日付未定' : (delta === 0 ? '本日' : `あと${{delta}}日`);
-        nextActionHtml = `<div class="next-action">次: <strong>${{nextIcon}}${{nextTaskName}}</strong> ${{formatDate(nextTaskData.date)}} (${{daysStr}})</div>`;
-      }}
-    }}
+      if (delta !== null && delta < 0) {
+        nextActionHtml = `<div class="next-action overdue-alert"><strong>${nextIcon}${nextTaskName}</strong>が${-delta}日超過中 (${formatDate(nextTaskData.date)})</div>`;
+      } else {
+        const daysStr = delta === null ? '日付未定' : (delta === 0 ? '本日' : `あと${delta}日`);
+        nextActionHtml = `<div class="next-action">次: <strong>${nextIcon}${nextTaskName}</strong> ${formatDate(nextTaskData.date)} (${daysStr})</div>`;
+      }
+    }
     // 入札案件は[プ]表示不要、[提]タグも不要(括弧内の人をそのまま表示)
     const isNyusatsu = caseObj.kind === '郵便入札';
     // プレゼン出席者が提案書作成チームと違う場合のみ別途表示(プロポ案件のみ)
     const presenSame = JSON.stringify(caseObj.presenLeaders) === JSON.stringify(caseObj.leaders);
     const showPresen = !isNyusatsu && !presenSame && caseObj.presenLeaders && caseObj.presenLeaders.length > 0;
     const presenText = showPresen
-      ? `<span class="persons-text" style="color:#7B1FA2;">[プ]${{buildLeadersText(caseObj.presenLeaders)}}</span>`
+      ? `<span class="persons-text" style="color:#7B1FA2;">[プ]${buildLeadersText(caseObj.presenLeaders)}</span>`
       : '';
     const showTeianTag = !isNyusatsu && showPresen;
     html += `<div class="section">
       <div class="section-header">
-        <span class="case-num-badge">${{escapeHtml(caseObj.genre)}}${{escapeHtml(caseObj.num)}}</span>
-        <div class="section-title">${{escapeHtml(caseObj.city)}}</div>
-        <span class="kind-badge ${{caseObj.kind}}">${{caseObj.kind === '郵便入札' ? '入札' : caseObj.kind}}</span>
-        <span class="persons-text">${{showTeianTag ? '[提]' : ''}}${{buildLeadersText(caseObj.leaders)}}</span>
-        ${{presenText}}
-        <div class="progress-container"><div class="progress-bar" style="width:${{progress}}%"></div></div>
-        <span class="progress-text">${{doneCount}}/${{total}}</span>
+        <span class="case-num-badge">${escapeHtml(caseObj.genre)}${escapeHtml(caseObj.num)}</span>
+        <div class="section-title">${escapeHtml(caseObj.city)}</div>
+        <span class="kind-badge ${caseObj.kind}">${caseObj.kind === '郵便入札' ? '入札' : caseObj.kind}</span>
+        <span class="persons-text">${showTeianTag ? '[提]' : ''}${buildLeadersText(caseObj.leaders)}</span>
+        ${presenText}
+        <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
+        <span class="progress-text">${doneCount}/${total}</span>
       </div>
-      ${{nextActionHtml}}
-      ${{listHeaderHtml(true)}}
+      ${nextActionHtml}
+      ${listHeaderHtml(true)}
       <ul class="task-list">`;
-    for (const [taskName, taskData] of sortedTasks) {{
+    for (const [taskName, taskData] of sortedTasks) {
       const delta = daysUntil(taskData.date);
       const cls = statusClass(delta, taskData.done);
       const isNext = taskName === nextTaskName;
-      html += `<li class="task-item case-mode ${{cls}} ${{isNext ? 'next' : ''}}">
-        ${{doneMarkHtml(taskData.done)}}
-        <span class="date-badge ${{!taskData.date ? 'nodate' : ''}}">${{formatDate(taskData.date)}}</span>
-        <span class="days-left ${{daysUrgency(delta)}}">${{daysText(delta, taskData.done)}}</span>
-        <span class="task-name">${{buildTaskNameHtml(taskName, taskData)}}</span>
-        ${{buildTeamCells(caseObj)}}
+      html += `<li class="task-item case-mode ${cls} ${isNext ? 'next' : ''}">
+        ${doneMarkHtml(taskData.done)}
+        <span class="date-badge ${!taskData.date ? 'nodate' : ''}">${formatDate(taskData.date)}</span>
+        <span class="days-left ${daysUrgency(delta)}">${daysText(delta, taskData.done)}</span>
+        <span class="task-name">${buildTaskNameHtml(taskName, taskData)}</span>
+        ${buildTeamCells(caseObj)}
       </li>`;
-    }}
+    }
     html += '</ul></div>';
-  }});
+  });
   container.innerHTML = html || '<div class="section">データがありません</div>';
-}}
+}
 
-function renderDeadlineView() {{
+function renderDeadlineView() {
   const allTasks = [];
-  cases.forEach((caseObj, caseIdx) => {{
-    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {{
+  cases.forEach((caseObj, caseIdx) => {
+    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
       if (!isTaskInFilter(caseObj, taskName)) return;
       const persons = getTaskPersons(caseObj, taskName);
-      allTasks.push({{
+      allTasks.push({
         caseIdx, taskName,
         date: taskData.date, done: taskData.done,
         deadline: taskData.deadline, note: taskData.note,
         num: caseObj.num, city: caseObj.city,
         caseObj, persons,
-      }});
-    }});
-  }});
-  allTasks.sort((a, b) => {{
+      });
+    });
+  });
+  allTasks.sort((a, b) => {
     if (!a.date) return 1;
     if (!b.date) return -1;
     return a.date.localeCompare(b.date);
-  }});
+  });
 
-  const groups = {{
-    overdue:  {{ label: '期限超過 - 要対応',     tasks: [], className: 'overdue' }},
-    today:    {{ label: '本日期限',              tasks: [], className: 'today' }},
-    thisWeek: {{ label: '今週中(7日以内)',       tasks: [], className: 'this-week' }},
-    nextWeek: {{ label: '来週(8〜14日)',         tasks: [], className: 'next-week' }},
-    future:   {{ label: 'それ以降',              tasks: [], className: 'future' }},
-    nodate:   {{ label: '日付未定',              tasks: [], className: 'future' }},
-    done:     {{ label: '完了済み',              tasks: [], className: '' }},
-  }};
-  allTasks.forEach(t => {{
-    if (t.done) {{ groups.done.tasks.push(t); return; }}
-    if (!t.date) {{ groups.nodate.tasks.push(t); return; }}
+  const groups = {
+    overdue:  { label: '期限超過 - 要対応',     tasks: [], className: 'overdue' },
+    today:    { label: '本日期限',              tasks: [], className: 'today' },
+    thisWeek: { label: '今週中(7日以内)',       tasks: [], className: 'this-week' },
+    nextWeek: { label: '来週(8〜14日)',         tasks: [], className: 'next-week' },
+    future:   { label: 'それ以降',              tasks: [], className: 'future' },
+    nodate:   { label: '日付未定',              tasks: [], className: 'future' },
+    done:     { label: '完了済み',              tasks: [], className: '' },
+  };
+  allTasks.forEach(t => {
+    if (t.done) { groups.done.tasks.push(t); return; }
+    if (!t.date) { groups.nodate.tasks.push(t); return; }
     const delta = daysUntil(t.date);
     if (delta < 0) groups.overdue.tasks.push(t);
     else if (delta === 0) groups.today.tasks.push(t);
     else if (delta <= 7) groups.thisWeek.tasks.push(t);
     else if (delta <= 14) groups.nextWeek.tasks.push(t);
     else groups.future.tasks.push(t);
-  }});
+  });
 
   const container = document.getElementById('deadline-view');
   let html = '';
-  for (const key of ['overdue', 'today', 'thisWeek', 'nextWeek', 'future', 'nodate', 'done']) {{
+  for (const key of ['overdue', 'today', 'thisWeek', 'nextWeek', 'future', 'nodate', 'done']) {
     const group = groups[key];
     if (group.tasks.length === 0) continue;
     html += `<div class="section" style="padding:16px">
-      <div class="deadline-header ${{group.className}}">
-        <span>${{group.label}}</span>
-        <span class="deadline-count">${{group.tasks.length}}件</span>
+      <div class="deadline-header ${group.className}">
+        <span>${group.label}</span>
+        <span class="deadline-count">${group.tasks.length}件</span>
       </div>
-      ${{listHeaderHtml()}}
+      ${listHeaderHtml()}
       <ul class="task-list">`;
-    for (const t of group.tasks) {{
+    for (const t of group.tasks) {
       const delta = daysUntil(t.date);
       const cls = statusClass(delta, t.done);
-      const taskDataForName = {{ deadline: t.deadline, note: t.note }};
-      html += `<li class="task-item ${{cls}}">
-        ${{doneMarkHtml(t.done)}}
-        <span class="date-badge ${{!t.date ? 'nodate' : ''}}">${{formatDate(t.date)}}</span>
-        <span class="days-left ${{daysUrgency(delta)}}">${{daysText(delta, t.done)}}</span>
-        <span class="task-name">${{buildTaskNameHtml(t.taskName, taskDataForName)}}</span>
-        <span class="task-city">${{buildCaseBadgeCity(t.caseObj, t.num, t.city)}}</span>
-        ${{buildTeamCells(t.caseObj)}}
+      const taskDataForName = { deadline: t.deadline, note: t.note };
+      html += `<li class="task-item ${cls}">
+        ${doneMarkHtml(t.done)}
+        <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
+        <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
+        <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
+        <span class="task-city">${buildCaseBadgeCity(t.caseObj, t.num, t.city)}</span>
+        ${buildTeamCells(t.caseObj)}
       </li>`;
-    }}
+    }
     html += '</ul></div>';
-  }}
+  }
   container.innerHTML = html || '<div class="section">データがありません</div>';
-}}
+}
 
 // ===== タスク別ビュー =====
-function renderTaskView() {{
+function renderTaskView() {
   // タスク名ごとに集約
-  const tasksByName = {{}};
-  cases.forEach((caseObj, caseIdx) => {{
-    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {{
+  const tasksByName = {};
+  cases.forEach((caseObj, caseIdx) => {
+    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
       if (!isTaskInFilter(caseObj, taskName)) return;
       if (!tasksByName[taskName]) tasksByName[taskName] = [];
       const persons = getTaskPersons(caseObj, taskName);
-      tasksByName[taskName].push({{
+      tasksByName[taskName].push({
         caseIdx, taskName,
         date: taskData.date, done: taskData.done,
         deadline: taskData.deadline, note: taskData.note,
         num: caseObj.num, city: caseObj.city,
         caseObj, persons,
-      }});
-    }});
-  }});
+      });
+    });
+  });
 
   // 各タスク種別内で締切日昇順
-  Object.keys(tasksByName).forEach(name => {{
-    tasksByName[name].sort((a, b) => {{
+  Object.keys(tasksByName).forEach(name => {
+    tasksByName[name].sort((a, b) => {
       if (!a.date) return 1;
       if (!b.date) return -1;
       return a.date.localeCompare(b.date);
-    }});
-  }});
+    });
+  });
 
   // 表示順: プロポ流れ + 郵便入札
   const TASK_VIEW_ORDER = ['質問', '参加表明', '骨子作成', '骨子確認・QC分担決定', '提案書草案作成', '提案書QC', '最終化・提出準備', '提案書郵送', 'プレゼン', '郵便入札'];
@@ -3485,82 +3465,82 @@ function renderTaskView() {{
   const container = document.getElementById('task-view');
   let html = '';
 
-  for (const taskName of TASK_VIEW_ORDER) {{
+  for (const taskName of TASK_VIEW_ORDER) {
     if (!tasksByName[taskName]) continue;
     const tasks = tasksByName[taskName];
     const undone = tasks.filter(t => !t.done);
-    const upcoming = undone.filter(t => {{ const d = daysUntil(t.date); return d === null || d >= 0; }}).length;
-    const overdue = undone.filter(t => {{ const d = daysUntil(t.date); return d !== null && d < 0; }}).length;
+    const upcoming = undone.filter(t => { const d = daysUntil(t.date); return d === null || d >= 0; }).length;
+    const overdue = undone.filter(t => { const d = daysUntil(t.date); return d !== null && d < 0; }).length;
     const done = tasks.filter(t => t.done).length;
 
-    let countStr = `残 ${{upcoming}}`;
-    if (overdue > 0) countStr += ` / 超過 ${{overdue}}`;
-    countStr += ` / 済 ${{done}} / 全 ${{tasks.length}}`;
+    let countStr = `残 ${upcoming}`;
+    if (overdue > 0) countStr += ` / 超過 ${overdue}`;
+    countStr += ` / 済 ${done} / 全 ${tasks.length}`;
 
     const icon = getTaskIcon(taskName);
 
     html += `<div class="section">
       <div class="section-header">
-        <div class="section-title">${{icon}} ${{escapeHtml(taskName)}}</div>
-        <div class="section-count">${{escapeHtml(countStr)}}</div>
+        <div class="section-title">${icon} ${escapeHtml(taskName)}</div>
+        <div class="section-count">${escapeHtml(countStr)}</div>
       </div>
-      ${{listHeaderHtml()}}
+      ${listHeaderHtml()}
       <ul class="task-list">`;
 
-    for (const t of tasks) {{
+    for (const t of tasks) {
       const delta = daysUntil(t.date);
       const cls = statusClass(delta, t.done);
-      const taskDataForName = {{ deadline: t.deadline, note: t.note }};
+      const taskDataForName = { deadline: t.deadline, note: t.note };
 
-      html += `<li class="task-item ${{cls}}">
-        ${{doneMarkHtml(t.done)}}
-        <span class="date-badge ${{!t.date ? 'nodate' : ''}}">${{formatDate(t.date)}}</span>
-        <span class="days-left ${{daysUrgency(delta)}}">${{daysText(delta, t.done)}}</span>
-        <span class="task-name">${{buildTaskNameHtml(t.taskName, taskDataForName)}}</span>
-        <span class="task-city">${{buildCaseBadgeCity(t.caseObj, t.num, t.city)}}</span>
-        ${{buildTeamCells(t.caseObj)}}
+      html += `<li class="task-item ${cls}">
+        ${doneMarkHtml(t.done)}
+        <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
+        <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
+        <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
+        <span class="task-city">${buildCaseBadgeCity(t.caseObj, t.num, t.city)}</span>
+        ${buildTeamCells(t.caseObj)}
       </li>`;
-    }}
+    }
     html += '</ul></div>';
-  }}
+  }
 
   container.innerHTML = html || '<div class="section">データがありません</div>';
-}}
+}
 
 // ===== ガントチャートビュー(帯スケ方式) =====
-function renderGanttView() {{
+function renderGanttView() {
   const container = document.getElementById('gantt-view');
-  if (cases.length === 0) {{
+  if (cases.length === 0) {
     container.innerHTML = '<div class="section">データがありません</div>';
     return;
-  }}
+  }
 
   // 表示対象の案件(フィルタ済み)を先に確定
   const visibleCases = cases.filter(c => isCaseInFilter(c));
-  if (visibleCases.length === 0) {{
+  if (visibleCases.length === 0) {
     container.innerHTML = '<div class="section">表示対象の案件がありません</div>';
     return;
-  }}
+  }
 
   // 表示期間を決定(表示中の案件のみから算出、他ジャンル/他の遠い案件に引っ張られない)
   let minDate = null, maxDate = null;
-  visibleCases.forEach(c => {{
-    Object.values(c.tasks).forEach(t => {{
-      if (t.date) {{
+  visibleCases.forEach(c => {
+    Object.values(c.tasks).forEach(t => {
+      if (t.date) {
         if (!minDate || t.date < minDate) minDate = t.date;
         if (!maxDate || t.date > maxDate) maxDate = t.date;
-      }}
-      if (t.deadline) {{
+      }
+      if (t.deadline) {
         if (t.deadline > maxDate) maxDate = t.deadline;
         if (t.deadline < minDate) minDate = t.deadline;
-      }}
-    }});
-  }});
+      }
+    });
+  });
 
-  if (!minDate || !maxDate) {{
+  if (!minDate || !maxDate) {
     container.innerHTML = '<div class="section">日付データがありません</div>';
     return;
-  }}
+  }
 
   // 前後に余裕
   const start = new Date(minDate);
@@ -3571,40 +3551,40 @@ function renderGanttView() {{
   // 日付配列
   const days = [];
   const cur = new Date(start);
-  while (cur <= end) {{
+  while (cur <= end) {
     days.push(new Date(cur));
     cur.setDate(cur.getDate() + 1);
-  }}
+  }
 
   // 日付キー生成
   const pad = n => String(n).padStart(2, '0');
-  const toKey = d => `${{d.getFullYear()}}-${{pad(d.getMonth()+1)}}-${{pad(d.getDate())}}`;
+  const toKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   const todayKey = toKey(TODAY);
 
   // 日付→列インデックスのマップ
-  const dateToIdx = {{}};
-  days.forEach((d, i) => {{ dateToIdx[toKey(d)] = i; }});
+  const dateToIdx = {};
+  days.forEach((d, i) => { dateToIdx[toKey(d)] = i; });
 
   // 月ヘッダーグルーピング
   const monthGroups = [];
   let curMonth = null;
-  days.forEach((d, i) => {{
-    const mKey = `${{d.getFullYear()}}-${{d.getMonth()}}`;
-    if (curMonth && curMonth.key === mKey) {{
+  days.forEach((d, i) => {
+    const mKey = `${d.getFullYear()}-${d.getMonth()}`;
+    if (curMonth && curMonth.key === mKey) {
       curMonth.span++;
-    }} else {{
-      curMonth = {{ key: mKey, year: d.getFullYear(), month: d.getMonth() + 1, span: 1 }};
+    } else {
+      curMonth = { key: mKey, year: d.getFullYear(), month: d.getMonth() + 1, span: 1 };
       monthGroups.push(curMonth);
-    }}
-  }});
+    }
+  });
 
   // 案件ソート(プレゼン/最終日順)
-  function getFinalDate(c) {{
+  function getFinalDate(c) {
     if (c.tasks['プレゼン'] && c.tasks['プレゼン'].date) return c.tasks['プレゼン'].date;
     if (c.tasks['郵便入札']) return c.tasks['郵便入札'].deadline || c.tasks['郵便入札'].date;
     if (c.tasks['提案書郵送'] && c.tasks['提案書郵送'].deadline) return c.tasks['提案書郵送'].deadline;
     return '9999-12-31';
-  }}
+  }
   const sortedCases = [...visibleCases]
     .sort((a, b) => (getFinalDate(a) || '9999').localeCompare(getFinalDate(b) || '9999'));
 
@@ -3614,14 +3594,14 @@ function renderGanttView() {{
   // 月ヘッダー行
   html += '<thead><tr class="gantt-header-top">';
   html += '<th class="gantt-th-sticky top gantt-name-cell gantt-name-header" rowspan="2">&nbsp;</th>';
-  monthGroups.forEach(m => {{
-    html += `<th colspan="${{m.span}}" class="gantt-month-label">${{m.year}}年${{m.month}}月</th>`;
-  }});
+  monthGroups.forEach(m => {
+    html += `<th colspan="${m.span}" class="gantt-month-label">${m.year}年${m.month}月</th>`;
+  });
   html += '</tr>';
 
   // 日付ヘッダー行
   html += '<tr class="gantt-header-sub">';
-  days.forEach(d => {{
+  days.forEach(d => {
     const dow = d.getDay();
     const key = toKey(d);
     const isToday = key === todayKey;
@@ -3632,12 +3612,12 @@ function renderGanttView() {{
     else if (dow === 0) cls = 'sun';
     else if (isHoliday) cls = 'holiday';
     else if (dow === 6) cls = 'sat';
-    html += `<th class="gantt-date-col ${{cls}}">${{d.getDate()}}<br><small>${{wd}}</small></th>`;
-  }});
+    html += `<th class="gantt-date-col ${cls}">${d.getDate()}<br><small>${wd}</small></th>`;
+  });
   html += '</tr></thead><tbody>';
 
   // 各案件の行を生成
-  sortedCases.forEach((caseObj, rowIdx) => {{
+  sortedCases.forEach((caseObj, rowIdx) => {
     const rowCls = rowIdx % 2 === 0 ? '' : 'alt';
 
     // タスクを日付順に並べて帯範囲を計算
@@ -3653,64 +3633,64 @@ function renderGanttView() {{
     const FIXED_RANGE_TASKS = new Set(['骨子作成', '骨子確認・QC分担決定', '提案書草案作成', '提案書QC', '最終化・提出準備']);
 
     let prevEnd = null; // 前タスクの終了日(帯タスクの場合のみ更新)
-    taskEntries.forEach(([tname, tdata]) => {{
+    taskEntries.forEach(([tname, tdata]) => {
       const taskEnd = new Date(tdata.date);
 
-      if (FIXED_RANGE_TASKS.has(tname) && tdata.startDate) {{
+      if (FIXED_RANGE_TASKS.has(tname) && tdata.startDate) {
         // 社内タスク: 自動生成された範囲(startDate〜date)をそのまま使う
-        orderedTasks.push({{
+        orderedTasks.push({
           name: tname,
           start: tdata.startDate,
           end: tdata.date,
           done: tdata.done,
           date: tdata.date,
           auto: true,
-        }});
+        });
         // prevEndは更新しない(外部タスクの範囲計算に影響させない)
-      }} else if (POINT_TASKS.has(tname)) {{
+      } else if (POINT_TASKS.has(tname)) {
         // ピンポイント塗り: その日のみ
-        orderedTasks.push({{
+        orderedTasks.push({
           name: tname,
           start: toKey(taskEnd),
           end: toKey(taskEnd),
           done: tdata.done,
           date: tdata.date,
           deadline: tdata.deadline,
-        }});
+        });
 
         // 必着がある場合は、必着日もピンポイント追加
-        if (tdata.deadline) {{
+        if (tdata.deadline) {
           const dlEnd = new Date(tdata.deadline);
-          orderedTasks.push({{
+          orderedTasks.push({
             name: '必着',
             start: toKey(dlEnd),
             end: toKey(dlEnd),
             done: tdata.done,
             date: tdata.deadline,
             isDeadlineSpan: true,
-          }});
-        }}
-      }} else {{
+          });
+        }
+      } else {
         // 帯塗り(質問・参加表明など): 前タスクの翌日〜当日
         let barStart;
-        if (prevEnd === null) {{
+        if (prevEnd === null) {
           // 初回は表示開始日から
           barStart = new Date(start);
-        }} else {{
+        } else {
           barStart = new Date(prevEnd);
           barStart.setDate(barStart.getDate() + 1);
-        }}
-        orderedTasks.push({{
+        }
+        orderedTasks.push({
           name: tname,
           start: toKey(barStart),
           end: toKey(taskEnd),
           done: tdata.done,
           date: tdata.date,
           deadline: tdata.deadline,
-        }});
+        });
         prevEnd = taskEnd;
-      }}
-    }});
+      }
+    });
 
     // 案件名セル + 日付セル
     // 担当者表示: 提案書(teian) / プロポ(presen) を2段で
@@ -3719,37 +3699,37 @@ function renderGanttView() {{
     const presenArr = caseObj.presenLeaders || [];
     const formatNames = arr => arr.map(p => p === '●●' ? `<span class="person-unassigned">●●</span>` : p).join(' ');
     let leadersHtml = '';
-    if (isNyusatsu) {{
-      leadersHtml = `<span class="gantt-leaders-row">${{formatNames(teianArr)}}</span>`;
-    }} else {{
+    if (isNyusatsu) {
+      leadersHtml = `<span class="gantt-leaders-row">${formatNames(teianArr)}</span>`;
+    } else {
       const teianText = teianArr.length > 0 ? formatNames(teianArr) : '—';
       const presenText = presenArr.length > 0 ? formatNames(presenArr) : '—';
       leadersHtml = `
-        <span class="gantt-leaders-row"><span class="gantt-leader-tag">提</span>${{teianText}}</span>
-        <span class="gantt-leaders-row"><span class="gantt-leader-tag gantt-leader-tag-presen">プ</span>${{presenText}}</span>
+        <span class="gantt-leaders-row"><span class="gantt-leader-tag">提</span>${teianText}</span>
+        <span class="gantt-leaders-row"><span class="gantt-leader-tag gantt-leader-tag-presen">プ</span>${presenText}</span>
       `;
-    }}
-    html += `<tr class="gantt-row-case ${{rowCls}}">`;
+    }
+    html += `<tr class="gantt-row-case ${rowCls}">`;
     html += `<td class="gantt-th-sticky gantt-name-cell">
-      <div class="gantt-name-top"><span class="case-num-badge">${{escapeHtml(caseObj.genre)}}${{escapeHtml(caseObj.num)}}</span>${{escapeHtml(caseObj.city)}}</div>
-      <div class="gantt-leaders">${{leadersHtml}}</div>
+      <div class="gantt-name-top"><span class="case-num-badge">${escapeHtml(caseObj.genre)}${escapeHtml(caseObj.num)}</span>${escapeHtml(caseObj.city)}</div>
+      <div class="gantt-leaders">${leadersHtml}</div>
     </td>`;
 
     // 日付セルを1日ずつ生成、その間に帯を配置
     // 各セルがどのタスク帯に属するかを判定
     const cellTask = new Array(days.length).fill(null);
-    orderedTasks.forEach(t => {{
+    orderedTasks.forEach(t => {
       const si = dateToIdx[t.start];
       const ei = dateToIdx[t.end];
       if (si === undefined || ei === undefined) return;
-      for (let i = si; i <= ei; i++) {{
+      for (let i = si; i <= ei; i++) {
         if (cellTask[i] === null) cellTask[i] = t;
-      }}
-    }});
+      }
+    });
 
     // 連続する同一タスクセルをcolspanでまとめる
     let i = 0;
-    while (i < days.length) {{
+    while (i < days.length) {
       const d = days[i];
       const dow = d.getDay();
       const key = toKey(d);
@@ -3762,12 +3742,12 @@ function renderGanttView() {{
       else if (dow === 6) cls = 'sat';
 
       const task = cellTask[i];
-      if (!task) {{
+      if (!task) {
         // 空セル
-        html += `<td class="gantt-date-col ${{cls}}"></td>`;
+        html += `<td class="gantt-date-col ${cls}"></td>`;
         i++;
         continue;
-      }}
+      }
 
       // 同一タスクの連続範囲をまとめる
       let j = i;
@@ -3775,56 +3755,56 @@ function renderGanttView() {{
       const span = j - i;
 
       // 帯の中央に横書きラベル(2文字短縮名、最終日に「済」オーバーレイ)
-      const barCls = `gantt-bar-${{task.name}}`;
+      const barCls = `gantt-bar-${task.name}`;
       const doneOverlay = task.done ? `<span class="gantt-done-overlay">済</span>` : '';
       const shortName = TASK_SHORT_NAMES[task.name] || task.name;
-      const label = `<span class="gantt-bar-label">${{escapeHtml(shortName)}}</span>`;
+      const label = `<span class="gantt-bar-label">${escapeHtml(shortName)}</span>`;
 
       // ツールチップ(HTMLエスケープ済み)
-      const tooltip = escapeHtml(`${{caseObj.city}} / ${{task.name}}\\n期限: ${{formatDate(task.date)}}${{task.done ? ' [済]' : ''}}`);
+      const tooltip = escapeHtml(`${caseObj.city} / ${task.name}\n期限: ${formatDate(task.date)}${task.done ? ' [済]' : ''}`);
 
       // 今日列の判定(連続範囲内に今日があるか)
       let barTodayCls = '';
-      for (let k = i; k < j; k++) {{
-        if (toKey(days[k]) === todayKey) {{
+      for (let k = i; k < j; k++) {
+        if (toKey(days[k]) === todayKey) {
           barTodayCls = 'today-col';
           break;
-        }}
-      }}
+        }
+      }
 
       const doneCls = task.done ? 'gantt-done-cell' : '';
-      html += `<td colspan="${{span}}" class="gantt-date-col ${{barTodayCls}} ${{doneCls}}" title="${{tooltip}}">
-        <div class="gantt-bar ${{barCls}}">${{label}}${{doneOverlay}}</div>
+      html += `<td colspan="${span}" class="gantt-date-col ${barTodayCls} ${doneCls}" title="${tooltip}">
+        <div class="gantt-bar ${barCls}">${label}${doneOverlay}</div>
       </td>`;
       i = j;
-    }}
+    }
 
     html += '</tr>';
-  }});
+  });
 
   html += '</tbody></table></div></div>';
   container.innerHTML = html;
   // 今日列が見えるようにスクロール位置を調整(中央やや左寄り)
-  requestAnimationFrame(() => {{
+  requestAnimationFrame(() => {
     const scrollWrapper = container.querySelector('.gantt-scroll') || container;
     const todayHeader = container.querySelector('.gantt-header-sub th.today');
-    if (todayHeader && scrollWrapper) {{
+    if (todayHeader && scrollWrapper) {
       const wrapperRect = scrollWrapper.getBoundingClientRect();
       const todayRect = todayHeader.getBoundingClientRect();
       // 今日列を画面の左から1/3の位置に
       const target = todayRect.left - wrapperRect.left - wrapperRect.width / 3;
       scrollWrapper.scrollLeft = Math.max(0, target);
-    }}
-  }});
-}}
+    }
+  });
+}
 
 // ===== 稼働率ビュー =====
-function renderWorkloadView() {{
+function renderWorkloadView() {
   const container = document.getElementById('workload-view');
-  if (cases.length === 0) {{
+  if (cases.length === 0) {
     container.innerHTML = '<div class="section">データがありません</div>';
     return;
-  }}
+  }
 
   // 今週月曜から12週間分の週を生成
   const today = new Date(TODAY);
@@ -3835,74 +3815,74 @@ function renderWorkloadView() {{
   monday.setDate(monday.getDate() + offset);
 
   const pad = n => String(n).padStart(2, '0');
-  const toKey = d => `${{d.getFullYear()}}-${{pad(d.getMonth()+1)}}-${{pad(d.getDate())}}`;
+  const toKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
   // 表示する週を決定: 先週〜今から8週間(合計9週)
   // 先週から含めることで、直近で超過したタスクも見える
   const weeks = [];
-  for (let i = -1; i <= 7; i++) {{
+  for (let i = -1; i <= 7; i++) {
     const start = new Date(monday);
     start.setDate(start.getDate() + i * 7);
     const end = new Date(start);
     end.setDate(end.getDate() + 6);
-    weeks.push({{
+    weeks.push({
       start, end,
       startKey: toKey(start),
       endKey: toKey(end),
       isCurrent: i === 0,
       isPast: i < 0,
-    }});
-  }}
+    });
+  }
 
   // タスクの日付(締切日)から週を判定し、担当者別にカウント
-  // key: `${{person}}__${{weekIdx}}` -> count
-  const taskCountByPersonWeek = {{}};
+  // key: `${person}__${weekIdx}` -> count
+  const taskCountByPersonWeek = {};
   const personsSeen = new Set();
 
-  cases.forEach(c => {{
-    Object.entries(c.tasks).forEach(([tname, tdata]) => {{
+  cases.forEach(c => {
+    Object.entries(c.tasks).forEach(([tname, tdata]) => {
       if (tdata.done) return; // 済みタスクは負荷としてカウントしない
       if (!tdata.date) return;
 
       // このタスクが属する週を見つける
       const taskDateKey = tdata.date;
       let weekIdx = -1;
-      for (let i = 0; i < weeks.length; i++) {{
-        if (taskDateKey >= weeks[i].startKey && taskDateKey <= weeks[i].endKey) {{
+      for (let i = 0; i < weeks.length; i++) {
+        if (taskDateKey >= weeks[i].startKey && taskDateKey <= weeks[i].endKey) {
           weekIdx = i;
           break;
-        }}
-      }}
+        }
+      }
       if (weekIdx === -1) return;
 
       const persons = getTaskPersons(c, tname);
-      persons.forEach(p => {{
+      persons.forEach(p => {
         personsSeen.add(p);
-        const key = `${{p}}__${{weekIdx}}`;
+        const key = `${p}__${weekIdx}`;
         taskCountByPersonWeek[key] = (taskCountByPersonWeek[key] || 0) + 1;
-      }});
-    }});
-  }});
+      });
+    });
+  });
 
   // PERSON_ORDERの順で、かつ実際に出現した担当者だけ表示
   const personsToShow = PERSON_ORDER.filter(p => personsSeen.has(p));
 
   // 最大カウントを取得(色分けのスケール用)
   let maxCount = 0;
-  Object.values(taskCountByPersonWeek).forEach(c => {{
+  Object.values(taskCountByPersonWeek).forEach(c => {
     if (c > maxCount) maxCount = c;
-  }});
+  });
   if (maxCount === 0) maxCount = 1;
 
   // カウントに応じた色ランク
-  function rank(count) {{
+  function rank(count) {
     if (count === 0) return 'zero';
     const ratio = count / Math.max(maxCount, 3);
     if (ratio <= 0.33) return 'low';
     if (ratio <= 0.66) return 'medium';
     if (ratio <= 0.95) return 'high';
     return 'critical';
-  }}
+  }
 
   let html = '<div class="workload-wrapper">';
   html += `<div class="workload-intro">
@@ -3913,44 +3893,44 @@ function renderWorkloadView() {{
 
   html += '<table class="workload-table"><thead><tr>';
   html += '<th class="person-cell">担当者</th>';
-  weeks.forEach(w => {{
-    const wKey = `${{pad(w.start.getMonth()+1)}}/${{pad(w.start.getDate())}}`;
-    const wKeyEnd = `${{pad(w.end.getMonth()+1)}}/${{pad(w.end.getDate())}}`;
+  weeks.forEach(w => {
+    const wKey = `${pad(w.start.getMonth()+1)}/${pad(w.start.getDate())}`;
+    const wKeyEnd = `${pad(w.end.getMonth()+1)}/${pad(w.end.getDate())}`;
     const label = w.isCurrent ? '今週' : (w.isPast ? '先週' : '');
-    html += `<th class="week-header">${{wKey}}〜${{wKeyEnd}}<small>${{label || ' '}}</small></th>`;
-  }});
+    html += `<th class="week-header">${wKey}〜${wKeyEnd}<small>${label || ' '}</small></th>`;
+  });
   html += '</tr></thead><tbody>';
 
-  personsToShow.forEach((person, pIdx) => {{
+  personsToShow.forEach((person, pIdx) => {
     let rowCls = pIdx % 2 === 0 ? '' : 'alt';
     // フィルタ中のユーザー行はハイライト
-    if (currentUserFilter !== 'all' && person === currentUserFilter) {{
+    if (currentUserFilter !== 'all' && person === currentUserFilter) {
       rowCls += ' workload-highlight';
-    }}
+    }
     const displayName = person === '●●'
       ? '<span class="person-unassigned">●●</span>(未定)'
       : person;
-    html += `<tr class="${{rowCls}}"><td class="person-cell">${{displayName}}</td>`;
+    html += `<tr class="${rowCls}"><td class="person-cell">${displayName}</td>`;
 
-    weeks.forEach((w, wIdx) => {{
-      const count = taskCountByPersonWeek[`${{person}}__${{wIdx}}`] || 0;
+    weeks.forEach((w, wIdx) => {
+      const count = taskCountByPersonWeek[`${person}__${wIdx}`] || 0;
       const barRank = rank(count);
       const barPct = count === 0 ? 0 : Math.max(10, Math.round(count / maxCount * 100));
       const todayCls = w.isCurrent ? 'workload-today-col' : '';
       const countCls = count === 0 ? 'zero' : (count >= maxCount * 0.95 ? 'critical' : '');
 
-      html += `<td class="workload-cell ${{todayCls}}">
+      html += `<td class="workload-cell ${todayCls}">
         <div class="workload-cell-inner">
           <div class="workload-bar">
-            <div class="workload-bar-fill ${{barRank}}" style="width:${{barPct}}%"></div>
+            <div class="workload-bar-fill ${barRank}" style="width:${barPct}%"></div>
           </div>
-          <span class="workload-count ${{countCls}}">${{count}}</span>
+          <span class="workload-count ${countCls}">${count}</span>
         </div>
       </td>`;
-    }});
+    });
 
     html += '</tr>';
-  }});
+  });
 
   html += '</tbody></table>';
 
@@ -3964,45 +3944,45 @@ function renderWorkloadView() {{
 
   html += '</div>';
   container.innerHTML = html;
-}}
+}
 
 // ===== 担当未定警告 =====
-function renderUnassignedAlert() {{
+function renderUnassignedAlert() {
   const c = document.getElementById('unassigned-alert-container');
   // フィルタ中で ●● 以外を選んでる場合、このアラートは自分に無関係なので非表示
-  if (currentUserFilter !== 'all' && currentUserFilter !== '●●') {{
+  if (currentUserFilter !== 'all' && currentUserFilter !== '●●') {
     c.innerHTML = '';
     return;
-  }}
+  }
   // ●●が担当になっている未完了タスクをカウント(全体)
   let count = 0;
-  cases.forEach(caseObj => {{
-    Object.entries(caseObj.tasks).forEach(([tname, tdata]) => {{
+  cases.forEach(caseObj => {
+    Object.entries(caseObj.tasks).forEach(([tname, tdata]) => {
       if (tdata.done || !tdata.date) return;
       const persons = getTaskPersons(caseObj, tname);
       if (persons.includes('●●')) count++;
-    }});
-  }});
+    });
+  });
 
-  if (count === 0) {{
+  if (count === 0) {
     c.innerHTML = '';
     return;
-  }}
+  }
 
   c.innerHTML = `<div class="unassigned-alert" onclick="switchViewByName('workload')">
-    👥 担当未定タスクが <strong>${{count}}件</strong> あります — 稼働率タブで確認して早めにアサインしましょう
+    👥 担当未定タスクが <strong>${count}件</strong> あります — 稼働率タブで確認して早めにアサインしましょう
   </div>`;
-}}
-function renderTodayFocusView() {{
+}
+function renderTodayFocusView() {
   const container = document.getElementById('today-focus-view');
 
   // 対象: 超過 + 本日 + 今週7日以内 の未完了タスクを収集
   // 担当者別にグループ化
-  const tasksByPerson = {{}};
-  const urgencyOrder = {{ overdue: 0, today: 1, urgent: 2 }};
+  const tasksByPerson = {};
+  const urgencyOrder = { overdue: 0, today: 1, urgent: 2 };
 
-  cases.forEach((caseObj, caseIdx) => {{
-    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {{
+  cases.forEach((caseObj, caseIdx) => {
+    Object.entries(caseObj.tasks).forEach(([taskName, taskData]) => {
       if (taskData.done || !taskData.date) return;
       if (!isTaskInFilter(caseObj, taskName)) return;
       const delta = daysUntil(taskData.date);
@@ -4014,197 +3994,197 @@ function renderTodayFocusView() {{
       if (!urgency) return;
 
       const persons = getTaskPersons(caseObj, taskName);
-      persons.forEach(person => {{
+      persons.forEach(person => {
         // scope=my: 選択ユーザーのセクションのみ
         // scope=project/team: 制限なし(isTaskInFilterで既に案件は絞ってある)
         if (currentUserFilter !== 'all' && currentScopeFilter === 'my' && person !== currentUserFilter) return;
         if (!tasksByPerson[person]) tasksByPerson[person] = [];
-        tasksByPerson[person].push({{
+        tasksByPerson[person].push({
           caseIdx, taskName, urgency,
           date: taskData.date, done: taskData.done,
           deadline: taskData.deadline, note: taskData.note,
           num: caseObj.num, city: caseObj.city,
           caseObj, persons,
-        }});
-      }});
-    }});
-  }});
+        });
+      });
+    });
+  });
 
   // 各担当者で緊急度→日付順にソート
-  Object.keys(tasksByPerson).forEach(p => {{
-    tasksByPerson[p].sort((a, b) => {{
+  Object.keys(tasksByPerson).forEach(p => {
+    tasksByPerson[p].sort((a, b) => {
       const uDiff = urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
       if (uDiff !== 0) return uDiff;
       return (a.date || '').localeCompare(b.date || '');
-    }});
-  }});
+    });
+  });
 
   // 総件数
   const totalCount = Object.values(tasksByPerson).reduce((s, arr) => s + arr.length, 0);
 
   let html = '';
 
-  if (totalCount === 0) {{
+  if (totalCount === 0) {
     html = `<div class="section" style="text-align:center; padding:60px 20px;">
       <div style="font-size:48px; margin-bottom:12px">🎉</div>
       <div style="font-size:18px; font-weight:600; color:#2E7D32">期限超過・本日・3日以内のタスクはありません</div>
       <div style="font-size:13px; color:#666; margin-top:8px">全員お疲れ様です。余裕を持って作業を進めましょう。</div>
     </div>`;
-  }} else {{
+  } else {
     // サマリー
     let totalOverdue = 0, totalToday = 0, totalUrgent = 0;
-    Object.values(tasksByPerson).forEach(arr => {{
-      arr.forEach(t => {{
+    Object.values(tasksByPerson).forEach(arr => {
+      arr.forEach(t => {
         if (t.urgency === 'overdue') totalOverdue++;
         else if (t.urgency === 'today') totalToday++;
         else totalUrgent++;
-      }});
-    }});
+      });
+    });
 
     html += `<div class="focus-summary">
       <div class="focus-summary-title">📍 今日〜3日以内に対応が必要なタスク</div>
       <div class="focus-summary-stats">
-        <span class="focus-stat overdue">🔴 超過 <strong>${{totalOverdue}}</strong></span>
-        <span class="focus-stat today">🟠 本日 <strong>${{totalToday}}</strong></span>
-        <span class="focus-stat urgent">🟡 3日内 <strong>${{totalUrgent}}</strong></span>
+        <span class="focus-stat overdue">🔴 超過 <strong>${totalOverdue}</strong></span>
+        <span class="focus-stat today">🟠 本日 <strong>${totalToday}</strong></span>
+        <span class="focus-stat urgent">🟡 3日内 <strong>${totalUrgent}</strong></span>
       </div>
     </div>`;
 
     // 担当者別セクション
-    for (const person of PERSON_ORDER) {{
+    for (const person of PERSON_ORDER) {
       if (!tasksByPerson[person]) continue;
       const tasks = tasksByPerson[person];
       const nameLabel = person === '●●' ? '担当未定 (要アサイン)' : person;
 
       html += `<div class="section">
         <div class="section-header">
-          <div class="section-title">${{nameLabel}}</div>
-          <div class="section-count">${{tasks.length}}件</div>
+          <div class="section-title">${nameLabel}</div>
+          <div class="section-count">${tasks.length}件</div>
         </div>
-        ${{listHeaderHtml()}}
+        ${listHeaderHtml()}
         <ul class="task-list">`;
 
-      for (const t of tasks) {{
+      for (const t of tasks) {
         const delta = daysUntil(t.date);
         const cls = statusClass(delta, t.done);
-        const taskDataForName = {{ deadline: t.deadline, note: t.note }};
+        const taskDataForName = { deadline: t.deadline, note: t.note };
 
-        html += `<li class="task-item ${{cls}}">
-          ${{doneMarkHtml(t.done)}}
-          <span class="date-badge ${{!t.date ? 'nodate' : ''}}">${{formatDate(t.date)}}</span>
-          <span class="days-left ${{daysUrgency(delta)}}">${{daysText(delta, t.done)}}</span>
-          <span class="task-name">${{buildTaskNameHtml(t.taskName, taskDataForName)}}</span>
-          <span class="task-city">${{buildCaseBadgeCity(t.caseObj, t.num, t.city)}}</span>
-          ${{buildTeamCells(t.caseObj)}}
+        html += `<li class="task-item ${cls}">
+          ${doneMarkHtml(t.done)}
+          <span class="date-badge ${!t.date ? 'nodate' : ''}">${formatDate(t.date)}</span>
+          <span class="days-left ${daysUrgency(delta)}">${daysText(delta, t.done)}</span>
+          <span class="task-name">${buildTaskNameHtml(t.taskName, taskDataForName)}</span>
+          <span class="task-city">${buildCaseBadgeCity(t.caseObj, t.num, t.city)}</span>
+          ${buildTeamCells(t.caseObj)}
         </li>`;
-      }}
+      }
       html += '</ul></div>';
-    }}
-  }}
+    }
+  }
 
   container.innerHTML = html;
-}}
+}
 
 // ===== 今日のアラート表示 =====
-function renderTodayAlert() {{
+function renderTodayAlert() {
   const alertContainer = document.getElementById('today-alert-container');
   let overdue = 0, today = 0;
-  cases.forEach(c => {{
-    Object.entries(c.tasks).forEach(([tname, t]) => {{
+  cases.forEach(c => {
+    Object.entries(c.tasks).forEach(([tname, t]) => {
       if (t.done || !t.date) return;
       if (!isTaskInFilter(c, tname)) return;
       const d = daysUntil(t.date);
       if (d < 0) overdue++;
       else if (d === 0) today++;
-    }});
-  }});
+    });
+  });
 
-  if (overdue === 0 && today === 0) {{
+  if (overdue === 0 && today === 0) {
     alertContainer.innerHTML = '';
     return;
-  }}
+  }
 
   const msgs = [];
-  if (overdue > 0) msgs.push(`<strong>${{overdue}}件</strong>が期限超過`);
-  if (today > 0) msgs.push(`<strong>${{today}}件</strong>が本日期限`);
+  if (overdue > 0) msgs.push(`<strong>${overdue}件</strong>が期限超過`);
+  if (today > 0) msgs.push(`<strong>${today}件</strong>が本日期限`);
 
   const alertCls = overdue > 0 ? 'today-alert overdue' : 'today-alert';
-  alertContainer.innerHTML = `<div class="${{alertCls}}" onclick="switchViewByName('today-focus')">
-    ⚠️ ${{msgs.join(' / ')}} — 詳細はここをクリック(今日やること)
+  alertContainer.innerHTML = `<div class="${alertCls}" onclick="switchViewByName('today-focus')">
+    ⚠️ ${msgs.join(' / ')} — 詳細はここをクリック(今日やること)
   </div>`;
-}}
+}
 
 // ===== カードクリックでジャンプ =====
 // ビュー遷移の単一API(旧switchView/switchViewByNameを統合)
-function setView(view) {{
+function setView(view) {
   if (!view) return;
   currentViewId = view;
-  document.querySelectorAll('.view-btn').forEach(b => {{
+  document.querySelectorAll('.view-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.view === view);
-  }});
-  document.querySelectorAll('.view-content').forEach(v => {{
+  });
+  document.querySelectorAll('.view-content').forEach(v => {
     v.classList.toggle('active', v.id === view + '-view');
-  }});
+  });
   applyTabDefaultScope();
   updateScopeVisibility();
   render();
   // モバイルメニューが開いてたら閉じる
   const menu = document.getElementById('mobile-menu');
-  if (menu && menu.classList.contains('open')) {{
+  if (menu && menu.classList.contains('open')) {
     toggleMobileMenu();
-  }}
-  window.scrollTo({{ top: 0, behavior: 'smooth' }});
-}}
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 // レガシー互換: 既存のonclickハンドラで使われてる名前を残す
-function switchView(view, btn) {{ setView(view); }}
-function switchViewByName(name) {{ setView(name); }}
+function switchView(view, btn) { setView(view); }
+function switchViewByName(name) { setView(name); }
 
-function jumpToDeadline(groupKey) {{
+function jumpToDeadline(groupKey) {
   setView('deadline');
-  setTimeout(() => {{
-    const label = {{
+  setTimeout(() => {
+    const label = {
       overdue: '期限超過',
       today: '本日期限',
       thisWeek: '今週中',
       nextWeek: '来週'
-    }}[groupKey];
+    }[groupKey];
     const headers = document.querySelectorAll('#deadline-view .deadline-header span');
-    for (const h of headers) {{
-      if (h.textContent.includes(label)) {{
-        h.closest('.section').scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+    for (const h of headers) {
+      if (h.textContent.includes(label)) {
+        h.closest('.section').scrollIntoView({ behavior: 'smooth', block: 'start' });
         break;
-      }}
-    }}
-  }}, 100);
-}}
+      }
+    }
+  }, 100);
+}
 
-function scrollToPerson(personName) {{
-  setTimeout(() => {{
+function scrollToPerson(personName) {
+  setTimeout(() => {
     const headers = document.querySelectorAll('#person-view .section-title');
-    for (const h of headers) {{
+    for (const h of headers) {
       const target = personName === '●●' ? '担当未定' : personName;
-      if (h.textContent.includes(target)) {{
-        h.closest('.section').scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+      if (h.textContent.includes(target)) {
+        h.closest('.section').scrollIntoView({ behavior: 'smooth', block: 'start' });
         break;
-      }}
-    }}
-  }}, 100);
-}}
+      }
+    }
+  }, 100);
+}
 
 // 共通部(ダッシュボード・アラート・フィルタ類)の描画
-function renderCommon() {{
+function renderCommon() {
   populateGenreFilter();
   populateUserFilter();
   updateScopeVisibility();
   renderDashboard();
   renderTodayAlert();
   renderUnassignedAlert();
-}}
+}
 
 // アクティブタブだけ描画(重いビューを毎回全部描かない)
-function renderCurrentView() {{
-  switch (currentViewId) {{
+function renderCurrentView() {
+  switch (currentViewId) {
     case 'today-focus': renderTodayFocusView(); break;
     case 'overview': renderOverviewView(); break;
     case 'person': renderPersonView(); break;
@@ -4213,64 +4193,64 @@ function renderCurrentView() {{
     case 'task': renderTaskView(); break;
     case 'gantt': renderGanttView(); break;
     case 'workload': renderWorkloadView(); break;
-  }}
-}}
+  }
+}
 
-function render() {{
+function render() {
   clearInvolvementCache();
   renderCommon();
   renderCurrentView();
-}}
+}
 
-function toggleDone() {{
+function toggleDone() {
   const checked = document.getElementById('show-done').checked;
-  if (checked) {{
+  if (checked) {
     document.body.classList.remove('hide-done');
-  }} else {{
+  } else {
     document.body.classList.add('hide-done');
-  }}
-  try {{
+  }
+  try {
     localStorage.setItem('showDone', checked ? '1' : '0');
-  }} catch(e) {{}}
+  } catch(e) {}
   // モバイルトグルと同期
   const mobileChk = document.getElementById('show-done-mobile');
   if (mobileChk) mobileChk.checked = checked;
-}}
+}
 
 // モバイル経由での済表示切替
-function toggleDoneFromMobile(checked) {{
+function toggleDoneFromMobile(checked) {
   const pc = document.getElementById('show-done');
   if (pc) pc.checked = checked;
-  if (checked) {{
+  if (checked) {
     document.body.classList.remove('hide-done');
-  }} else {{
+  } else {
     document.body.classList.add('hide-done');
-  }}
-  try {{ localStorage.setItem('showDone', checked ? '1' : '0'); }} catch(e) {{}}
-}}
+  }
+  try { localStorage.setItem('showDone', checked ? '1' : '0'); } catch(e) {}
+}
 
 // ハンバーガーメニューの開閉
-function toggleMobileMenu() {{
+function toggleMobileMenu() {
   const menu = document.getElementById('mobile-menu');
   const overlay = document.getElementById('mobile-menu-overlay');
   if (!menu || !overlay) return;
   const isOpen = menu.classList.contains('open');
-  if (isOpen) {{
+  if (isOpen) {
     menu.classList.remove('open');
     overlay.classList.remove('open');
     document.body.style.overflow = '';
-  }} else {{
+  } else {
     // 開く前にモバイル側select/チェックを最新状態に
     syncMobileFiltersFromState();
     menu.classList.add('open');
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
-  }}
-}}
+  }
+}
 
 // ステート→モバイル側UIへ反映(メニューを開く時)
-function syncMobileFiltersFromState() {{
-  try {{
+function syncMobileFiltersFromState() {
+  try {
     const g = document.getElementById('genre-filter-mobile');
     if (g) g.value = currentGenreFilter;
     const k = document.getElementById('kind-filter-mobile');
@@ -4279,37 +4259,37 @@ function syncMobileFiltersFromState() {{
     const pc = document.getElementById('show-done');
     if (d && pc) d.checked = pc.checked;
     // scopeボタンのハイライト同期(モバイル側)
-    document.querySelectorAll('.mobile-scope-btn').forEach(btn => {{
+    document.querySelectorAll('.mobile-scope-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.scope === currentScopeFilter);
-    }});
+    });
     // scopeセクションの表示可否
     const scopeSection = document.getElementById('mobile-scope-section');
-    if (scopeSection) {{
+    if (scopeSection) {
       scopeSection.style.display = currentUserFilter === 'all' ? 'none' : 'block';
-    }}
-  }} catch(e) {{}}
-}}
+    }
+  } catch(e) {}
+}
 
 // モバイル側selectからの変更をステートと PC側selectに同期
-function syncFilterFromMobile(type, value) {{
-  if (type === 'genre') {{
+function syncFilterFromMobile(type, value) {
+  if (type === 'genre') {
     const pc = document.getElementById('genre-filter');
     if (pc) pc.value = value;
     onGenreFilterChange();
-  }} else if (type === 'kind') {{
+  } else if (type === 'kind') {
     const pc = document.getElementById('kind-filter');
     if (pc) pc.value = value;
     onKindFilterChange();
-  }}
+  }
   // 選択後にメニューを閉じる(選択結果を見せるため)
   const menu = document.getElementById('mobile-menu');
-  if (menu && menu.classList.contains('open')) {{
+  if (menu && menu.classList.contains('open')) {
     setTimeout(() => toggleMobileMenu(), 150);
-  }}
-}}
+  }
+}
 
 // モバイル用コンパクトダッシュボード描画
-function renderMobileDashboard() {{
+function renderMobileDashboard() {
   const container = document.getElementById('mobile-dashboard');
   if (!container) return;
   const overdue = document.getElementById('stat-overdue');
@@ -4317,182 +4297,182 @@ function renderMobileDashboard() {{
   const week = document.getElementById('stat-week');
   const unassigned = document.getElementById('stat-unassigned');
   const pills = [];
-  if (overdue && parseInt(overdue.textContent) > 0) {{
-    pills.push(`<span class="mobile-stat-pill overdue" onclick="jumpToDeadline('overdue')">⚠ 超過<span class="count">${{escapeHtml(overdue.textContent)}}</span></span>`);
-  }}
-  if (today && parseInt(today.textContent) > 0) {{
-    pills.push(`<span class="mobile-stat-pill today" onclick="jumpToDeadline('today')">📅 本日<span class="count">${{escapeHtml(today.textContent)}}</span></span>`);
-  }}
-  if (week && parseInt(week.textContent) > 0) {{
-    pills.push(`<span class="mobile-stat-pill week" onclick="jumpToDeadline('thisWeek')">📆 今週<span class="count">${{escapeHtml(week.textContent)}}</span></span>`);
-  }}
-  if (unassigned && parseInt(unassigned.textContent) > 0) {{
-    pills.push(`<span class="mobile-stat-pill unassigned" onclick="switchViewByName('person'); scrollToPerson('●●')">👤 未定<span class="count">${{escapeHtml(unassigned.textContent)}}</span></span>`);
-  }}
+  if (overdue && parseInt(overdue.textContent) > 0) {
+    pills.push(`<span class="mobile-stat-pill overdue" onclick="jumpToDeadline('overdue')">⚠ 超過<span class="count">${escapeHtml(overdue.textContent)}</span></span>`);
+  }
+  if (today && parseInt(today.textContent) > 0) {
+    pills.push(`<span class="mobile-stat-pill today" onclick="jumpToDeadline('today')">📅 本日<span class="count">${escapeHtml(today.textContent)}</span></span>`);
+  }
+  if (week && parseInt(week.textContent) > 0) {
+    pills.push(`<span class="mobile-stat-pill week" onclick="jumpToDeadline('thisWeek')">📆 今週<span class="count">${escapeHtml(week.textContent)}</span></span>`);
+  }
+  if (unassigned && parseInt(unassigned.textContent) > 0) {
+    pills.push(`<span class="mobile-stat-pill unassigned" onclick="switchViewByName('person'); scrollToPerson('●●')">👤 未定<span class="count">${escapeHtml(unassigned.textContent)}</span></span>`);
+  }
   container.innerHTML = pills.join('');
-}}
+}
 
-function toggleLegend() {{
+function toggleLegend() {
   const panel = document.getElementById('legend-panel');
   const btn = document.getElementById('legend-toggle');
   if (!panel || !btn) return;
   const isHidden = panel.style.display === 'none' || !panel.style.display;
-  if (isHidden) {{
+  if (isHidden) {
     panel.style.display = 'flex';
     btn.classList.add('active');
-    try {{ localStorage.setItem('legendOpen', '1'); }} catch(e) {{}}
-  }} else {{
+    try { localStorage.setItem('legendOpen', '1'); } catch(e) {}
+  } else {
     panel.style.display = 'none';
     btn.classList.remove('active');
-    try {{ localStorage.setItem('legendOpen', '0'); }} catch(e) {{}}
-  }}
-}}
+    try { localStorage.setItem('legendOpen', '0'); } catch(e) {}
+  }
+}
 
 // 全フィルタをクリアしてホーム状態に戻す(PPMタイトルクリック)
-function resetAllFilters() {{
+function resetAllFilters() {
   // 状態をクリア
   currentUserFilter = 'all';
   currentGenreFilter = 'all';
   currentKindFilter = 'all';
   userScopeOverride = null;
   // UIのセレクタ値を同期
-  try {{
+  try {
     const uSel = document.getElementById('user-filter');
     if (uSel) uSel.value = 'all';
     const gSel = document.getElementById('genre-filter');
     if (gSel) gSel.value = 'all';
     const kSel = document.getElementById('kind-filter');
     if (kSel) kSel.value = 'all';
-  }} catch(e) {{}}
+  } catch(e) {}
   // URLとlocalStorageをクリア
-  try {{
+  try {
     const url = new URL(window.location.href);
     url.searchParams.delete('user');
     url.searchParams.delete('genre');
     url.searchParams.delete('kind');
     url.searchParams.delete('scope');
-    window.history.replaceState({{}}, '', url.pathname);
+    window.history.replaceState({}, '', url.pathname);
     localStorage.removeItem('userFilter');
     localStorage.removeItem('genreFilter');
     localStorage.removeItem('kindFilter');
-  }} catch(e) {{}}
+  } catch(e) {}
   // 「今日やること」タブに戻す(setView内でscope適用・再描画・スクロールを一括処理)
   setView('today-focus');
-}}
+}
 
 // 初期状態の復元
-function restoreDoneToggle() {{
-  try {{
+function restoreDoneToggle() {
+  try {
     const saved = localStorage.getItem('showDone');
-    if (saved === '0') {{
+    if (saved === '0') {
       document.getElementById('show-done').checked = false;
       document.body.classList.add('hide-done');
-    }}
+    }
     // 凡例の開閉状態も復元
     const legendSaved = localStorage.getItem('legendOpen');
     const panel = document.getElementById('legend-panel');
     const btn = document.getElementById('legend-toggle');
-    if (panel && btn && legendSaved === '1') {{
+    if (panel && btn && legendSaved === '1') {
       panel.style.display = 'flex';
       btn.classList.add('active');
-    }}
-  }} catch(e) {{}}
-}}
+    }
+  } catch(e) {}
+}
 
 const wd = ['日','月','火','水','木','金','土'];
-function updateTodayDisplay() {{
+function updateTodayDisplay() {
   const today = getToday();
   const el = document.getElementById('today-display');
-  if (el) {{
-    el.textContent = `${{today.getFullYear()}}年${{today.getMonth()+1}}月${{today.getDate()}}日 (${{wd[today.getDay()]}})`;
-  }}
-}}
+  if (el) {
+    el.textContent = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日 (${wd[today.getDay()]})`;
+  }
+}
 updateTodayDisplay();
 
 // ===== パスワード認証 =====
-const APP_PASSWORD = '{APP_PASSWORD}';
-const SHEET_CSV_URL = '{SHEET_CSV_URL}';
+const APP_PASSWORD = 'splspl';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQoEzRihpNiOfpjj4NFBXd0khIJkYkHsh01_DnbTI-JdhDO4QDSAqgBSk97Boa0uLXtGy7esFdWxJLl/pub?output=csv';
 const AUTO_REFRESH_MS = 10 * 60 * 1000; // 10分
 
-function checkPassword() {{
+function checkPassword() {
   const input = document.getElementById('auth-input').value;
   const errEl = document.getElementById('auth-error');
-  if (input === APP_PASSWORD) {{
-    try {{ localStorage.setItem('authed', '1'); }} catch(e) {{}}
+  if (input === APP_PASSWORD) {
+    try { localStorage.setItem('authed', '1'); } catch(e) {}
     showApp();
-  }} else {{
+  } else {
     errEl.textContent = 'パスワードが違います';
     document.getElementById('auth-input').value = '';
-  }}
-}}
+  }
+}
 
 let refreshTimer = null;
-function startAutoRefresh() {{
+function startAutoRefresh() {
   if (refreshTimer) clearInterval(refreshTimer);
   refreshTimer = setInterval(fetchAndRender, AUTO_REFRESH_MS);
-}}
+}
 
 // ヘッダーの実高さを測定してCSS変数に反映(フォント・追加ボタンで高さが変わっても追従)
-function syncHeaderHeightVar() {{
-  try {{
+function syncHeaderHeightVar() {
+  try {
     const header = document.querySelector('.header-row');
     if (!header) return;
     const h = header.offsetHeight;
-    if (h > 0) {{
+    if (h > 0) {
       const isMobile = window.innerWidth <= 768;
       const varName = isMobile ? '--header-height-mobile' : '--header-height';
       document.documentElement.style.setProperty(varName, h + 'px');
-    }}
-  }} catch(e) {{}}
-}}
+    }
+  } catch(e) {}
+}
 
-function showApp() {{
+function showApp() {
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('app-content').classList.add('authed');
   restoreDoneToggle();
   applyTabDefaultScope(); // タブデフォルトscope適用
   updateTodayDisplay(); // 日付表示を最新化
   // genre/kind/user filterのUI初期値を復元
-  try {{
+  try {
     const gSel = document.getElementById('genre-filter');
     if (gSel) gSel.value = currentGenreFilter;
     const kSel = document.getElementById('kind-filter');
     if (kSel) kSel.value = currentKindFilter;
-  }} catch(e) {{}}
+  } catch(e) {}
   fetchAndRender();
   startAutoRefresh();
   // ヘッダー高さ測定(初回+リサイズ時)
   requestAnimationFrame(syncHeaderHeightVar);
   window.addEventListener('resize', syncHeaderHeightVar);
-}}
+}
 
-function logout() {{
-  try {{ localStorage.removeItem('authed'); }} catch(e) {{}}
+function logout() {
+  try { localStorage.removeItem('authed'); } catch(e) {}
   location.reload();
-}}
+}
 
 // Enterキーでログイン
-document.getElementById('auth-input').addEventListener('keydown', (e) => {{
+document.getElementById('auth-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') checkPassword();
-}});
+});
 
 // 既にログイン済みなら即表示
-try {{
-  if (localStorage.getItem('authed') === '1') {{
+try {
+  if (localStorage.getItem('authed') === '1') {
     showApp();
-  }}
-}} catch(e) {{}}
+  }
+} catch(e) {}
 
 // ===== スプシfetch =====
 let lastFetchTime = null;
 
 let fetchSeq = 0;
-async function fetchAndRender() {{
+async function fetchAndRender() {
   const mySeq = ++fetchSeq;
   const statusEl = document.getElementById('sync-status');
   statusEl.className = 'syncing';
   statusEl.textContent = '🔄 同期中...';
-  try {{
+  try {
     // キャッシュ回避のためクエリ付与
     const url = SHEET_CSV_URL + '&_=' + Date.now();
     const res = await fetch(url);
@@ -4501,116 +4481,110 @@ async function fetchAndRender() {{
     // 古いリクエスト(もう新しいのが走っている)はここで破棄
     if (mySeq !== fetchSeq) return;
     const fmtText = csvToFmt(csvText);
-    const {{ cases: parsedCases, errors, warnings }} = parseFmt(fmtText);
+    const { cases: parsedCases, errors, warnings } = parseFmt(fmtText);
     if (mySeq !== fetchSeq) return;
     cases = parsedCases;
     lastFetchTime = new Date();
     const info = document.getElementById('parse-info');
     const parts = [];
     // 成功件数(メイン)
-    if (errors.length > 0) {{
-      parts.push(`<span class="parse-error">⚠ ${{errors.length}}件の解析エラー(${{parsedCases.length}}件は成功)</span>`);
+    if (errors.length > 0) {
+      parts.push(`<span class="parse-error">⚠ ${errors.length}件の解析エラー(${parsedCases.length}件は成功)</span>`);
       const sample = errors.slice(0, 3).map(e => escapeHtml(e)).join('<br>');
-      const more = errors.length > 3 ? `<br>…他 ${{errors.length - 3}}件` : '';
-      parts.push(`<div class="parse-error-detail">${{sample}}${{more}}</div>`);
-    }} else {{
-      parts.push(`<span class="parse-ok">${{parsedCases.length}}件を読み込み</span>`);
-    }}
+      const more = errors.length > 3 ? `<br>…他 ${errors.length - 3}件` : '';
+      parts.push(`<div class="parse-error-detail">${sample}${more}</div>`);
+    } else {
+      parts.push(`<span class="parse-ok">${parsedCases.length}件を読み込み</span>`);
+    }
     // 警告(errorsとは別枠)
-    if (warnings && warnings.length > 0) {{
+    if (warnings && warnings.length > 0) {
       const wSample = warnings.slice(0, 3).map(w => escapeHtml(w)).join('<br>');
-      const wMore = warnings.length > 3 ? `<br>…他 ${{warnings.length - 3}}件` : '';
-      parts.push(`<div class="parse-warning-detail">💡 ${{warnings.length}}件の記法確認:<br>${{wSample}}${{wMore}}</div>`);
-    }}
+      const wMore = warnings.length > 3 ? `<br>…他 ${warnings.length - 3}件` : '';
+      parts.push(`<div class="parse-warning-detail">💡 ${warnings.length}件の記法確認:<br>${wSample}${wMore}</div>`);
+    }
     info.innerHTML = parts.join('');
     // モバイル側にもミラー
     const infoMobile = document.getElementById('parse-info-mobile');
     if (infoMobile) infoMobile.innerHTML = parts.join('');
     render();
     updateSyncStatus();
-  }} catch (e) {{
+  } catch (e) {
     if (mySeq !== fetchSeq) return; // 古いリクエストのエラーは無視
     statusEl.className = 'error';
     statusEl.textContent = '⚠️ 同期失敗: ' + e.message;
     console.error('fetchAndRender error:', e);
-  }}
-}}
+  }
+}
 
-function updateSyncStatus() {{
+function updateSyncStatus() {
   const statusEl = document.getElementById('sync-status');
-  if (!lastFetchTime) {{
+  if (!lastFetchTime) {
     statusEl.textContent = '';
     return;
-  }}
+  }
   const pad = n => String(n).padStart(2, '0');
   const hh = pad(lastFetchTime.getHours());
   const mm = pad(lastFetchTime.getMinutes());
   statusEl.className = 'ok';
-  statusEl.textContent = `✓ 最終同期 ${{hh}}:${{mm}} (10分ごと自動更新)`;
-}}
+  statusEl.textContent = `✓ 最終同期 ${hh}:${mm} (10分ごと自動更新)`;
+}
 
 // CSV → プロポFMT変換
 // A列に1行1案件のFMT文字列が入っている前提
-function csvToFmt(csvText) {{
+function csvToFmt(csvText) {
   // BOM除去(Excelエクスポート等で混入することがある)
-  if (csvText.charCodeAt(0) === 0xFEFF) {{
+  if (csvText.charCodeAt(0) === 0xFEFF) {
     csvText = csvText.slice(1);
-  }}
-  const lines = csvText.split(/\\r?\\n/);
+  }
+  const lines = csvText.split(/\r?\n/);
   const fmtLines = [];
   const seenCaseKeys = new Set(); // 重複案件の検知用
-  for (const raw of lines) {{
+  for (const raw of lines) {
     if (!raw) continue;
     // CSVの最初のセルだけ取り出す(""で囲まれてる可能性あり)
     let cell = raw;
-    if (raw.startsWith('"')) {{
+    if (raw.startsWith('"')) {
       // ""を処理しつつ、閉じる"まで取る
       let i = 1;
       let result = '';
-      while (i < raw.length) {{
-        if (raw[i] === '"' && raw[i+1] === '"') {{
+      while (i < raw.length) {
+        if (raw[i] === '"' && raw[i+1] === '"') {
           result += '"';
           i += 2;
-        }} else if (raw[i] === '"') {{
+        } else if (raw[i] === '"') {
           break;
-        }} else {{
+        } else {
           result += raw[i];
           i++;
-        }}
-      }}
+        }
+      }
       cell = result;
-    }} else {{
+    } else {
       const commaIdx = raw.indexOf(',');
       cell = commaIdx === -1 ? raw : raw.substring(0, commaIdx);
-    }}
+    }
     // 前後の全角/半角空白・タブを除去(入力事故対策)
-    cell = cell.replace(/^[\\s\\u3000]+|[\\s\\u3000]+$/g, '');
-    if (cell && cell.startsWith('【')) {{
+    cell = cell.replace(/^[\s\u3000]+|[\s\u3000]+$/g, '');
+    if (cell && cell.startsWith('【')) {
       // 重複検知: 同じ【xxx】番号の行が複数ある場合は後勝ち(警告はparseFmt側で)
       const keyMatch = cell.match(/^【([^】]+)】/);
-      if (keyMatch) {{
+      if (keyMatch) {
         const key = keyMatch[1];
-        if (seenCaseKeys.has(key)) {{
+        if (seenCaseKeys.has(key)) {
           // 既存行を上書き(最新の入力を優先)
-          const idx = fmtLines.findIndex(l => l.startsWith(`【${{key}}】`));
-          if (idx >= 0) {{
+          const idx = fmtLines.findIndex(l => l.startsWith(`【${key}】`));
+          if (idx >= 0) {
             fmtLines[idx] = cell;
             continue;
-          }}
-        }}
+          }
+        }
         seenCaseKeys.add(key);
-      }}
+      }
       fmtLines.push(cell);
-    }}
-  }}
-  return fmtLines.join('\\n');
-}}
+    }
+  }
+  return fmtLines.join('\n');
+}
 </script>
 </body>
 </html>
-'''
-
-with open('/home/claude/gantt/task_list_v10.html', 'w', encoding='utf-8') as f:
-    f.write(html)
-
-print("✓ プロポーザルプロジェクトマネジメント 生成完了")
